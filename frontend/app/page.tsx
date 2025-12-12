@@ -1,23 +1,18 @@
-import HeroSection from '@/components/landing/HeroSection'
-import ProblemSection from '@/components/landing/ProblemSection'
-import { HowItWorksSection } from '@/components/landing/HowItWorksSection'
-import DocumentsSection from '@/components/landing/DocumentsSection'
-import { BenefitsSection } from '@/components/landing/BenefitsSection'
-import { CtaSection } from '@/components/landing/CtaSection'
-import { Footer } from '@/components/landing/Footer'
+import { Header, Hero, Problems, Features, HowItWorks, WhyLeme, CTAFinal, Footer } from "@/components/landing";
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
-      <HeroSection />
-      <ProblemSection />
-      <div id="how-it-works">
-  <HowItWorksSection />
-</div>
-      <DocumentsSection /> 
-      <BenefitsSection />
-      <CtaSection />
+    <>
+      <Header />
+      <main>
+        <Hero />
+        <Problems />
+        <Features />
+        <HowItWorks />
+        <WhyLeme />
+        <CTAFinal />
+      </main>
       <Footer />
-    </div>
-  )
+    </>
+  );
 }

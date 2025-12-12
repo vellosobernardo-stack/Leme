@@ -1,159 +1,36 @@
-// Tipos para a análise financeira
+/**
+ * Tipos TypeScript para o fluxo de análise financeira
+ */
 
-export type SetorEnum = 
-  | "agricultura" | "pecuaria" | "extrativas" | "transformacao"
-  | "eletricidade_gas" | "agua_residuos" | "construcao" | "comercio_veiculos"
-  | "transporte" | "alojamento_alimentacao" | "informacao_comunicacao"
-  | "financeiras" | "imobiliarias" | "profissionais" | "administrativas"
-  | "administracao_publica" | "educacao" | "saude" | "artes_cultura"
-  | "outras_atividades" | "servicos_domesticos";
-
-export type EstadoEnum = 
-  | "AC" | "AL" | "AP" | "AM" | "BA" | "CE" | "DF" | "ES" | "GO" | "MA"
-  | "MT" | "MS" | "MG" | "PA" | "PB" | "PR" | "PE" | "PI" | "RJ" | "RN"
-  | "RS" | "RO" | "RR" | "SC" | "SP" | "SE" | "TO";
-
-export interface MetaDados {
-  setor: SetorEnum;
-  estado: EstadoEnum;
-  mes: number;
-  ano: number;
-  nivel_maximo_preenchido: 1 | 2 | 3;
-}
-
-export interface DadosNivel1 {
-  receita_bruta_mensal: number;
-  custo_vendas_mensal?: number;
-  despesas_fixas_mensais: number;
-  caixa: number;
-  conta_corrente: number;
-  contas_a_receber_30d?: number;
-  contas_a_pagar_30d?: number;
-}
-
-export interface DadosNivel2 {
-  prazo_medio_recebimento_dias?: number;
-  prazo_medio_pagamento_dias?: number;
-  estoque_custo?: number;
-  dividas_totais: number;
-  despesas_financeiras_mensais?: number;
-  impostos_mensais?: number;
-  numero_funcionarios?: number;
-}
-
-export interface DadosNivel3 {
-  receita_ultimos_3_meses: [number, number, number];
-  aliquota_impostos_percentual?: number;
-  despesas_variaveis_percentual_receita?: number;
-  capex_planejado_prox_6m?: number;
-  imobilizado?: number;
-  patrimonio_liquido?: number;
-  meta_margem_bruta_percentual: number;
-  meta_prazo_recebimento_dias?: number;
-}
-
-export interface AnaliseRequest {
-  meta: MetaDados;
-  nivel1: DadosNivel1;
-  nivel2?: DadosNivel2;
-  nivel3?: DadosNivel3;
-}
-
-// Tipos de resposta
-export interface KPI {
-  nome: string;
-  valor: number;
-  formato: "moeda" | "percentual" | "numero" | "dias";
-  classificacao?: "verde" | "amarelo" | "vermelho";
-}
-
-export interface GraficoBarras {
-  tipo: "barras";
-  titulo: string;
-  labels: string[];
-  valores: number[];
-  cores?: string[];
-}
-
-export interface GraficoLinha {
-  tipo: "linha";
-  titulo: string;
-  labels: string[];
-  series: {
-    nome: string;
-    valores: number[];
-    cor?: string;
-  }[];
-}
-
-export interface Tabela {
-  titulo: string;
-  colunas: string[];
-  linhas: any[][];
-}
-
-export interface ResultadoNivel {
-  kpis: KPI[];
-  graficos: (GraficoBarras | GraficoLinha)[];
-  tabelas: Tabela[];
-  mensagem: string;
-  convite_proximo_nivel?: string;
-  assumptions: string[];
-  missing: string[];
-}
-
-export interface DiagnosticoEstrategia {
-  diagnostico: string[];
-  oportunidades: {
-    descricao: string;
-    impacto_r: number;
-    impacto_percentual: number;
-    acao?: string;
-  }[];
-  plano_30_60_90: {
-    "30_dias": string[];
-    "60_dias": string[];
-    "90_dias": string[];
-  };
-}
-
-export interface AnaliseResponse {
-  nivel1: ResultadoNivel;
-  nivel2?: ResultadoNivel;
-  nivel3?: ResultadoNivel;
-  diagnostico_estrategia?: DiagnosticoEstrategia;
-  status_validacao: {
-    assumptions: string[];
-    avisos: string[];
-  };
-}
-
-// Constantes
-export const SETORES: { value: SetorEnum; label: string }[] = [
-  { value: "agricultura", label: "Agricultura, pecuária e produção florestal" },
-  { value: "pecuaria", label: "Pecuária" },
-  { value: "extrativas", label: "Indústrias extrativas" },
-  { value: "transformacao", label: "Indústrias de transformação" },
-  { value: "eletricidade_gas", label: "Eletricidade e gás" },
-  { value: "agua_residuos", label: "Água, esgoto e gestão de resíduos" },
-  { value: "construcao", label: "Construção" },
-  { value: "comercio_veiculos", label: "Comércio e reparação de veículos" },
-  { value: "transporte", label: "Transporte, armazenagem e correio" },
-  { value: "alojamento_alimentacao", label: "Alojamento e alimentação" },
-  { value: "informacao_comunicacao", label: "Informação e comunicação" },
-  { value: "financeiras", label: "Atividades financeiras e seguros" },
-  { value: "imobiliarias", label: "Atividades imobiliárias" },
-  { value: "profissionais", label: "Atividades profissionais e técnicas" },
-  { value: "administrativas", label: "Atividades administrativas" },
-  { value: "administracao_publica", label: "Administração pública" },
+// ========== SETORES ==========
+export const SETORES = [
+  { value: "comercio_varejo", label: "Comércio Varejista" },
+  { value: "comercio_atacado", label: "Comércio Atacadista" },
+  { value: "servicos", label: "Serviços" },
+  { value: "industria", label: "Indústria" },
+  { value: "tecnologia", label: "Tecnologia" },
+  { value: "alimentacao", label: "Alimentação e Bebidas" },
+  { value: "saude", label: "Saúde" },
   { value: "educacao", label: "Educação" },
-  { value: "saude", label: "Saúde humana e serviços sociais" },
-  { value: "artes_cultura", label: "Artes, cultura e esporte" },
-  { value: "outras_atividades", label: "Outras atividades de serviços" },
-  { value: "servicos_domesticos", label: "Serviços domésticos" },
-];
+  { value: "construcao", label: "Construção Civil" },
+  { value: "agronegocio", label: "Agronegócio" },
+  { value: "transporte", label: "Transporte e Logística" },
+  { value: "hotelaria_turismo", label: "Hotelaria e Turismo" },
+  { value: "imobiliario", label: "Imobiliário" },
+  { value: "financeiro", label: "Serviços Financeiros" },
+  { value: "comunicacao", label: "Comunicação e Marketing" },
+  { value: "energia", label: "Energia" },
+  { value: "textil", label: "Têxtil e Vestuário" },
+  { value: "metalurgico", label: "Metalúrgico" },
+  { value: "moveis", label: "Móveis e Decoração" },
+  { value: "grafico", label: "Gráfico e Editorial" },
+  { value: "reciclagem", label: "Reciclagem e Meio Ambiente" },
+] as const;
 
-export const ESTADOS: { value: EstadoEnum; label: string }[] = [
+export type SetorType = typeof SETORES[number]["value"];
+
+// ========== ESTADOS BRASILEIROS ==========
+export const ESTADOS_BR = [
   { value: "AC", label: "Acre" },
   { value: "AL", label: "Alagoas" },
   { value: "AP", label: "Amapá" },
@@ -181,8 +58,11 @@ export const ESTADOS: { value: EstadoEnum; label: string }[] = [
   { value: "SP", label: "São Paulo" },
   { value: "SE", label: "Sergipe" },
   { value: "TO", label: "Tocantins" },
-];
+] as const;
 
+export type EstadoType = typeof ESTADOS_BR[number]["value"];
+
+// ========== MESES ==========
 export const MESES = [
   { value: 1, label: "Janeiro" },
   { value: 2, label: "Fevereiro" },
@@ -196,4 +76,135 @@ export const MESES = [
   { value: 10, label: "Outubro" },
   { value: 11, label: "Novembro" },
   { value: 12, label: "Dezembro" },
-];
+] as const;
+
+// ========== ETAPAS DO FLUXO ==========
+export type EtapaFluxo = 1 | 2 | 3 | 4;
+
+export const ETAPAS_INFO = {
+  1: { titulo: "Identificação", descricao: "Nome e email" },
+  2: { titulo: "Informações Básicas", descricao: "Setor e período" },
+  3: { titulo: "Método de Entrada", descricao: "Como fornecer os dados" },
+  4: { titulo: "Saúde Financeira", descricao: "Dados financeiros" },
+} as const;
+
+// ========== DADOS DO FORMULÁRIO ==========
+export interface ReceitaHistorico {
+  tres_meses_atras: number;
+  dois_meses_atras: number;
+  mes_passado: number;
+}
+
+export interface DadosAnalise {
+  // Etapa 1: Identificação
+  nome_empresa: string;
+  email: string;
+
+  // Etapa 2: Básico
+  setor: SetorType | "";
+  estado: EstadoType | "";
+  mes_referencia: number;
+  ano_referencia: number;
+
+  // Etapa 3: Método
+  metodo_entrada: "manual" | "dre" | "balanco";
+
+  // Etapa 4: Receita e Histórico
+  receita_historico: ReceitaHistorico;
+  receita_atual: number;
+
+  // Etapa 4: Custos e Despesas
+  custo_vendas: number;
+  despesas_fixas: number;
+
+  // Etapa 4: Caixa e Fluxo
+  caixa_bancos: number;
+  contas_receber: number;
+  contas_pagar: number;
+
+  // Etapa 4: Condicionais
+  tem_estoque: boolean;
+  estoque?: number;
+
+  tem_dividas: boolean;
+  dividas_totais?: number;
+
+  tem_bens: boolean;
+  bens_equipamentos?: number;
+
+  // Etapa 4: Equipe
+  num_funcionarios: number;
+}
+
+// ========== VALORES INICIAIS ==========
+const getMesAnterior = () => {
+  const hoje = new Date();
+  let mes = hoje.getMonth(); // getMonth() retorna 0-11, então dezembro = 11
+  let ano = hoje.getFullYear();
+  
+  // Se estamos em janeiro, volta para dezembro do ano anterior
+  if (mes === 0) {
+    mes = 12;
+    ano = ano - 1;
+  }
+  
+  return { mes, ano };
+};
+
+const mesAnterior = getMesAnterior();
+
+export const DADOS_INICIAIS: DadosAnalise = {
+  nome_empresa: "",
+  email: "",
+  setor: "",
+  estado: "",
+  mes_referencia: mesAnterior.mes,
+  ano_referencia: mesAnterior.ano,
+  metodo_entrada: "manual",
+  receita_historico: {
+    tres_meses_atras: 0,
+    dois_meses_atras: 0,
+    mes_passado: 0,
+  },
+  receita_atual: 0,
+  custo_vendas: 0,
+  despesas_fixas: 0,
+  caixa_bancos: 0,
+  contas_receber: 0,
+  contas_pagar: 0,
+  tem_estoque: false,
+  estoque: undefined,
+  tem_dividas: false,
+  dividas_totais: undefined,
+  tem_bens: false,
+  bens_equipamentos: undefined,
+  num_funcionarios: 1,
+};
+// ========== INDICADORES ==========
+export interface Indicadores {
+  margem_bruta: number | null;
+  resultado_mes: number | null;
+  folego_caixa: number | null;
+  ponto_equilibrio: number | null;
+  ciclo_financeiro: number | null;
+  capital_minimo: number | null;
+  receita_funcionario: number | null;
+  peso_divida: number | null;
+  valor_empresa_min: number | null;
+  valor_empresa_max: number | null;
+  retorno_investimento: number | null;
+  tendencia_receita: number | null;
+  tendencia_status: "crescendo" | "estavel" | "caindo" | null;
+  score_saude: number | null;
+}
+
+// ========== VALIDAÇÃO ==========
+export interface ErrosCampo {
+  [campo: string]: string | undefined;
+}
+
+export interface ResultadoValidacao {
+  valido: boolean;
+  erros: ErrosCampo;
+  alertas: string[];
+}

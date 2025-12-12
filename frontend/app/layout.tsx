@@ -1,21 +1,20 @@
-import './globals.css'
-import type { Metadata } from 'next'
+import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: 'Leme - Análise Financeira Inteligente',
-  description: 'Entenda as finanças da sua empresa sem complicação. Análises financeiras automáticas, cenários de desempenho e estratégias práticas.',
-}
+  title: "Leme | Análise Financeira Inteligente",
+  description:
+    "Transforme seus dados financeiros em diagnóstico completo, indicadores de saúde e plano de ação personalizado — tudo em minutos.",
+};
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="pt-BR">
-      <body className="antialiased">
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
-  )
+  );
 }

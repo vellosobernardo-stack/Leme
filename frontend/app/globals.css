@@ -1,124 +1,113 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 215 25% 15%;
-    --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 15%;
-    --primary: 210 65% 19%; /* #112d4e - Azul Petróleo */
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 213 56% 30%; /* #1a4578 - Azul Escuro */
-    --primary-glow: 142 75% 70%;
-    
-    --secondary: 20 89% 59%; /* #F5793B - Laranja */
-    --secondary-foreground: 0 0% 100%;
-    --secondary-light: 20 85% 70%; /* #f79a6b - Laranja Suave */
-    
-    --muted: 210 15% 95%;
-    --muted-foreground: 215 15% 45%;
-    
-    --accent: 25 95% 55%;
-    --accent-foreground: 0 0% 100%;
-    --accent-hover: 25 95% 48%;
-    
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
-    
-    --border: 215 20% 88%;
-    --input: 215 20% 90%;
-    --ring: 210 65% 19%;
-    --radius: 0.75rem;
-    
-    /* Gradientes */
-    --gradient-hero: linear-gradient(135deg, #e8f4f8 0%, #d4e9f0 50%, #c8e4ed 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(20 89% 59%) 0%, hsl(20 85% 70%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 20% 98%) 100%);
-    --gradient-primary: linear-gradient(135deg, hsl(210 65% 19%) 0%, hsl(213 56% 30%) 100%);
-    
-    /* Sombras */
-    --shadow-soft: 0 4px 20px -4px hsl(142 70% 45% / 0.12);
-    --shadow-medium: 0 8px 30px -6px hsl(142 70% 45% / 0.18);
-    --shadow-strong: 0 12px 40px -8px hsl(142 70% 45% / 0.25);
-  }
 
-  .dark {
-    --background: 215 30% 8%;
-    --foreground: 210 20% 95%;
-    --card: 215 28% 12%;
-    --card-foreground: 210 20% 95%;
-    --popover: 215 28% 12%;
-    --popover-foreground: 210 20% 95%;
-    --primary: 210 65% 25%;
-    --primary-foreground: 0 0% 100%;
-    --primary-light: 213 56% 35%;
-    --primary-glow: 142 75% 75%;
-    
-    --secondary: 20 89% 65%;
-    --secondary-foreground: 0 0% 100%;
-    --secondary-light: 20 85% 75%;
-    
-    --muted: 215 25% 15%;
-    --muted-foreground: 215 15% 60%;
-    
-    --accent: 25 95% 60%;
-    --accent-foreground: 0 0% 100%;
-    --accent-hover: 25 95% 55%;
-    
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 210 20% 95%;
-    
-    --border: 215 25% 20%;
-    --input: 215 25% 18%;
-    --ring: 210 65% 25%;
-    
-    --gradient-hero: linear-gradient(135deg, hsl(215 30% 12%) 0%, hsl(215 25% 15%) 100%);
-    --gradient-secondary: linear-gradient(135deg, hsl(20 89% 45%) 0%, hsl(20 85% 60%) 100%);
-    --gradient-subtle: linear-gradient(180deg, hsl(215 30% 8%) 0%, hsl(215 28% 12%) 100%);
-    --gradient-primary: linear-gradient(135deg, hsl(210 65% 19%) 0%, hsl(213 56% 30%) 100%);
-    
-    --shadow-soft: 0 4px 20px -4px hsl(142 70% 45% / 0.2);
-    --shadow-medium: 0 8px 30px -6px hsl(142 70% 45% / 0.3);
-    --shadow-strong: 0 12px 40px -8px hsl(142 70% 45% / 0.35);
-  }
+/* Reset e estilos base */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
-/* Grid pattern decorativo */
-.bg-grid-pattern {
-  background-image: 
-    linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
-    linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px);
-  background-size: 40px 40px;
+body {
+  color: hsl(0, 0%, 10%);
+  background: hsl(0, 0%, 100%);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Efeitos oceânicos para Hero Section */
-@keyframes wave {
-  0%, 100% { transform: translateX(0); }
-  50% { transform: translateX(20px); }
+/* Scroll suave */
+html {
+  scroll-behavior: smooth;
 }
 
-@keyframes shimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+/* ========== COMPONENTES LEME ========== */
+
+/* Botão primário */
+.btn-primary {
+  @apply bg-primary text-white font-semibold py-3 px-6 rounded-lg;
+  @apply hover:bg-primary-hover transition-all duration-300;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
 }
 
-.ocean-wave {
-  animation: wave 8s ease-in-out infinite;
+/* Botão secundário */
+.btn-secondary {
+  @apply bg-white text-primary font-semibold py-3 px-6 rounded-lg;
+  @apply border-2 border-primary;
+  @apply hover:bg-primary hover:text-white transition-all duration-300;
 }
 
-.caustics-shimmer {
-  animation: shimmer 6s ease-in-out infinite;
-  background-size: 200% 200%;
+/* Card padrão */
+.card {
+  @apply bg-white rounded-xl p-6;
+  @apply shadow-md hover:shadow-xl transition-all duration-300;
+}
+
+/* Card expansível */
+.card-expandable {
+  @apply bg-white rounded-xl border border-border overflow-hidden;
+  @apply transition-all duration-300;
+}
+
+.card-expandable-header {
+  @apply flex items-center justify-between p-4 cursor-pointer;
+  @apply hover:bg-background-light transition-colors;
+}
+
+.card-expandable-content {
+  @apply px-4 pb-4;
+}
+
+/* Input padrão */
+.input {
+  @apply w-full pl-4 pr-4 py-3 rounded-lg border border-border;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+  @apply transition-all duration-200;
+}
+
+.input-error {
+  @apply border-danger focus:ring-danger;
+}
+
+/* Label */
+.label {
+  @apply block text-sm font-medium mb-2;
+}
+
+/* Texto de ajuda */
+.help-text {
+  @apply text-sm text-foreground-muted mt-1;
+}
+
+/* Alertas */
+.alert {
+  @apply p-4 rounded-lg text-sm;
+}
+
+.alert-warning {
+  @apply bg-warning-light text-warning border border-warning;
+}
+
+.alert-error {
+  @apply bg-danger-light text-danger border border-danger;
+}
+
+.alert-success {
+  @apply bg-success-light text-success border border-success;
+}
+
+/* Progress bar */
+.progress-bar {
+  @apply h-2 bg-border rounded-full overflow-hidden;
+}
+
+.progress-bar-fill {
+  @apply h-full bg-primary rounded-full transition-all duration-500;
 }

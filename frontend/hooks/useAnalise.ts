@@ -1,193 +1,158 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { 
-  MetaDados, 
-  DadosNivel1, 
-  DadosNivel2, 
-  DadosNivel3, 
-  AnaliseRequest,
-  AnaliseResponse 
-} from '@/types/analise';
-import { enviarAnalise } from '@/utils/api';
+import { useState, useCallback } from "react";
+import {
+  DadosAnalise,
+  DADOS_INICIAIS,
+  EtapaFluxo,
+  ErrosCampo,
+  ResultadoValidacao,
+  ReceitaHistorico,
+} from "@/types/analise";
 
+/**
+ * Hook para gerenciar o estado do fluxo de análise
+ */
 export function useAnalise() {
-  // Estado do nível atual
-  const [nivelAtual, setNivelAtual] = useState<1 | 2 | 3>(1);
-  
-  // Estado de loading
-  const [loading, setLoading] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
-  
-  // Dados dos formulários
-  const [metaDados, setMetaDados] = useState<MetaDados | null>(null);
-  const [dadosN1, setDadosN1] = useState<DadosNivel1 | null>(null);
-  const [dadosN2, setDadosN2] = useState<DadosNivel2 | null>(null);
-  const [dadosN3, setDadosN3] = useState<DadosNivel3 | null>(null);
-  
-  // Resultados da análise
-  const [resultado, setResultado] = useState<AnaliseResponse | null>(null);
+  const [dados, setDados] = useState<DadosAnalise>(DADOS_INICIAIS);
+  const [etapaAtual, setEtapaAtual] = useState<EtapaFluxo>(1);
+  const [carregando, setCarregando] = useState(false);
+  const [erros, setErros] = useState<ErrosCampo>({});
+  const [alertas, setAlertas] = useState<string[]>([]);
+  const [cardsExpandidos, setCardsExpandidos] = useState<string[]>(["receita"]);
 
-  // Submeter Nível 1
-  const submeterNivel1 = async (meta: MetaDados, dados: DadosNivel1) => {
-    setLoading(true);
-    setErro(null);
-    
-    try {
-      // Salvar dados
-      setMetaDados(meta);
-      setDadosN1(dados);
-      
-      // Montar requisição
-      const requisicao: AnaliseRequest = {
-        meta,
-        nivel1: dados,
-      };
-      
-      // Enviar para API
-      const resposta = await enviarAnalise(requisicao);
-      
-      // Salvar resultado
-      setResultado(resposta);
-      
+  // Atualizar campo simples
+  const atualizarDados = useCallback(
+    <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => {
+      setDados((prev) => ({ ...prev, [campo]: valor }));
+      if (erros[campo]) {
+        setErros((prev) => ({ ...prev, [campo]: undefined }));
+      }
+    },
+    [erros]
+  );
+
+  // Atualizar receita histórico
+  const atualizarReceitaHistorico = useCallback(
+    (campo: keyof ReceitaHistorico, valor: number) => {
+      setDados((prev) => ({
+        ...prev,
+        receita_historico: { ...prev.receita_historico, [campo]: valor },
+      }));
+    },
+    []
+  );
+
+  // Validar Etapa 1
+  const validarEtapa1 = useCallback((): ResultadoValidacao => {
+    const novosErros: ErrosCampo = {};
+
+    if (!dados.nome_empresa || dados.nome_empresa.trim().length < 2) {
+      novosErros.nome_empresa = "Nome da empresa é obrigatório";
+    }
+
+    if (!dados.email || !/^[\w.-]+@[\w.-]+\.\w+$/.test(dados.email)) {
+      novosErros.email = "Email inválido";
+    }
+
+    return { valido: Object.keys(novosErros).length === 0, erros: novosErros, alertas: [] };
+  }, [dados]);
+
+  // Validar Etapa 2
+  const validarEtapa2 = useCallback((): ResultadoValidacao => {
+    const novosErros: ErrosCampo = {};
+
+    if (!dados.setor) novosErros.setor = "Selecione o setor";
+    if (!dados.estado) novosErros.estado = "Selecione o estado";
+
+    return { valido: Object.keys(novosErros).length === 0, erros: novosErros, alertas: [] };
+  }, [dados]);
+
+  // Validar Etapa 4
+  const validarEtapa4 = useCallback((): ResultadoValidacao => {
+    const novosErros: ErrosCampo = {};
+    const novosAlertas: string[] = [];
+
+    if (dados.receita_atual <= 0) novosErros.receita_atual = "Receita é obrigatória";
+    if (dados.num_funcionarios < 1) novosErros.num_funcionarios = "Mínimo 1 funcionário";
+
+    if (dados.tem_estoque && (!dados.estoque || dados.estoque <= 0)) {
+      novosErros.estoque = "Informe o valor do estoque";
+    }
+    if (dados.tem_dividas && (!dados.dividas_totais || dados.dividas_totais <= 0)) {
+      novosErros.dividas_totais = "Informe o valor das dívidas";
+    }
+    if (dados.tem_bens && (!dados.bens_equipamentos || dados.bens_equipamentos <= 0)) {
+      novosErros.bens_equipamentos = "Informe o valor dos bens";
+    }
+
+    // Alertas (não bloqueiam)
+    if (dados.custo_vendas > dados.receita_atual) {
+      novosAlertas.push("Custo maior que receita. Verifique os valores.");
+    }
+    if (dados.despesas_fixas > dados.receita_atual) {
+      novosAlertas.push("Despesas maiores que receita. Isso indica prejuízo.");
+    }
+
+    return { valido: Object.keys(novosErros).length === 0, erros: novosErros, alertas: novosAlertas };
+  }, [dados]);
+
+  // Avançar etapa
+  const avancar = useCallback(() => {
+    let validacao: ResultadoValidacao = { valido: true, erros: {}, alertas: [] };
+
+    if (etapaAtual === 1) validacao = validarEtapa1();
+    else if (etapaAtual === 2) validacao = validarEtapa2();
+    else if (etapaAtual === 4) validacao = validarEtapa4();
+
+    setErros(validacao.erros);
+    setAlertas(validacao.alertas);
+
+    if (validacao.valido && etapaAtual < 4) {
+      setEtapaAtual((prev) => (prev + 1) as EtapaFluxo);
       return true;
-    } catch (error: any) {
-      setErro(error.message || 'Erro ao processar análise');
-      return false;
-    } finally {
-      setLoading(false);
     }
-  };
 
-  // Submeter Nível 2
-  const submeterNivel2 = async (dados: DadosNivel2) => {
-    if (!metaDados || !dadosN1) {
-      setErro('Dados do Nível 1 não encontrados');
-      return false;
-    }
-    
-    setLoading(true);
-    setErro(null);
-    
-    try {
-      // Salvar dados
-      setDadosN2(dados);
-      
-      // Atualizar meta com novo nível
-      const metaAtualizada: MetaDados = {
-        ...metaDados,
-        nivel_maximo_preenchido: 2,
-      };
-      
-      // Montar requisição
-      const requisicao: AnaliseRequest = {
-        meta: metaAtualizada,
-        nivel1: dadosN1,
-        nivel2: dados,
-      };
-      
-      // Enviar para API
-      const resposta = await enviarAnalise(requisicao);
-      
-      // Salvar resultado
-      setResultado(resposta);
-      
-      return true;
-    } catch (error: any) {
-      setErro(error.message || 'Erro ao processar análise');
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
+    return validacao.valido;
+  }, [etapaAtual, validarEtapa1, validarEtapa2, validarEtapa4]);
 
-  // Submeter Nível 3
-  const submeterNivel3 = async (dados: DadosNivel3) => {
-    if (!metaDados || !dadosN1 || !dadosN2) {
-      setErro('Dados dos níveis anteriores não encontrados');
-      return false;
+  // Voltar etapa
+  const voltar = useCallback(() => {
+    if (etapaAtual > 1) {
+      setEtapaAtual((prev) => (prev - 1) as EtapaFluxo);
+      setErros({});
+      setAlertas([]);
     }
-    
-    setLoading(true);
-    setErro(null);
-    
-    try {
-      // Salvar dados
-      setDadosN3(dados);
-      
-      // Atualizar meta com novo nível
-      const metaAtualizada: MetaDados = {
-        ...metaDados,
-        nivel_maximo_preenchido: 3,
-      };
-      
-      // Montar requisição
-      const requisicao: AnaliseRequest = {
-        meta: metaAtualizada,
-        nivel1: dadosN1,
-        nivel2: dadosN2,
-        nivel3: dados,
-      };
-      
-      // Enviar para API
-      const resposta = await enviarAnalise(requisicao);
-      
-      // Salvar resultado
-      setResultado(resposta);
-      
-      return true;
-    } catch (error: any) {
-      setErro(error.message || 'Erro ao processar análise');
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [etapaAtual]);
 
-  // Avançar para próximo nível
-  const avancarNivel = () => {
-    if (nivelAtual < 3) {
-      setNivelAtual((prev) => (prev + 1) as 1 | 2 | 3);
-    }
-  };
+  // Toggle card
+  const toggleCard = useCallback((cardId: string) => {
+    setCardsExpandidos((prev) =>
+      prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]
+    );
+  }, []);
 
-  // Voltar para nível anterior
-  const voltarNivel = () => {
-    if (nivelAtual > 1) {
-      setNivelAtual((prev) => (prev - 1) as 1 | 2 | 3);
-    }
-  };
+  const isCardExpandido = useCallback(
+    (cardId: string) => cardsExpandidos.includes(cardId),
+    [cardsExpandidos]
+  );
 
-  // Resetar tudo
-  const resetar = () => {
-    setNivelAtual(1);
-    setMetaDados(null);
-    setDadosN1(null);
-    setDadosN2(null);
-    setDadosN3(null);
-    setResultado(null);
-    setErro(null);
-  };
+  // Progresso
+  const progresso = Math.round((etapaAtual / 4) * 100);
 
   return {
-    // Estado
-    nivelAtual,
-    loading,
-    erro,
-    resultado,
-    
-    // Ações
-    submeterNivel1,
-    submeterNivel2,
-    submeterNivel3,
-    avancarNivel,
-    voltarNivel,
-    resetar,
-    
-    // Dados (para debug)
-    metaDados,
-    dadosN1,
-    dadosN2,
-    dadosN3,
+    dados,
+    etapaAtual,
+    carregando,
+    erros,
+    alertas,
+    progresso,
+    atualizarDados,
+    atualizarReceitaHistorico,
+    setCarregando,
+    avancar,
+    voltar,
+    toggleCard,
+    isCardExpandido,
   };
 }
