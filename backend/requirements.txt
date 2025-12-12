@@ -19,6 +19,8 @@ httpx>=0.26.0
 # Gerar PDF
 reportlab==4.2.5
 
+# E-mail
+email-validator
 
 # CORS (permitir frontend acessar)
 # Já vem com FastAPI, não precisa instalar separado
