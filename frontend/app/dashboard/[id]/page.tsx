@@ -18,6 +18,13 @@ import HistoricoTable from "@/components/dashboard/HistoricoTable";
 import { buscarDashboardPorId } from "@/lib/api";
 import { DashboardData } from "@/types/dashboard";
 
+// Declaração do gtag para TypeScript
+declare global {
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+  }
+}
+
 interface DashboardPageProps {
   params: Promise<{ id: string }>;
 }
@@ -43,6 +50,13 @@ export default function DashboardPage({ params }: DashboardPageProps) {
         setError(null);
         const resultado = await buscarDashboardPorId(id);
         setData(resultado);
+        
+        // Dispara evento de conversão do Google Ads quando carrega com sucesso
+        if (typeof window !== "undefined" && window.gtag) {
+          window.gtag('event', 'conversion', {
+            'send_to': 'AW-17804678209/RR2JCNi84dEbEMGo96lC'
+          });
+        }
       } catch (err) {
         console.error("Erro ao carregar dashboard:", err);
         setError(err instanceof Error ? err.message : "Erro ao carregar dados");
