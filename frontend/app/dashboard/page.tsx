@@ -3,7 +3,6 @@
 
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -19,12 +18,8 @@ import { buscarDashboard, buscarDashboardPorId } from "@/lib/api";
 import { mockDashboardData } from "@/lib/mockDashboardData";
 import { DashboardData } from "@/types/dashboard";
 
-// Componente interno que usa useSearchParams
+// Componente interno que gerencia o dashboard
 function DashboardContent() {
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email");
-  const id = searchParams.get("id");
-  
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +27,12 @@ function DashboardContent() {
 
   useEffect(() => {
     async function carregarDados() {
-      if (!email && !id) {
+      // Busca o ID e email do sessionStorage
+      const analiseId = sessionStorage.getItem("leme_analise_id");
+      const analiseEmail = sessionStorage.getItem("leme_analise_email");
+
+      // Se não tem ID nem email, mostra dados de demonstração
+      if (!analiseId && !analiseEmail) {
         setData(mockDashboardData);
         setLoading(false);
         return;
@@ -43,10 +43,12 @@ function DashboardContent() {
         setError(null);
         
         let resultado;
-        if (id) {
-          resultado = await buscarDashboardPorId(id);
-        } else if (email) {
-          resultado = await buscarDashboard(email);
+        if (analiseId) {
+          // Prioriza buscar por ID
+          resultado = await buscarDashboardPorId(analiseId);
+        } else if (analiseEmail) {
+          // Fallback para email
+          resultado = await buscarDashboard(analiseEmail);
         }
         
         setData(resultado);
@@ -60,7 +62,7 @@ function DashboardContent() {
     }
 
     carregarDados();
-  }, [email, id]);
+  }, []);
 
   // Função para exportar PDF via backend
   const handleExportarPDF = async () => {
@@ -301,7 +303,7 @@ function DashboardContent() {
   );
 }
 
-// Componente principal com Suspense para useSearchParams
+// Componente principal com Suspense
 export default function DashboardPage() {
   return (
     <Suspense fallback={

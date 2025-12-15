@@ -49,25 +49,29 @@ export default function Etapa4SaudeFinanceira({
   // Mês de referência atual
   const mesReferenciaLabel = `${MESES.find((m) => m.value === dados.mes_referencia)?.label || ""}/${dados.ano_referencia}`;
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  if (avancar()) {
-    setCarregando(true);
-    try {
-      // Envia para a API
-      await criarAnalise(dados);
-      
-      // Redireciona com o email
-      router.push(`/dashboard?email=${encodeURIComponent(dados.email)}`);
-    } catch (error) {
-      console.error("Erro ao criar análise:", error);
-      alert("Erro ao processar análise. Tente novamente.");
-    } finally {
-      setCarregando(false);
+    if (avancar()) {
+      setCarregando(true);
+      try {
+        // Envia para a API e recebe o resultado com o ID
+        const resultado = await criarAnalise(dados);
+        
+        // Salva o ID e email no sessionStorage para o dashboard acessar
+        sessionStorage.setItem("leme_analise_id", resultado.id);
+        sessionStorage.setItem("leme_analise_email", dados.email);
+        
+        // Redireciona para URL limpa
+        router.push("/dashboard");
+      } catch (error) {
+        console.error("Erro ao criar análise:", error);
+        alert("Erro ao processar análise. Tente novamente.");
+      } finally {
+        setCarregando(false);
+      }
     }
-  }
-};
+  };
 
   return (
     <div className="max-w-2xl mx-auto animate-fade-in">
