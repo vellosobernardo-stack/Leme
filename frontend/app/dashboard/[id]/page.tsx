@@ -3,7 +3,6 @@
 
 "use client";
 
-import { use } from "react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -26,11 +25,11 @@ declare global {
 }
 
 interface DashboardPageProps {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }
 
 export default function DashboardPage({ params }: DashboardPageProps) {
-  const { id } = use(params);
+  const { id } = params;
   
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
