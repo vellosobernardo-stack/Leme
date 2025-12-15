@@ -75,6 +75,7 @@ export default function Etapa1Identificacao({
             onChange={(e) => atualizarDados("email", e.target.value)}
             placeholder="seu@email.com"
             className={`input ${erros.email ? "input-error" : ""}`}
+            data-hj-suppress
           />
           {erros.email && (
             <p className="text-danger text-sm mt-1">{erros.email}</p>

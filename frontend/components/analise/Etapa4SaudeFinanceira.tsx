@@ -376,6 +376,7 @@ function InputMonetario({ label, valor, onChange, erro, dica, tooltip }: InputMo
           placeholder="0,00"
           style={{ paddingLeft: "3.5rem" }}
           className={`input ${erro ? "input-error" : ""}`}
+          data-hj-suppress
         />
       </div>
       {erro && <p className="text-danger text-sm mt-1">{erro}</p>}

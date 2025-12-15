@@ -29,6 +29,12 @@ export default function RootLayout({
             gtag('config', 'AW-17804678209');
           `}
         </Script>
+
+        {/* Hotjar / Contentsquare */}
+        <Script
+          src="https://t.contentsquare.net/uxa/ddda2e6f32604.js"
+          strategy="afterInteractive"
+        />
       </head>
       <body>{children}</body>
     </html>
