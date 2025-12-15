@@ -58,12 +58,8 @@ export default function Etapa4SaudeFinanceira({
         // Envia para a API e recebe o resultado com o ID
         const resultado = await criarAnalise(dados);
         
-        // Salva o ID e email no sessionStorage para o dashboard acessar
-        sessionStorage.setItem("leme_analise_id", resultado.id);
-        sessionStorage.setItem("leme_analise_email", dados.email);
-        
-        // Redireciona para URL limpa
-        router.push("/dashboard");
+        // Redireciona para a URL com o ID da análise
+        router.push(`/dashboard/${resultado.id}`);
       } catch (error) {
         console.error("Erro ao criar análise:", error);
         alert("Erro ao processar análise. Tente novamente.");

@@ -1,9 +1,10 @@
-// app/dashboard/page.tsx
-// Página principal do Dashboard - Estilo Premium
+// app/dashboard/[id]/page.tsx
+// Página do Dashboard com ID dinâmico na URL
 
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
+import { use } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import HeaderNavigation from "@/components/dashboard/HeaderNavigation";
@@ -14,12 +15,16 @@ import BlocoIndicadores from "@/components/dashboard/BlocoIndicadores";
 import DiagnosticoCard from "@/components/dashboard/DiagnosticoCard";
 import PlanoAcaoSection from "@/components/dashboard/PlanoAcaoSection";
 import HistoricoTable from "@/components/dashboard/HistoricoTable";
-import { buscarDashboard, buscarDashboardPorId } from "@/lib/api";
-import { mockDashboardData } from "@/lib/mockDashboardData";
+import { buscarDashboardPorId } from "@/lib/api";
 import { DashboardData } from "@/types/dashboard";
 
-// Componente interno que gerencia o dashboard
-function DashboardContent() {
+interface DashboardPageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function DashboardPage({ params }: DashboardPageProps) {
+  const { id } = use(params);
+  
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,13 +32,8 @@ function DashboardContent() {
 
   useEffect(() => {
     async function carregarDados() {
-      // Busca o ID e email do sessionStorage
-      const analiseId = sessionStorage.getItem("leme_analise_id");
-      const analiseEmail = sessionStorage.getItem("leme_analise_email");
-
-      // Se não tem ID nem email, mostra dados de demonstração
-      if (!analiseId && !analiseEmail) {
-        setData(mockDashboardData);
+      if (!id) {
+        setError("ID da análise não informado");
         setLoading(false);
         return;
       }
@@ -41,28 +41,18 @@ function DashboardContent() {
       try {
         setLoading(true);
         setError(null);
-        
-        let resultado;
-        if (analiseId) {
-          // Prioriza buscar por ID
-          resultado = await buscarDashboardPorId(analiseId);
-        } else if (analiseEmail) {
-          // Fallback para email
-          resultado = await buscarDashboard(analiseEmail);
-        }
-        
+        const resultado = await buscarDashboardPorId(id);
         setData(resultado);
       } catch (err) {
         console.error("Erro ao carregar dashboard:", err);
         setError(err instanceof Error ? err.message : "Erro ao carregar dados");
-        setData(mockDashboardData);
       } finally {
         setLoading(false);
       }
     }
 
     carregarDados();
-  }, []);
+  }, [id]);
 
   // Função para exportar PDF via backend
   const handleExportarPDF = async () => {
@@ -154,12 +144,14 @@ function DashboardContent() {
     );
   }
 
-  // Se não tem dados
-  if (!data) {
+  // Erro ou não encontrado
+  if (error || !data) {
     return (
       <div className="min-h-screen bg-[#F7FAFD] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-muted-foreground mb-4">Nenhuma análise encontrada</p>
+          <p className="text-muted-foreground mb-4">
+            {error || "Análise não encontrada"}
+          </p>
           <Link 
             href="/analise"
             className="px-6 py-3 bg-primary text-white rounded-xl font-medium hover:opacity-90 transition-all"
@@ -176,19 +168,8 @@ function DashboardContent() {
       {/* Header integrado com navegação */}
       <HeaderNavigation />
 
-      {/* Aviso se usando dados mockados */}
-      {error && (
-        <div className="max-w-7xl mx-auto px-4 pt-28">
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-yellow-800">
-              {error}. Exibindo dados de demonstração.
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Header com info da empresa */}
-      <div className={`max-w-7xl mx-auto px-4 ${error ? 'pt-4' : 'pt-28'}`}>
+      <div className="max-w-7xl mx-auto px-4 pt-28">
         <DashboardHeader empresa={data.empresa} />
       </div>
 
@@ -300,21 +281,5 @@ function DashboardContent() {
         </div>
       </main>
     </div>
-  );
-}
-
-// Componente principal com Suspense
-export default function DashboardPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[#F7FAFD] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando análise...</p>
-        </div>
-      </div>
-    }>
-      <DashboardContent />
-    </Suspense>
   );
 }
