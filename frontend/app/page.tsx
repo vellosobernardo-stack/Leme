@@ -1,4 +1,13 @@
-import { Header, Hero, Problems, Features, HowItWorks, WhyLeme, CTAFinal, Footer } from "@/components/landing";
+import { 
+  Header, 
+  Hero, 
+  TrustBar,
+  ValueDelivery, 
+  HowItWorks, 
+  Authority, 
+  CTAFinal, 
+  Footer 
+} from "@/components/landing";
 
 export default function Home() {
   return (
@@ -6,10 +15,10 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
-        <Problems />
-        <Features />
+        <TrustBar />
+        <ValueDelivery />
         <HowItWorks />
-        <WhyLeme />
+        <Authority />
         <CTAFinal />
       </main>
       <Footer />
