@@ -54,7 +54,7 @@ export default function Etapa1Identificacao({
             id="nome_empresa"
             value={dados.nome_empresa}
             onChange={(e) => atualizarDados("nome_empresa", e.target.value)}
-            placeholder="Ex: Padaria do João"
+            placeholder="Digite o nome da sua empresa"
             className={`input ${erros.nome_empresa ? "input-error" : ""}`}
             autoFocus
           />
