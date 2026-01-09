@@ -139,7 +139,7 @@ export interface DadosAnalise {
 // ========== VALORES INICIAIS ==========
 const getMesAnterior = () => {
   const hoje = new Date();
-  let mes = hoje.getMonth(); // getMonth() retorna 0-11, então dezembro = 11
+  let mes = hoje.getMonth(); // getMonth() retorna 0-11
   let ano = hoje.getFullYear();
   
   // Se estamos em janeiro, volta para dezembro do ano anterior
@@ -180,6 +180,7 @@ export const DADOS_INICIAIS: DadosAnalise = {
   bens_equipamentos: undefined,
   num_funcionarios: 1,
 };
+
 // ========== INDICADORES ==========
 export interface Indicadores {
   margem_bruta: number | null;

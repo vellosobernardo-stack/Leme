@@ -10,12 +10,26 @@ import {
   ReceitaHistorico,
 } from "@/types/analise";
 
+// Passos da Etapa 4 (blocos de perguntas)
+export type PassoEtapa4 = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export const PASSOS_ETAPA4_INFO = {
+  1: { id: "receita", titulo: "Receita" },
+  2: { id: "custos", titulo: "Custos e Despesas" },
+  3: { id: "caixa", titulo: "Caixa e Fluxo" },
+  4: { id: "estoque", titulo: "Estoque" },
+  5: { id: "dividas", titulo: "Dívidas" },
+  6: { id: "bens", titulo: "Bens e Equipamentos" },
+  7: { id: "equipe", titulo: "Equipe" },
+} as const;
+
 /**
  * Hook para gerenciar o estado do fluxo de análise
  */
 export function useAnalise() {
   const [dados, setDados] = useState<DadosAnalise>(DADOS_INICIAIS);
   const [etapaAtual, setEtapaAtual] = useState<EtapaFluxo>(1);
+  const [passoEtapa4, setPassoEtapa4] = useState<PassoEtapa4>(1);
   const [carregando, setCarregando] = useState(false);
   const [erros, setErros] = useState<ErrosCampo>({});
   const [alertas, setAlertas] = useState<string[]>([]);
@@ -68,7 +82,61 @@ export function useAnalise() {
     return { valido: Object.keys(novosErros).length === 0, erros: novosErros, alertas: [] };
   }, [dados]);
 
-  // Validar Etapa 4
+  // Validar passo específico da Etapa 4
+  const validarPassoEtapa4 = useCallback((passo: PassoEtapa4): ResultadoValidacao => {
+    const novosErros: ErrosCampo = {};
+    const novosAlertas: string[] = [];
+
+    switch (passo) {
+      case 1: // Receita
+        if (dados.receita_atual <= 0) {
+          novosErros.receita_atual = "Informe a receita do mês";
+        }
+        break;
+
+      case 2: // Custos e Despesas
+        // Campos obrigatórios mas podem ser zero
+        if (dados.custo_vendas > dados.receita_atual && dados.receita_atual > 0) {
+          novosAlertas.push("Custo maior que receita. Verifique os valores.");
+        }
+        if (dados.despesas_fixas > dados.receita_atual && dados.receita_atual > 0) {
+          novosAlertas.push("Despesas maiores que receita. Isso indica prejuízo.");
+        }
+        break;
+
+      case 3: // Caixa e Fluxo
+        // Todos opcionais, sem validação bloqueante
+        break;
+
+      case 4: // Estoque
+        if (dados.tem_estoque && (!dados.estoque || dados.estoque <= 0)) {
+          novosErros.estoque = "Informe o valor do estoque";
+        }
+        break;
+
+      case 5: // Dívidas
+        if (dados.tem_dividas && (!dados.dividas_totais || dados.dividas_totais <= 0)) {
+          novosErros.dividas_totais = "Informe o valor das dívidas";
+        }
+        break;
+
+      case 6: // Bens
+        if (dados.tem_bens && (!dados.bens_equipamentos || dados.bens_equipamentos <= 0)) {
+          novosErros.bens_equipamentos = "Informe o valor dos bens";
+        }
+        break;
+
+      case 7: // Equipe
+        if (dados.num_funcionarios < 1) {
+          novosErros.num_funcionarios = "Mínimo 1 pessoa";
+        }
+        break;
+    }
+
+    return { valido: Object.keys(novosErros).length === 0, erros: novosErros, alertas: novosAlertas };
+  }, [dados]);
+
+  // Validar Etapa 4 completa (para submit final)
   const validarEtapa4 = useCallback((): ResultadoValidacao => {
     const novosErros: ErrosCampo = {};
     const novosAlertas: string[] = [];
@@ -86,7 +154,6 @@ export function useAnalise() {
       novosErros.bens_equipamentos = "Informe o valor dos bens";
     }
 
-    // Alertas (não bloqueiam)
     if (dados.custo_vendas > dados.receita_atual) {
       novosAlertas.push("Custo maior que receita. Verifique os valores.");
     }
@@ -97,7 +164,32 @@ export function useAnalise() {
     return { valido: Object.keys(novosErros).length === 0, erros: novosErros, alertas: novosAlertas };
   }, [dados]);
 
-  // Avançar etapa
+  // Avançar para próximo passo dentro da Etapa 4
+  const avancarPassoEtapa4 = useCallback(() => {
+    const validacao = validarPassoEtapa4(passoEtapa4);
+    setErros(validacao.erros);
+    setAlertas(validacao.alertas);
+
+    if (validacao.valido && passoEtapa4 < 7) {
+      setPassoEtapa4((prev) => (prev + 1) as PassoEtapa4);
+      return true;
+    }
+
+    return validacao.valido;
+  }, [passoEtapa4, validarPassoEtapa4]);
+
+  // Voltar para passo anterior dentro da Etapa 4
+  const voltarPassoEtapa4 = useCallback(() => {
+    if (passoEtapa4 > 1) {
+      setPassoEtapa4((prev) => (prev - 1) as PassoEtapa4);
+      setErros({});
+      setAlertas([]);
+      return true;
+    }
+    return false;
+  }, [passoEtapa4]);
+
+  // Avançar etapa principal
   const avancar = useCallback(() => {
     let validacao: ResultadoValidacao = { valido: true, erros: {}, alertas: [] };
 
@@ -116,7 +208,7 @@ export function useAnalise() {
     return validacao.valido;
   }, [etapaAtual, validarEtapa1, validarEtapa2, validarEtapa4]);
 
-  // Voltar etapa
+  // Voltar etapa principal
   const voltar = useCallback(() => {
     if (etapaAtual > 1) {
       setEtapaAtual((prev) => (prev - 1) as EtapaFluxo);
@@ -125,7 +217,7 @@ export function useAnalise() {
     }
   }, [etapaAtual]);
 
-  // Toggle card
+  // Toggle card (mantido para compatibilidade)
   const toggleCard = useCallback((cardId: string) => {
     setCardsExpandidos((prev) =>
       prev.includes(cardId) ? prev.filter((id) => id !== cardId) : [...prev, cardId]
@@ -137,21 +229,60 @@ export function useAnalise() {
     [cardsExpandidos]
   );
 
-  // Progresso
-  const progresso = Math.round((etapaAtual / 4) * 100);
+  // Cálculo de progresso com valores limpos
+  const calcularProgresso = useCallback(() => {
+    // Etapas 1, 2, 3: valores fixos
+    // Etapa 4: de 30% a 100% (7 passos = 10% cada)
+    const progressoMap: Record<number, number> = {
+      1: 5,   // Etapa 1: Identificação
+      2: 15,  // Etapa 2: Informações Básicas
+      3: 20,  // Etapa 3: Método de Entrada
+    };
+
+    if (etapaAtual < 4) {
+      return progressoMap[etapaAtual];
+    }
+
+    // Etapa 4: 30% + (passo * 10%), máximo 100%
+    const progressoEtapa4: Record<number, number> = {
+      1: 30,  // Receita
+      2: 40,  // Custos
+      3: 50,  // Caixa
+      4: 60,  // Estoque
+      5: 70,  // Dívidas
+      6: 80,  // Bens
+      7: 100, // Equipe (final)
+    };
+
+    return progressoEtapa4[passoEtapa4];
+  }, [etapaAtual, passoEtapa4]);
+
+  const progresso = calcularProgresso();
 
   return {
+    // Estado
     dados,
     etapaAtual,
+    passoEtapa4,
     carregando,
     erros,
     alertas,
     progresso,
+    
+    // Funções de dados
     atualizarDados,
     atualizarReceitaHistorico,
     setCarregando,
+    
+    // Navegação principal
     avancar,
     voltar,
+    
+    // Navegação Etapa 4
+    avancarPassoEtapa4,
+    voltarPassoEtapa4,
+    
+    // Cards (compatibilidade)
     toggleCard,
     isCardExpandido,
   };

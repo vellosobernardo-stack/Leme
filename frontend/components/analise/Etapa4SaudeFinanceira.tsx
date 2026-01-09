@@ -1,23 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DadosAnalise, ErrosCampo, ReceitaHistorico, MESES } from "@/types/analise";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import { criarAnalise } from "@/lib/api";
+import { PassoEtapa4, PASSOS_ETAPA4_INFO } from "@/hooks/useAnalise";
 
 interface Etapa4Props {
   dados: DadosAnalise;
   erros: ErrosCampo;
   alertas: string[];
   carregando: boolean;
+  passoEtapa4: PassoEtapa4;
   atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
   atualizarReceitaHistorico: (campo: keyof ReceitaHistorico, valor: number) => void;
   setCarregando: (v: boolean) => void;
-  avancar: () => boolean;
+  avancarPassoEtapa4: () => boolean;
+  voltarPassoEtapa4: () => boolean;
   voltar: () => void;
-  toggleCard: (cardId: string) => void;
-  isCardExpandido: (cardId: string) => boolean;
 }
 
 export default function Etapa4SaudeFinanceira({
@@ -25,59 +25,95 @@ export default function Etapa4SaudeFinanceira({
   erros,
   alertas,
   carregando,
+  passoEtapa4,
   atualizarDados,
   atualizarReceitaHistorico,
   setCarregando,
-  avancar,
+  avancarPassoEtapa4,
+  voltarPassoEtapa4,
   voltar,
-  toggleCard,
-  isCardExpandido,
 }: Etapa4Props) {
   const router = useRouter();
+  const [animando, setAnimando] = useState(false);
+  const [direcao, setDirecao] = useState<"frente" | "tras">("frente");
 
-  // Retorna o nome do mês/ano baseado em quantos meses atrás
-  const getMesAno = (mesesAtras: number) => {
+  // Retorna o nome do mês baseado em quantos meses atrás
+  const getMesLabel = (mesesAtras: number) => {
     let mes = dados.mes_referencia - mesesAtras;
     let ano = dados.ano_referencia;
     while (mes <= 0) {
       mes += 12;
       ano -= 1;
     }
-    return `${MESES.find((m) => m.value === mes)?.label || ""}/${ano}`;
+    return MESES.find((m) => m.value === mes)?.label || "";
   };
 
-  // Mês de referência atual
-  const mesReferenciaLabel = `${MESES.find((m) => m.value === dados.mes_referencia)?.label || ""}/${dados.ano_referencia}`;
+  const mesReferenciaLabel = MESES.find((m) => m.value === dados.mes_referencia)?.label || "";
+  const passoInfo = PASSOS_ETAPA4_INFO[passoEtapa4];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Animação de transição entre passos
+  const handleAvancar = () => {
+    if (passoEtapa4 === 7) {
+      handleSubmit();
+      return;
+    }
 
-    if (avancar()) {
-      setCarregando(true);
-      try {
-        // Envia para a API e recebe o resultado com o ID
-        const resultado = await criarAnalise(dados);
-        
-        // Redireciona para a URL com o ID da análise
-        router.push(`/dashboard/${resultado.id}`);
-      } catch (error) {
-        console.error("Erro ao criar análise:", error);
-        alert("Erro ao processar análise. Tente novamente.");
-      } finally {
-        setCarregando(false);
-      }
+    const sucesso = avancarPassoEtapa4();
+    if (sucesso) {
+      setDirecao("frente");
+      setAnimando(true);
+      setTimeout(() => setAnimando(false), 300);
     }
   };
 
+  const handleVoltar = () => {
+    const voltouPasso = voltarPassoEtapa4();
+    if (voltouPasso) {
+      setDirecao("tras");
+      setAnimando(true);
+      setTimeout(() => setAnimando(false), 300);
+    } else {
+      // Se não conseguiu voltar passo (está no passo 1), volta etapa
+      voltar();
+    }
+  };
+
+  const handleSubmit = async () => {
+    setCarregando(true);
+    try {
+      const resultado = await criarAnalise(dados);
+      router.push(`/dashboard/${resultado.id}`);
+    } catch (error) {
+      console.error("Erro ao criar análise:", error);
+      alert("Erro ao processar análise. Tente novamente.");
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  // Classe de animação
+  const animacaoClass = animando
+    ? direcao === "frente"
+      ? "animate-slide-in-right"
+      : "animate-slide-in-left"
+    : "animate-fade-in";
+
   return (
-    <div className="max-w-2xl mx-auto animate-fade-in">
-      {/* Cabeçalho */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-foreground mb-2">
+    <div className="max-w-2xl mx-auto">
+      {/* Cabeçalho do passo atual */}
+      <div className="text-center mb-6">
+        <p className="text-sm text-primary font-medium mb-1">
+          {passoInfo.titulo}
+        </p>
+        <h1 className="text-2xl font-bold text-foreground">
           Saúde Financeira
         </h1>
-        <p className="text-foreground-muted">
-          Preencha com os valores do mês de referência ({mesReferenciaLabel})
+      </div>
+
+      {/* Badge de valores aproximados */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-6 text-center">
+        <p className="text-sm text-blue-800 font-medium">
+          Use valores aproximados - não precisa ser exato.
         </p>
       </div>
 
@@ -90,237 +126,419 @@ export default function Etapa4SaudeFinanceira({
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-4">
-          
-          {/* Card Receita */}
-          <CardExpansivel
-            id="receita"
-            titulo="Receita e Histórico"
-            expandido={isCardExpandido("receita")}
-            onToggle={() => toggleCard("receita")}
-          >
-            <p className="text-sm text-foreground-muted mb-4">
-              Para entender a tendência do seu negócio, precisamos da receita dos últimos 3 meses:
-            </p>
-            <div className="space-y-4">
-              <InputMonetario
-                label={`Receita de ${getMesAno(3)}`}
-                valor={dados.receita_historico.tres_meses_atras}
-                onChange={(v) => atualizarReceitaHistorico("tres_meses_atras", v)}
-              />
-              <InputMonetario
-                label={`Receita de ${getMesAno(2)}`}
-                valor={dados.receita_historico.dois_meses_atras}
-                onChange={(v) => atualizarReceitaHistorico("dois_meses_atras", v)}
-              />
-              <InputMonetario
-                label={`Receita de ${getMesAno(1)}`}
-                valor={dados.receita_historico.mes_passado}
-                onChange={(v) => atualizarReceitaHistorico("mes_passado", v)}
-              />
-              <InputMonetario
-                label={`Receita de ${mesReferenciaLabel} *`}
-                valor={dados.receita_atual}
-                onChange={(v) => atualizarDados("receita_atual", v)}
-                erro={erros.receita_atual}
-                dica="Todo o faturamento do mês (vendas + serviços)"
-                tooltip="Último mês com receita completa"
-              />
-            </div>
-          </CardExpansivel>
+      {/* Conteúdo do passo atual */}
+      <div className={`bg-white rounded-xl shadow-sm border border-border p-6 mb-6 ${animacaoClass}`}>
+        {passoEtapa4 === 1 && (
+          <PassoReceita
+            dados={dados}
+            erros={erros}
+            mesReferenciaLabel={mesReferenciaLabel}
+            getMesLabel={getMesLabel}
+            atualizarDados={atualizarDados}
+            atualizarReceitaHistorico={atualizarReceitaHistorico}
+          />
+        )}
 
-          {/* Card Custos */}
-          <CardExpansivel
-            id="custos"
-            titulo="Custos e Despesas"
-            expandido={isCardExpandido("custos")}
-            onToggle={() => toggleCard("custos")}
-          >
-            <div className="space-y-4">
-              <InputMonetario
-                label="Custo das Vendas/Serviços *"
-                valor={dados.custo_vendas}
-                onChange={(v) => atualizarDados("custo_vendas", v)}
-                dica="Quanto gastou para entregar o que vendeu (matéria-prima, mercadoria, mão de obra direta)"
-              />
-              <InputMonetario
-                label="Despesas Fixas mensais *"
-                valor={dados.despesas_fixas}
-                onChange={(v) => atualizarDados("despesas_fixas", v)}
-                dica="Aluguel, salários, contas de luz/água/internet, contador, sistemas"
-              />
-            </div>
-          </CardExpansivel>
+        {passoEtapa4 === 2 && (
+          <PassoCustos
+            dados={dados}
+            atualizarDados={atualizarDados}
+          />
+        )}
 
-          {/* Card Caixa */}
-          <CardExpansivel
-            id="caixa"
-            titulo="Caixa e Fluxo"
-            expandido={isCardExpandido("caixa")}
-            onToggle={() => toggleCard("caixa")}
-          >
-            <div className="space-y-4">
-              <InputMonetario
-                label="Caixa + Bancos *"
-                valor={dados.caixa_bancos}
-                onChange={(v) => atualizarDados("caixa_bancos", v)}
-                dica="Dinheiro disponível agora (caixa + conta corrente + poupança)"
-              />
-              <InputMonetario
-                label="Contas a Receber (próximos 30 dias) *"
-                valor={dados.contas_receber}
-                onChange={(v) => atualizarDados("contas_receber", v)}
-                dica="Valores que clientes vão te pagar"
-              />
-              <InputMonetario
-                label="Contas a Pagar (próximos 30 dias) *"
-                valor={dados.contas_pagar}
-                onChange={(v) => atualizarDados("contas_pagar", v)}
-                dica="Fornecedores, aluguel, salários, parcelas, impostos"
-              />
-            </div>
-          </CardExpansivel>
+        {passoEtapa4 === 3 && (
+          <PassoCaixa
+            dados={dados}
+            atualizarDados={atualizarDados}
+          />
+        )}
 
-          {/* Card Estoque */}
-          <CardExpansivel
-            id="estoque"
-            titulo="Estoque"
-            expandido={isCardExpandido("estoque")}
-            onToggle={() => toggleCard("estoque")}
-          >
-            <div className="space-y-4">
-              <PerguntaSimNao
-                pergunta="Você tem ESTOQUE de produtos?"
-                valor={dados.tem_estoque}
-                onChange={(v) => atualizarDados("tem_estoque", v)}
-              />
-              {dados.tem_estoque && (
-                <InputMonetario
-                  label="Valor total do estoque *"
-                  valor={dados.estoque || 0}
-                  onChange={(v) => atualizarDados("estoque", v)}
-                  erro={erros.estoque}
-                  dica="Valor de custo de todas as mercadorias/produtos que você tem para vender"
-                />
-              )}
-            </div>
-          </CardExpansivel>
+        {passoEtapa4 === 4 && (
+          <PassoEstoque
+            dados={dados}
+            erros={erros}
+            atualizarDados={atualizarDados}
+          />
+        )}
 
-          {/* Card Dívidas */}
-          <CardExpansivel
-            id="dividas"
-            titulo="Dívidas"
-            expandido={isCardExpandido("dividas")}
-            onToggle={() => toggleCard("dividas")}
-          >
-            <div className="space-y-4">
-              <PerguntaSimNao
-                pergunta="Você tem DÍVIDAS ou financiamentos?"
-                valor={dados.tem_dividas}
-                onChange={(v) => atualizarDados("tem_dividas", v)}
-              />
-              {dados.tem_dividas && (
-                <InputMonetario
-                  label="Valor total das dívidas *"
-                  valor={dados.dividas_totais || 0}
-                  onChange={(v) => atualizarDados("dividas_totais", v)}
-                  erro={erros.dividas_totais}
-                  dica="Some todos os empréstimos, financiamentos e dívidas (saldo devedor total)"
-                />
-              )}
-            </div>
-          </CardExpansivel>
+        {passoEtapa4 === 5 && (
+          <PassoDividas
+            dados={dados}
+            erros={erros}
+            atualizarDados={atualizarDados}
+          />
+        )}
 
-          {/* Card Bens */}
-          <CardExpansivel
-            id="bens"
-            titulo="Bens e Equipamentos"
-            expandido={isCardExpandido("bens")}
-            onToggle={() => toggleCard("bens")}
-          >
-            <div className="space-y-4">
-              <PerguntaSimNao
-                pergunta="Você tem BENS ou EQUIPAMENTOS da empresa?"
-                valor={dados.tem_bens}
-                onChange={(v) => atualizarDados("tem_bens", v)}
-              />
-              {dados.tem_bens && (
-                <InputMonetario
-                  label="Valor total dos bens *"
-                  valor={dados.bens_equipamentos || 0}
-                  onChange={(v) => atualizarDados("bens_equipamentos", v)}
-                  erro={erros.bens_equipamentos}
-                  dica="Máquinas, móveis, computadores, veículos (valor atual de mercado)"
-                />
-              )}
-            </div>
-          </CardExpansivel>
+        {passoEtapa4 === 6 && (
+          <PassoBens
+            dados={dados}
+            erros={erros}
+            atualizarDados={atualizarDados}
+          />
+        )}
 
-          {/* Card Equipe */}
-          <CardExpansivel
-            id="equipe"
-            titulo="Equipe"
-            expandido={isCardExpandido("equipe")}
-            onToggle={() => toggleCard("equipe")}
-          >
-            <div>
-              <label className="label">
-                Quantos FUNCIONÁRIOS trabalham na empresa? *
-                <span className="text-foreground-muted font-normal"> (incluindo você)</span>
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={dados.num_funcionarios}
-                onChange={(e) => atualizarDados("num_funcionarios", parseInt(e.target.value) || 1)}
-                className={`input w-32 ${erros.num_funcionarios ? "input-error" : ""}`}
-              />
-              {erros.num_funcionarios && (
-                <p className="text-danger text-sm mt-1">{erros.num_funcionarios}</p>
-              )}
-              <p className="help-text">
-                Conte todos: CLT, PJ, sócios que trabalham, freelancers fixos
-              </p>
-            </div>
-          </CardExpansivel>
+        {passoEtapa4 === 7 && (
+          <PassoEquipe
+            dados={dados}
+            erros={erros}
+            atualizarDados={atualizarDados}
+          />
+        )}
+      </div>
+
+      {/* Indicador de passos */}
+      <div className="flex justify-center gap-2 mb-6">
+        {[1, 2, 3, 4, 5, 6, 7].map((passo) => (
+          <div
+            key={passo}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              passo === passoEtapa4
+                ? "bg-primary w-6"
+                : passo < passoEtapa4
+                ? "bg-primary"
+                : "bg-gray-300"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Botões de navegação */}
+      <div className="flex gap-4">
+        <button
+          type="button"
+          onClick={handleVoltar}
+          className="btn-secondary flex-1"
+          disabled={carregando}
+        >
+          Voltar
+        </button>
+        <button
+          type="button"
+          onClick={handleAvancar}
+          className="btn-primary flex-1"
+          disabled={carregando}
+        >
+          {carregando
+            ? "Processando..."
+            : passoEtapa4 === 7
+            ? "Gerar Análise Completa"
+            : "Próximo"
+          }
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ========== COMPONENTES DOS PASSOS ==========
+
+interface PassoReceitaProps {
+  dados: DadosAnalise;
+  erros: ErrosCampo;
+  mesReferenciaLabel: string;
+  getMesLabel: (mesesAtras: number) => string;
+  atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
+  atualizarReceitaHistorico: (campo: keyof ReceitaHistorico, valor: number) => void;
+}
+
+function PassoReceita({ dados, erros, mesReferenciaLabel, getMesLabel, atualizarDados, atualizarReceitaHistorico }: PassoReceitaProps) {
+  const [mostrarExtras, setMostrarExtras] = useState(false);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-1">
+          Vamos falar de receita
+        </h2>
+        <p className="text-sm text-foreground-muted">
+          Quanto sua empresa faturou recentemente?
+        </p>
+      </div>
+
+      {/* Pergunta obrigatória */}
+      <InputMonetario
+        label={`Quanto sua empresa faturou em ${mesReferenciaLabel}? *`}
+        valor={dados.receita_atual}
+        onChange={(v) => atualizarDados("receita_atual", v)}
+        erro={erros.receita_atual}
+        dica="Some tudo que entrou: vendas, serviços, tudo."
+        autoFocus
+      />
+
+      {/* Trigger para extras */}
+      {!mostrarExtras && dados.receita_atual > 0 && (
+        <button
+          type="button"
+          onClick={() => setMostrarExtras(true)}
+          className="w-full py-3 px-4 border-2 border-dashed border-gray-300 rounded-lg text-sm text-foreground-muted hover:border-primary hover:text-primary transition-all"
+        >
+          + Adicione mais meses para uma análise mais completa
+        </button>
+      )}
+
+      {/* Perguntas extras */}
+      {mostrarExtras && (
+        <div className="space-y-4 pt-4 border-t border-gray-100 animate-fade-in">
+          <p className="text-sm text-foreground-muted">
+            Para uma análise de tendência mais precisa, informe os meses anteriores:
+          </p>
+          <InputMonetario
+            label={`E em ${getMesLabel(1)}, lembra quanto foi?`}
+            valor={dados.receita_historico.mes_passado}
+            onChange={(v) => atualizarReceitaHistorico("mes_passado", v)}
+          />
+          <InputMonetario
+            label={`E em ${getMesLabel(2)}?`}
+            valor={dados.receita_historico.dois_meses_atras}
+            onChange={(v) => atualizarReceitaHistorico("dois_meses_atras", v)}
+          />
+          <InputMonetario
+            label={`E em ${getMesLabel(3)}?`}
+            valor={dados.receita_historico.tres_meses_atras}
+            onChange={(v) => atualizarReceitaHistorico("tres_meses_atras", v)}
+          />
         </div>
+      )}
+    </div>
+  );
+}
 
-        {/* Botões */}
-        <div className="flex gap-4 mt-8">
-          <button type="button" onClick={voltar} className="btn-secondary flex-1" disabled={carregando}>
-            Voltar
-          </button>
-          <button type="submit" className="btn-primary flex-1" disabled={carregando}>
-            {carregando ? "Processando..." : "Gerar Análise Completa"}
-          </button>
+interface PassoCustosProps {
+  dados: DadosAnalise;
+  atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
+}
+
+function PassoCustos({ dados, atualizarDados }: PassoCustosProps) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-1">
+          Agora os custos e despesas
+        </h2>
+        <p className="text-sm text-foreground-muted">
+          Quanto custa manter sua operação rodando?
+        </p>
+      </div>
+
+      <InputMonetario
+        label="Quanto custou entregar o que você vendeu? *"
+        valor={dados.custo_vendas}
+        onChange={(v) => atualizarDados("custo_vendas", v)}
+        dica="Ex: Se você vende um lanche, é valor do pão, da carne e da embalagem. Se é serviço, é o tempo/material que gastou pra fazer."
+        autoFocus
+      />
+
+      <InputMonetario
+        label="Quanto você gasta todo mês pra manter as portas abertas? *"
+        valor={dados.despesas_fixas}
+        onChange={(v) => atualizarDados("despesas_fixas", v)}
+        dica="Aluguel, salários, luz, água, internet, contador..."
+      />
+    </div>
+  );
+}
+
+interface PassoCaixaProps {
+  dados: DadosAnalise;
+  atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
+}
+
+function PassoCaixa({ dados, atualizarDados }: PassoCaixaProps) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-1">
+          Como está o caixa?
+        </h2>
+        <p className="text-sm text-foreground-muted">
+          Vamos entender seu fluxo de dinheiro.
+        </p>
+      </div>
+
+      <InputMonetario
+        label="Quanto tem disponível hoje no caixa e no banco? *"
+        valor={dados.caixa_bancos}
+        onChange={(v) => atualizarDados("caixa_bancos", v)}
+        dica="Soma tudo: gaveta, conta corrente, poupança."
+        autoFocus
+      />
+
+      <InputMonetario
+        label="Quanto você tem pra receber nos próximos 30 dias? *"
+        valor={dados.contas_receber}
+        onChange={(v) => atualizarDados("contas_receber", v)}
+        dica="Clientes que ainda vão te pagar."
+      />
+
+      <InputMonetario
+        label="E pra pagar, quanto tem comprometido pros próximos 30 dias? *"
+        valor={dados.contas_pagar}
+        onChange={(v) => atualizarDados("contas_pagar", v)}
+        dica="Fornecedores, aluguel, folha, parcelas, impostos..."
+      />
+    </div>
+  );
+}
+
+interface PassoEstoqueProps {
+  dados: DadosAnalise;
+  erros: ErrosCampo;
+  atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
+}
+
+function PassoEstoque({ dados, erros, atualizarDados }: PassoEstoqueProps) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-1">
+          Sobre estoque
+        </h2>
+        <p className="text-sm text-foreground-muted">
+          Nem todo negócio trabalha com estoque, e tudo bem.
+        </p>
+      </div>
+
+      <PerguntaSimNao
+        pergunta="Sua empresa trabalha com estoque de produtos?"
+        valor={dados.tem_estoque}
+        onChange={(v) => atualizarDados("tem_estoque", v)}
+      />
+
+      {dados.tem_estoque && (
+        <div className="animate-fade-in">
+          <InputMonetario
+            label="Quanto vale esse estoque hoje, mais ou menos? *"
+            valor={dados.estoque || 0}
+            onChange={(v) => atualizarDados("estoque", v)}
+            erro={erros.estoque}
+            dica="Pense no que você pagou, não no preço de venda."
+          />
         </div>
-      </form>
+      )}
+    </div>
+  );
+}
+
+interface PassoDividasProps {
+  dados: DadosAnalise;
+  erros: ErrosCampo;
+  atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
+}
+
+function PassoDividas({ dados, erros, atualizarDados }: PassoDividasProps) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-1">
+          Sobre dívidas
+        </h2>
+        <p className="text-sm text-foreground-muted">
+          Ter dívida não é necessariamente ruim - o importante é saber gerenciar.
+        </p>
+      </div>
+
+      <PerguntaSimNao
+        pergunta="A empresa tem algum empréstimo ou financiamento ativo?"
+        valor={dados.tem_dividas}
+        onChange={(v) => atualizarDados("tem_dividas", v)}
+      />
+
+      {dados.tem_dividas && (
+        <div className="animate-fade-in">
+          <InputMonetario
+            label="Somando tudo, quanto ainda falta pagar? *"
+            valor={dados.dividas_totais || 0}
+            onChange={(v) => atualizarDados("dividas_totais", v)}
+            erro={erros.dividas_totais}
+            dica="Empréstimos, financiamentos, cartão parcelado da empresa..."
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface PassoBensProps {
+  dados: DadosAnalise;
+  erros: ErrosCampo;
+  atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
+}
+
+function PassoBens({ dados, erros, atualizarDados }: PassoBensProps) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-1">
+          Bens e equipamentos
+        </h2>
+        <p className="text-sm text-foreground-muted">
+          Coisas que a empresa possui e que têm valor.
+        </p>
+      </div>
+
+      <PerguntaSimNao
+        pergunta="A empresa tem máquinas, equipamentos ou veículos próprios?"
+        valor={dados.tem_bens}
+        onChange={(v) => atualizarDados("tem_bens", v)}
+      />
+
+      {dados.tem_bens && (
+        <div className="animate-fade-in">
+          <InputMonetario
+            label="Se fosse vender hoje, quanto acha que valeria tudo junto? *"
+            valor={dados.bens_equipamentos || 0}
+            onChange={(v) => atualizarDados("bens_equipamentos", v)}
+            erro={erros.bens_equipamentos}
+            dica="Máquinas, móveis, computadores, veículos..."
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface PassoEquipeProps {
+  dados: DadosAnalise;
+  erros: ErrosCampo;
+  atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
+}
+
+function PassoEquipe({ dados, erros, atualizarDados }: PassoEquipeProps) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-1">
+          Por último, sua equipe
+        </h2>
+        <p className="text-sm text-foreground-muted">
+          Quase lá! Só mais uma informação.
+        </p>
+      </div>
+
+      <div>
+        <label className="label">
+          Quantas pessoas trabalham na empresa, contando você? *
+        </label>
+        <input
+          type="number"
+          min="1"
+          value={dados.num_funcionarios}
+          onChange={(e) => atualizarDados("num_funcionarios", parseInt(e.target.value) || 1)}
+          className={`input w-32 focus:ring-2 focus:ring-primary/20 transition-all ${erros.num_funcionarios ? "input-error" : ""}`}
+          autoFocus
+        />
+        {erros.num_funcionarios && (
+          <p className="text-danger text-sm mt-1">{erros.num_funcionarios}</p>
+        )}
+        <p className="help-text">
+          Todo mundo: CLT, PJ, sócios que põem a mão na massa, freelancer fixo...
+        </p>
+      </div>
     </div>
   );
 }
 
 // ========== COMPONENTES AUXILIARES ==========
-
-interface CardExpansivelProps {
-  id: string;
-  titulo: string;
-  expandido: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}
-
-function CardExpansivel({ id, titulo, expandido, onToggle, children }: CardExpansivelProps) {
-  return (
-    <div className="card-expandable">
-      <button type="button" onClick={onToggle} className="card-expandable-header w-full">
-        <span className="font-semibold">{titulo}</span>
-        {expandido ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-      </button>
-      {expandido && <div className="card-expandable-content">{children}</div>}
-    </div>
-  );
-}
 
 interface InputMonetarioProps {
   label: string;
@@ -328,14 +546,20 @@ interface InputMonetarioProps {
   onChange: (valor: number) => void;
   erro?: string;
   dica?: string;
-  tooltip?: string;
+  autoFocus?: boolean;
 }
 
-function InputMonetario({ label, valor, onChange, erro, dica, tooltip }: InputMonetarioProps) {
+function InputMonetario({ label, valor, onChange, erro, dica, autoFocus }: InputMonetarioProps) {
   const [displayValue, setDisplayValue] = useState(
     valor > 0 ? valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : ""
   );
-  const [showTooltip, setShowTooltip] = useState(false);
+
+  // Atualiza o display quando o valor externo muda
+  useEffect(() => {
+    setDisplayValue(
+      valor > 0 ? valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : ""
+    );
+  }, [valor]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, "");
@@ -346,25 +570,7 @@ function InputMonetario({ label, valor, onChange, erro, dica, tooltip }: InputMo
 
   return (
     <div>
-      <label className="label inline-flex items-center gap-1">
-        <span>{label}</span>
-        {tooltip && (
-          <span 
-            className="relative cursor-help"
-            onMouseEnter={() => setShowTooltip(true)}
-            onMouseLeave={() => setShowTooltip(false)}
-          >
-            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full border border-gray-400 text-gray-400 text-xs">
-              i
-            </span>
-            {showTooltip && (
-              <span className="absolute left-6 top-1/2 -translate-y-1/2 z-10 bg-foreground text-white text-xs px-2 py-1 rounded whitespace-nowrap shadow-lg">
-                {tooltip}
-              </span>
-            )}
-          </span>
-        )}
-      </label>
+      <label className="label">{label}</label>
       <div className="relative flex items-center">
         <span className="absolute left-4 text-foreground-muted pointer-events-none select-none">
           R$
@@ -374,8 +580,9 @@ function InputMonetario({ label, valor, onChange, erro, dica, tooltip }: InputMo
           value={displayValue}
           onChange={handleChange}
           placeholder="0,00"
+          autoFocus={autoFocus}
           style={{ paddingLeft: "3.5rem" }}
-          className={`input ${erro ? "input-error" : ""}`}
+          className={`input focus:ring-2 focus:ring-primary/20 transition-all ${erro ? "input-error" : ""}`}
           data-hj-suppress
         />
       </div>
