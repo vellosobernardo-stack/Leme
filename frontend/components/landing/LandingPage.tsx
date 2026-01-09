@@ -502,7 +502,7 @@ export function Authority() {
                 <div className="space-y-3">
                   {[
                     "Indicadores reconhecidos de mercado",
-                    "Diagnósticos baseados em dados reais",
+                    "Diagnósticos baseados em dados do próprio negócio",
                     "Foco em decisão, não em relatório",
                     "Ações práticas, não teoria",
                   ].map((item, i) => (
