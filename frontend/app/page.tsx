@@ -2,6 +2,7 @@ import {
   Header, 
   Hero, 
   TrustBar,
+  HeroPreAbertura,
   ValueDelivery, 
   HowItWorks, 
   Authority, 
@@ -16,6 +17,7 @@ export default function Home() {
       <main>
         <Hero />
         <TrustBar />
+        <HeroPreAbertura />
         <ValueDelivery />
         <HowItWorks />
         <Authority />

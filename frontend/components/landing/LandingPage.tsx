@@ -14,12 +14,13 @@ import {
   CheckCircle2,
   Zap,
   Target,
-  Users
+  Users,
+  Lightbulb
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 // ============================================
-// HEADER
+// HEADER (ATUALIZADO - com link pré-abertura)
 // ============================================
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -37,6 +38,7 @@ export function Header() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-4 flex items-center justify-between">
+        {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <Image 
             src={scrolled ? "/images/logo.svg" : "/images/logo-white.svg"}
@@ -50,16 +52,33 @@ export function Header() {
             Leme
           </span>
         </Link>
-        <Link
-          href="/analise"
-          className={`px-5 py-2 rounded-full font-medium text-sm transition-all ${
-            scrolled 
-              ? "bg-[#112d4e] text-white hover:bg-[#1a4578]" 
-              : "bg-white text-[#112d4e] hover:bg-gray-100"
-          }`}
-        >
-          Começar
-        </Link>
+
+        {/* Links de navegação */}
+        <div className="flex items-center gap-6">
+          {/* Link para pré-abertura */}
+          <Link
+            href="/pre-abertura"
+            className={`text-sm font-medium transition-colors hidden sm:block ${
+              scrolled 
+                ? "text-[#112d4e]/70 hover:text-[#112d4e]" 
+                : "text-white/70 hover:text-white"
+            }`}
+          >
+            Analisar ideia de negócio
+          </Link>
+
+          {/* CTA principal */}
+          <Link
+            href="/analise"
+            className={`px-5 py-2 rounded-full font-medium text-sm transition-all ${
+              scrolled 
+                ? "bg-[#112d4e] text-white hover:bg-[#1a4578]" 
+                : "bg-white text-[#112d4e] hover:bg-gray-100"
+            }`}
+          >
+            Começar
+          </Link>
+        </div>
       </div>
     </header>
   );
@@ -241,6 +260,145 @@ export function TrustBar() {
             <span className="text-sm text-white/70">{item.text}</span>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// HERO PRÉ-ABERTURA 
+// ============================================
+export function HeroPreAbertura() {
+  return (
+    <section className="py-20 lg:py-28 bg-white relative overflow-hidden">
+      {/* Elementos decorativos sutis */}
+      <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-50 rounded-full blur-3xl opacity-50" />
+      <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#F5793B]/5 rounded-full blur-3xl" />
+      
+      <div className="relative max-w-6xl mx-auto px-6">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          
+          {/* Texto */}
+          <div>
+            <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-4 py-2 rounded-full mb-6">
+              <Lightbulb className="w-4 h-4 text-[#112d4e]" />
+              <span className="text-sm text-[#112d4e]/80">Para quem está planejando</span>
+            </div>
+
+            <h2 className="text-3xl lg:text-4xl font-bold text-[#112d4e] mb-6 leading-tight">
+              Ainda não abriu sua empresa?
+              <br />
+              <span className="text-[#F5793B]">Comece pelo planejamento.</span>
+            </h2>
+
+            <p className="text-lg text-gray-600 mb-8 max-w-md">
+              Descubra quanto capital você precisa, compare com referências do setor 
+              e receba um checklist para os primeiros 30 dias.
+            </p>
+
+            {/* Benefícios */}
+            <div className="space-y-3 mb-8">
+              {[
+                "Compare seu capital com a média do setor",
+                "Receba alertas sobre pontos de atenção",
+                "Checklist prático para os primeiros passos",
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded-full bg-[#112d4e]/10 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-[#112d4e]" />
+                  </div>
+                  <span className="text-gray-600">{item}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA */}
+            <Link
+              href="/pre-abertura"
+              className="group inline-flex items-center gap-3 bg-[#112d4e] hover:bg-[#1a4578] text-white px-8 py-4 text-lg font-semibold rounded-full transition-all hover:-translate-y-0.5"
+            >
+              Analisar minha ideia
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+            
+            <p className="text-gray-400 text-sm mt-3 ml-1">
+              Leva menos de 2 minutos • Sem CNPJ
+            </p>
+          </div>
+
+          {/* Card visual */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-[#112d4e]/5 rounded-3xl blur-2xl scale-95" />
+            
+            <div className="relative bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+              {/* Header do card */}
+              <div className="bg-[#112d4e] px-6 py-5">
+                <p className="text-white/60 text-sm mb-1">Análise Pré-abertura</p>
+                <p className="text-white font-semibold text-lg">Seu projeto de negócio</p>
+              </div>
+              
+              {/* Conteúdo */}
+              <div className="p-6 space-y-5">
+                {/* Comparativo Capital */}
+                <div>
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-gray-500">Seu capital</span>
+                    <span className="font-semibold text-[#112d4e]">R$ 30.000</span>
+                  </div>
+                  <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full w-[75%] bg-green-500 rounded-full" />
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-1">
+                    <span className="text-gray-400">Referência: R$ 25.000</span>
+                    <span className="text-green-600 font-medium">20% acima</span>
+                  </div>
+                </div>
+
+                {/* Comparativo Faturamento */}
+                <div>
+                  <div className="flex items-center justify-between text-sm mb-2">
+                    <span className="text-gray-500">Faturamento esperado</span>
+                    <span className="font-semibold text-[#112d4e]">R$ 12.000</span>
+                  </div>
+                  <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full w-[60%] bg-yellow-500 rounded-full" />
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-1">
+                    <span className="text-gray-400">Média do setor: R$ 15.000</span>
+                    <span className="text-yellow-600 font-medium">20% abaixo</span>
+                  </div>
+                </div>
+
+                {/* Alerta exemplo */}
+                <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Shield className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-blue-800 text-sm">Capital adequado</p>
+                      <p className="text-blue-600 text-xs mt-0.5">Você tem margem para imprevistos iniciais</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Checklist preview */}
+                <div className="border-t border-gray-100 pt-4">
+                  <p className="text-sm font-medium text-gray-700 mb-3">Primeiros 30 dias</p>
+                  <div className="space-y-2">
+                    {["Definir estrutura jurídica", "Abrir conta PJ"].map((item, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="w-4 h-4 rounded border-2 border-gray-300" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                    <p className="text-xs text-gray-400 mt-1">+ mais itens no resultado</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

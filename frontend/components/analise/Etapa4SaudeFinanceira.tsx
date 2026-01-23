@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { DadosAnalise, ErrosCampo, ReceitaHistorico, MESES } from "@/types/analise";
-import { criarAnalise } from "@/lib/api";
+import { criarAnalise, concluirSessao } from "@/lib/api";
 import { PassoEtapa4, PASSOS_ETAPA4_INFO } from "@/hooks/useAnalise";
 
 interface Etapa4Props {
@@ -12,12 +12,14 @@ interface Etapa4Props {
   alertas: string[];
   carregando: boolean;
   passoEtapa4: PassoEtapa4;
+  sessaoId: string | null; // Adicionado
   atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
   atualizarReceitaHistorico: (campo: keyof ReceitaHistorico, valor: number) => void;
   setCarregando: (v: boolean) => void;
   avancarPassoEtapa4: () => boolean;
   voltarPassoEtapa4: () => boolean;
   voltar: () => void;
+  limparSessao: () => void; // Adicionado
 }
 
 export default function Etapa4SaudeFinanceira({
@@ -26,12 +28,14 @@ export default function Etapa4SaudeFinanceira({
   alertas,
   carregando,
   passoEtapa4,
+  sessaoId,
   atualizarDados,
   atualizarReceitaHistorico,
   setCarregando,
   avancarPassoEtapa4,
   voltarPassoEtapa4,
   voltar,
+  limparSessao,
 }: Etapa4Props) {
   const router = useRouter();
   const [animando, setAnimando] = useState(false);
@@ -82,6 +86,13 @@ export default function Etapa4SaudeFinanceira({
     setCarregando(true);
     try {
       const resultado = await criarAnalise(dados);
+      
+      // Conclui a sessão no backend (não bloqueia se falhar)
+      if (sessaoId) {
+        await concluirSessao(sessaoId, resultado.id);
+        limparSessao(); // Limpa do localStorage
+      }
+      
       router.push(`/dashboard/${resultado.id}`);
     } catch (error) {
       console.error("Erro ao criar análise:", error);
@@ -261,44 +272,42 @@ function PassoReceita({ dados, erros, mesReferenciaLabel, getMesLabel, atualizar
         valor={dados.receita_atual}
         onChange={(v) => atualizarDados("receita_atual", v)}
         erro={erros.receita_atual}
-        dica="Some tudo que entrou: vendas, serviços, tudo."
         autoFocus
       />
 
-      {/* Trigger para extras */}
-      {!mostrarExtras && dados.receita_atual > 0 && (
+      {/* Perguntas extras opcionais */}
+      <div className="pt-2">
         <button
           type="button"
-          onClick={() => setMostrarExtras(true)}
-          className="w-full py-3 px-4 border-2 border-dashed border-gray-300 rounded-lg text-sm text-foreground-muted hover:border-primary hover:text-primary transition-all"
+          onClick={() => setMostrarExtras(!mostrarExtras)}
+          className="text-sm text-primary hover:underline flex items-center gap-1"
         >
-          + Adicione mais meses para uma análise mais completa
+          {mostrarExtras ? "▼" : "▶"} Quer informar os meses anteriores? (opcional)
         </button>
-      )}
 
-      {/* Perguntas extras */}
-      {mostrarExtras && (
-        <div className="space-y-4 pt-4 border-t border-gray-100 animate-fade-in">
-          <p className="text-sm text-foreground-muted">
-            Para uma análise de tendência mais precisa, informe os meses anteriores:
-          </p>
-          <InputMonetario
-            label={`E em ${getMesLabel(1)}, lembra quanto foi?`}
-            valor={dados.receita_historico.mes_passado}
-            onChange={(v) => atualizarReceitaHistorico("mes_passado", v)}
-          />
-          <InputMonetario
-            label={`E em ${getMesLabel(2)}?`}
-            valor={dados.receita_historico.dois_meses_atras}
-            onChange={(v) => atualizarReceitaHistorico("dois_meses_atras", v)}
-          />
-          <InputMonetario
-            label={`E em ${getMesLabel(3)}?`}
-            valor={dados.receita_historico.tres_meses_atras}
-            onChange={(v) => atualizarReceitaHistorico("tres_meses_atras", v)}
-          />
-        </div>
-      )}
+        {mostrarExtras && (
+          <div className="mt-4 space-y-4 pl-4 border-l-2 border-primary/20 animate-fade-in">
+            <p className="text-sm text-foreground-muted">
+              Isso nos ajuda a calcular a tendência de crescimento.
+            </p>
+            <InputMonetario
+              label={`${getMesLabel(1)} (mês passado)`}
+              valor={dados.receita_historico.mes_passado}
+              onChange={(v) => atualizarReceitaHistorico("mes_passado", v)}
+            />
+            <InputMonetario
+              label={`${getMesLabel(2)} (2 meses atrás)`}
+              valor={dados.receita_historico.dois_meses_atras}
+              onChange={(v) => atualizarReceitaHistorico("dois_meses_atras", v)}
+            />
+            <InputMonetario
+              label={`${getMesLabel(3)} (3 meses atrás)`}
+              valor={dados.receita_historico.tres_meses_atras}
+              onChange={(v) => atualizarReceitaHistorico("tres_meses_atras", v)}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -313,26 +322,26 @@ function PassoCustos({ dados, atualizarDados }: PassoCustosProps) {
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
-          Agora os custos e despesas
+          Custos e despesas
         </h2>
         <p className="text-sm text-foreground-muted">
-          Quanto custa manter sua operação rodando?
+          O que sai do caixa pra manter a empresa rodando.
         </p>
       </div>
 
       <InputMonetario
-        label="Quanto custou entregar o que você vendeu? *"
+        label="Quanto custa o que você vende? (CMV) *"
         valor={dados.custo_vendas}
         onChange={(v) => atualizarDados("custo_vendas", v)}
-        dica="Ex: Se você vende um lanche, é valor do pão, da carne e da embalagem. Se é serviço, é o tempo/material que gastou pra fazer."
+        dica="Mercadoria, matéria-prima, insumos, embalagens..."
         autoFocus
       />
 
       <InputMonetario
-        label="Quanto você gasta todo mês pra manter as portas abertas? *"
+        label="E as despesas fixas mensais, quanto dá? *"
         valor={dados.despesas_fixas}
         onChange={(v) => atualizarDados("despesas_fixas", v)}
-        dica="Aluguel, salários, luz, água, internet, contador..."
+        dica="Aluguel, salários, conta de luz, internet, contador..."
       />
     </div>
   );
@@ -348,18 +357,18 @@ function PassoCaixa({ dados, atualizarDados }: PassoCaixaProps) {
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
-          Como está o caixa?
+          Caixa e fluxo
         </h2>
         <p className="text-sm text-foreground-muted">
-          Vamos entender seu fluxo de dinheiro.
+          Como está a liquidez da empresa hoje.
         </p>
       </div>
 
       <InputMonetario
-        label="Quanto tem disponível hoje no caixa e no banco? *"
+        label="Quanto tem em caixa e banco hoje? *"
         valor={dados.caixa_bancos}
         onChange={(v) => atualizarDados("caixa_bancos", v)}
-        dica="Soma tudo: gaveta, conta corrente, poupança."
+        dica="Conta corrente, poupança, dinheiro em espécie..."
         autoFocus
       />
 

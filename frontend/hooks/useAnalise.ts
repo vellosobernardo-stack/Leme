@@ -9,6 +9,7 @@ import {
   ResultadoValidacao,
   ReceitaHistorico,
 } from "@/types/analise";
+import { iniciarSessao } from "@/lib/api";
 
 // Passos da Etapa 4 (blocos de perguntas)
 export type PassoEtapa4 = 1 | 2 | 3 | 4 | 5 | 6 | 7;
@@ -23,6 +24,9 @@ export const PASSOS_ETAPA4_INFO = {
   7: { id: "equipe", titulo: "Equipe" },
 } as const;
 
+// Chave para persistir sessão no localStorage
+const SESSAO_STORAGE_KEY = "leme_sessao_id";
+
 /**
  * Hook para gerenciar o estado do fluxo de análise
  */
@@ -34,6 +38,15 @@ export function useAnalise() {
   const [erros, setErros] = useState<ErrosCampo>({});
   const [alertas, setAlertas] = useState<string[]>([]);
   const [cardsExpandidos, setCardsExpandidos] = useState<string[]>(["receita"]);
+  
+  // ID da sessão para rastreamento de abandono
+  const [sessaoId, setSessaoId] = useState<string | null>(() => {
+    // Recupera sessão existente do localStorage (se houver)
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(SESSAO_STORAGE_KEY);
+    }
+    return null;
+  });
 
   // Atualizar campo simples
   const atualizarDados = useCallback(
@@ -189,8 +202,36 @@ export function useAnalise() {
     return false;
   }, [passoEtapa4]);
 
+  // Criar sessão no backend (chamado ao sair da Etapa 1)
+  const criarSessao = useCallback(async (): Promise<boolean> => {
+    try {
+      const resultado = await iniciarSessao(dados.nome_empresa, dados.email);
+      const novoSessaoId = resultado.sessao_id;
+      
+      // Salva no state e localStorage
+      setSessaoId(novoSessaoId);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(SESSAO_STORAGE_KEY, novoSessaoId);
+      }
+      
+      return true;
+    } catch (error) {
+      // Não bloqueia o fluxo se falhar - apenas loga
+      console.error("Erro ao criar sessão:", error);
+      return true; // Continua mesmo se falhar
+    }
+  }, [dados.nome_empresa, dados.email]);
+
+  // Limpar sessão do localStorage (chamado após conclusão)
+  const limparSessao = useCallback(() => {
+    setSessaoId(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(SESSAO_STORAGE_KEY);
+    }
+  }, []);
+
   // Avançar etapa principal
-  const avancar = useCallback(() => {
+  const avancar = useCallback(async () => {
     let validacao: ResultadoValidacao = { valido: true, erros: {}, alertas: [] };
 
     if (etapaAtual === 1) validacao = validarEtapa1();
@@ -201,12 +242,17 @@ export function useAnalise() {
     setAlertas(validacao.alertas);
 
     if (validacao.valido && etapaAtual < 4) {
+      // Se saindo da Etapa 1, cria sessão no backend
+      if (etapaAtual === 1) {
+        await criarSessao();
+      }
+      
       setEtapaAtual((prev) => (prev + 1) as EtapaFluxo);
       return true;
     }
 
     return validacao.valido;
-  }, [etapaAtual, validarEtapa1, validarEtapa2, validarEtapa4]);
+  }, [etapaAtual, validarEtapa1, validarEtapa2, validarEtapa4, criarSessao]);
 
   // Voltar etapa principal
   const voltar = useCallback(() => {
@@ -268,6 +314,7 @@ export function useAnalise() {
     erros,
     alertas,
     progresso,
+    sessaoId, // Expõe para uso no submit final
     
     // Funções de dados
     atualizarDados,
@@ -281,6 +328,9 @@ export function useAnalise() {
     // Navegação Etapa 4
     avancarPassoEtapa4,
     voltarPassoEtapa4,
+    
+    // Sessão
+    limparSessao,
     
     // Cards (compatibilidade)
     toggleCard,

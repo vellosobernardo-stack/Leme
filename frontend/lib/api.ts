@@ -7,6 +7,54 @@ import { DadosAnalise } from "@/types/analise";
 // URL base da API
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+// ========== SESSÃO (E-mail de abandono) ==========
+
+/**
+ * Inicia uma sessão de análise
+ * Chamado quando o usuário clica "Começar Análise" na Etapa 1
+ */
+export async function iniciarSessao(nomeEmpresa: string, email: string) {
+  const response = await fetch(`${API_BASE}/sessao/iniciar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      nome_empresa: nomeEmpresa,
+      email: email,
+    }),
+  });
+
+  if (!response.ok) {
+    const erro = await response.json().catch(() => ({}));
+    throw new Error(erro.detail || "Erro ao iniciar sessão");
+  }
+
+  return response.json();
+}
+
+/**
+ * Conclui uma sessão de análise
+ * Chamado quando a análise é finalizada com sucesso
+ */
+export async function concluirSessao(sessaoId: string, analiseId: string) {
+  const response = await fetch(`${API_BASE}/sessao/${sessaoId}/concluir`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      analise_id: analiseId,
+    }),
+  });
+
+  if (!response.ok) {
+    // Não bloqueia o fluxo se falhar - apenas loga
+    console.error("Erro ao concluir sessão:", await response.text());
+    return null;
+  }
+
+  return response.json();
+}
+
+// ========== ANÁLISE ==========
+
 /**
  * Prepara os dados do formulário para enviar à API
  */
@@ -79,7 +127,12 @@ export async function verificarStatus() {
   const response = await fetch(`${API_BASE}/health`);
   return response.json();
 }
-// Busca dados do dashboard pelo email
+
+// ========== DASHBOARD ==========
+
+/**
+ * Busca dados do dashboard pelo email
+ */
 export async function buscarDashboard(email: string) {
   const response = await fetch(`${API_BASE}/api/v1/dashboard/${encodeURIComponent(email)}`);
   
@@ -93,7 +146,9 @@ export async function buscarDashboard(email: string) {
   return response.json();
 }
 
-// Busca dados do dashboard por ID da análise
+/**
+ * Busca dados do dashboard por ID da análise
+ */
 export async function buscarDashboardPorId(id: string) {
   const response = await fetch(`${API_BASE}/api/v1/dashboard/id/${id}`);
   
