@@ -7,7 +7,7 @@ interface Etapa1Props {
   dados: DadosAnalise;
   erros: ErrosCampo;
   atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
-  avancar: () => boolean;
+  avancar: () => Promise<boolean> | boolean;
 }
 
 export default function Etapa1Identificacao({
@@ -16,9 +16,9 @@ export default function Etapa1Identificacao({
   atualizarDados,
   avancar,
 }: Etapa1Props) {
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    avancar();
+    await avancar();
   };
 
   return (
