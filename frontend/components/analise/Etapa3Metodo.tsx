@@ -6,7 +6,7 @@ import { FileText } from "lucide-react";
 interface Etapa3Props {
   dados: DadosAnalise;
   atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
-  avancar: () => boolean;
+  avancar: () => Promise<boolean> | boolean;
   voltar: () => void;
 }
 
@@ -16,9 +16,9 @@ export default function Etapa3Metodo({
   avancar,
   voltar,
 }: Etapa3Props) {
-  const handleContinuar = () => {
+  const handleContinuar = async () => {
     atualizarDados("metodo_entrada", "manual");
-    avancar();
+    await avancar();
   };
 
   return (

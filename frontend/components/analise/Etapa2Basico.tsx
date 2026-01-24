@@ -6,7 +6,7 @@ interface Etapa2Props {
   dados: DadosAnalise;
   erros: ErrosCampo;
   atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
-  avancar: () => boolean;
+  avancar: () => Promise<boolean> | boolean;
   voltar: () => void;
 }
 
@@ -17,9 +17,9 @@ export default function Etapa2Basico({
   avancar,
   voltar,
 }: Etapa2Props) {
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    avancar();
+    await avancar();
   };
 
   const anoAtual = new Date().getFullYear();
