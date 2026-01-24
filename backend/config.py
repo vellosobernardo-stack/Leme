@@ -5,6 +5,7 @@ Carrega variáveis de ambiente do arquivo .env
 
 from pydantic_settings import BaseSettings
 from functools import lru_cache
+from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -30,6 +31,9 @@ class Settings(BaseSettings):
     # Ambiente
     ENVIRONMENT: str = "development"  # development, staging, production
     DEBUG: bool = True
+    
+    # Brevo (E-mail)
+    BREVO_API_KEY: Optional[str] = None
     
     class Config:
         env_file = ".env"

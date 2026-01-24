@@ -18,8 +18,10 @@ from config import get_settings
 from database import engine, Base
 from routers.analise import router as analise_router
 from routers.dashboard import router as dashboard_router
-
 from routers.report import router as report_router
+from routers.pre_abertura import router as pre_abertura_router
+from routers.sessao import router as sessao_router
+from routers.email import router as email_router  # NOVO - E-mails de abandono
 
 # Carrega configurações
 settings = get_settings()
@@ -49,6 +51,9 @@ app.add_middleware(
 app.include_router(analise_router)
 app.include_router(dashboard_router)
 app.include_router(report_router)
+app.include_router(pre_abertura_router)
+app.include_router(sessao_router)
+app.include_router(email_router)  # NOVO - E-mails de abandono
 
 
 @app.get("/")
