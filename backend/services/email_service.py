@@ -339,3 +339,93 @@ async def enviar_email_pos_conclusao(nome_empresa: str, email: str, analise_id: 
         assunto=assunto,
         html_content=html_content,
     )
+
+
+async def enviar_email_30_dias(nome_empresa: str, email: str) -> bool:
+    """
+    Envia e-mail de reengajamento 30 dias após conclusão.
+    Tom: lembrete de valor, convite para nova análise.
+    """
+    
+    assunto = f"Como está a {nome_empresa} depois de 30 dias?"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+        <!-- Preheader -->
+        <div style="display: none; max-height: 0; overflow: hidden;">
+            Uma nova análise leva menos de 5 minutos e permite comparar a evolução.
+        </div>
+        
+        <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+            <div style="background-color: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                
+                <!-- Header com Logo -->
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <img src="{LOGO_URL}" alt="Leme" width="48" height="48" style="display: inline-block; vertical-align: middle; margin-right: 12px;">
+                    <span style="font-size: 28px; font-weight: bold; color: #112D4E; vertical-align: middle;">Leme</span>
+                </div>
+                
+                <!-- Conteúdo -->
+                <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin-bottom: 16px;">
+                    Há cerca de 30 dias você concluiu a análise financeira da <strong>{nome_empresa}</strong> no Leme.
+                </p>
+                
+                <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
+                    Nesse período, decisões foram tomadas, números mudaram e o negócio seguiu em movimento.
+                </p>
+                
+                <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin-bottom: 16px;">
+                    Uma nova análise leva menos de <strong>5 minutos</strong> e permite comparar:
+                </p>
+                
+                <ul style="color: #4a5568; font-size: 16px; line-height: 1.8; margin-bottom: 32px; padding-left: 20px;">
+                    <li>Como evoluiu a saúde financeira do negócio</li>
+                    <li>O que melhorou desde a última análise</li>
+                    <li>Quais pontos ainda merecem atenção</li>
+                    <li>Se o plano de ação segue coerente com a realidade atual</li>
+                </ul>
+                
+                <!-- CTA -->
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <a href="https://leme.app.br/analise" 
+                       style="display: inline-block; background-color: #112D4E; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                        Atualizar minha análise
+                    </a>
+                </div>
+                
+                <!-- Destaque -->
+                <div style="background-color: #f0f7ff; border-left: 4px solid #112D4E; padding: 16px 20px; margin-bottom: 24px; border-radius: 0 8px 8px 0;">
+                    <p style="color: #112D4E; font-size: 14px; margin: 0;">
+                        <strong>Dica:</strong> Use o mesmo e-mail da análise anterior para acompanhar a evolução ao longo do tempo.
+                    </p>
+                </div>
+                
+                <p style="color: #718096; font-size: 14px; line-height: 1.6; text-align: center;">
+                    Você pode repetir a análise sempre que quiser — o valor está na comparação ao longo do tempo.
+                </p>
+                
+            </div>
+            
+            <!-- Footer -->
+            <div style="text-align: center; margin-top: 24px;">
+                <p style="color: #a0aec0; font-size: 12px;">
+                    Qualquer dúvida, é só responder este e-mail. — Equipe Leme
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return await enviar_email(
+        para_email=email,
+        para_nome=nome_empresa,
+        assunto=assunto,
+        html_content=html_content,
+    )

@@ -125,5 +125,8 @@ class Analise(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
+    # ========== CONTROLE DE E-MAILS ==========
+    email_30d_enviado_em = Column(DateTime, nullable=True)  # E-mail de reengajamento 30 dias
+    
     def __repr__(self):
         return f"<Analise {self.nome_empresa} - {self.mes_referencia}/{self.ano_referencia}>"
