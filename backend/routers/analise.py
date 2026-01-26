@@ -3,7 +3,7 @@ Endpoints da API de Análise Financeira
 """
 
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -18,6 +18,7 @@ from schemas.analise import (
 )
 from services.indicadores import calcular_indicadores
 from services.diagnostico import gerar_diagnostico
+from services.email_service import enviar_email_pos_conclusao
 
 router = APIRouter(
     prefix="/api/v1/analise",
@@ -26,8 +27,9 @@ router = APIRouter(
 
 
 @router.post("/nova", response_model=AnaliseResponse, status_code=status.HTTP_201_CREATED)
-def criar_analise(
+async def criar_analise(
     dados: DadosAnaliseInput,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """
@@ -118,7 +120,15 @@ def criar_analise(
     db.commit()
     db.refresh(analise)
     
-    # 4. Montar resposta
+    # 4. Disparar e-mail pós-conclusão (em background para não travar resposta)
+    background_tasks.add_task(
+        enviar_email_pos_conclusao,
+        nome_empresa=analise.nome_empresa,
+        email=analise.email,
+        analise_id=str(analise.id)
+    )
+    
+    # 5. Montar resposta
     return AnaliseResponse(
         id=analise.id,
         nome_empresa=analise.nome_empresa,

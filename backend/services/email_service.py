@@ -1,10 +1,11 @@
 """
 Serviço de envio de e-mails via Brevo (ex-Sendinblue)
-Feature: E-mail de abandono
+Features: E-mail de abandono, E-mail pós-conclusão
 """
 
 import httpx
 from typing import Optional
+from urllib.parse import quote
 
 from config import get_settings
 
@@ -19,6 +20,9 @@ DEFAULT_SENDER_NAME = "Leme"
 
 # Logo
 LOGO_URL = "https://leme.app.br/images/logo-icon.png"
+
+# Tally
+TALLY_FORM_URL = "https://tally.so/r/44KEvd"
 
 
 async def enviar_email(
@@ -233,6 +237,95 @@ async def enviar_email_abandono_2(nome_empresa: str, email: str) -> bool:
             <div style="text-align: center; margin-top: 24px;">
                 <p style="color: #a0aec0; font-size: 12px;">
                     Leme - Análise financeira para micro e pequenas empresas
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return await enviar_email(
+        para_email=email,
+        para_nome=nome_empresa,
+        assunto=assunto,
+        html_content=html_content,
+    )
+
+
+async def enviar_email_pos_conclusao(nome_empresa: str, email: str, analise_id: str) -> bool:
+    """
+    Envia e-mail de feedback após conclusão da análise.
+    Tom: agradecimento + pedido simples.
+    """
+    
+    assunto = "Sua análise financeira em 1 nota"
+    
+    # Encode para URL
+    aid_encoded = quote(str(analise_id))
+    
+    # Links para cada nota (1-5)
+    def link_nota(nota: int) -> str:
+        return f"{TALLY_FORM_URL}?nota={nota}&aid={aid_encoded}"
+    
+    html_content = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+        <!-- Preheader (texto invisível que aparece na caixa de entrada) -->
+        <div style="display: none; max-height: 0; overflow: hidden;">
+            Leva menos de 30 segundos e ajuda a melhorar o Leme.
+        </div>
+        
+        <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+            <div style="background-color: #ffffff; border-radius: 12px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                
+                <!-- Header com Logo -->
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <img src="{LOGO_URL}" alt="Leme" width="48" height="48" style="display: inline-block; vertical-align: middle; margin-right: 12px;">
+                    <span style="font-size: 28px; font-weight: bold; color: #112D4E; vertical-align: middle;">Leme</span>
+                </div>
+                
+                <!-- Conteúdo -->
+                <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin-bottom: 16px;">
+                    Obrigado por concluir a análise financeira da <strong>{nome_empresa}</strong>.
+                </p>
+                
+                <p style="color: #4a5568; font-size: 16px; line-height: 1.6; margin-bottom: 24px;">
+                    Antes de seguir, queria ouvir você — leva menos de 30 segundos e ajuda bastante a melhorar o Leme.
+                </p>
+                
+                <!-- Pergunta -->
+                <p style="color: #112D4E; font-size: 16px; line-height: 1.6; margin-bottom: 16px; font-weight: 600;">
+                    O quanto essa análise te ajudou a entender a situação financeira do seu negócio?
+                </p>
+                
+                <p style="color: #718096; font-size: 14px; margin-bottom: 20px;">
+                    1 = não ajudou &nbsp;&nbsp;|&nbsp;&nbsp; 5 = ajudou muito
+                </p>
+                
+                <!-- Botões de nota (todos com mesma cor) -->
+                <div style="text-align: center; margin-bottom: 32px;">
+                    <a href="{link_nota(1)}" style="display: inline-block; width: 48px; height: 48px; line-height: 48px; text-align: center; background-color: #f0f0f0; color: #4a5568; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 18px; margin: 0 4px;">1</a>
+                    <a href="{link_nota(2)}" style="display: inline-block; width: 48px; height: 48px; line-height: 48px; text-align: center; background-color: #f0f0f0; color: #4a5568; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 18px; margin: 0 4px;">2</a>
+                    <a href="{link_nota(3)}" style="display: inline-block; width: 48px; height: 48px; line-height: 48px; text-align: center; background-color: #f0f0f0; color: #4a5568; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 18px; margin: 0 4px;">3</a>
+                    <a href="{link_nota(4)}" style="display: inline-block; width: 48px; height: 48px; line-height: 48px; text-align: center; background-color: #f0f0f0; color: #4a5568; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 18px; margin: 0 4px;">4</a>
+                    <a href="{link_nota(5)}" style="display: inline-block; width: 48px; height: 48px; line-height: 48px; text-align: center; background-color: #f0f0f0; color: #4a5568; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 18px; margin: 0 4px;">5</a>
+                </div>
+                
+                <p style="color: #a0aec0; font-size: 13px; line-height: 1.6; text-align: center;">
+                    Sua resposta é anônima e usada apenas para aprimorar a experiência.
+                </p>
+                
+            </div>
+            
+            <!-- Footer -->
+            <div style="text-align: center; margin-top: 24px;">
+                <p style="color: #a0aec0; font-size: 12px;">
+                    Obrigado pelo tempo. — Equipe Leme
                 </p>
             </div>
         </div>
