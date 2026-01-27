@@ -89,7 +89,7 @@ export function Header() {
 // ============================================
 export function Hero() {
   return (
-    <section className="relative min-h-screen flex items-center bg-[#112d4e] overflow-hidden">
+    <section id="inicio" className="relative min-h-screen flex items-center bg-[#112d4e] overflow-hidden">
       {/* Elementos decorativos de fundo */}
       <div className="absolute inset-0 overflow-hidden">
         {/* Gradientes */}
@@ -248,7 +248,7 @@ export function Hero() {
 // ============================================
 export function TrustBar() {
   return (
-    <section className="py-6 bg-[#0d2240]">
+    <section id="seguranca" className="py-6 bg-[#0d2240]">
       <div className="max-w-5xl mx-auto px-6 flex flex-wrap justify-center gap-8 lg:gap-14">
         {[
           { icon: Lock, text: "Criptografia de ponta a ponta" },
@@ -270,7 +270,7 @@ export function TrustBar() {
 // ============================================
 export function HeroPreAbertura() {
   return (
-    <section className="py-20 lg:py-28 bg-white relative overflow-hidden">
+    <section id="pre-abertura" className="py-20 lg:py-28 bg-white relative overflow-hidden">
       {/* Elementos decorativos sutis */}
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-50 rounded-full blur-3xl opacity-50" />
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#F5793B]/5 rounded-full blur-3xl" />
@@ -417,7 +417,7 @@ export function ValueDelivery() {
   ];
 
   return (
-    <section className="py-20 lg:py-28 bg-[#f8fafc] relative overflow-hidden">
+    <section id="o-que-voce-recebe" className="py-20 lg:py-28 bg-[#f8fafc] relative overflow-hidden">
       {/* Elementos decorativos */}
       <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#F5793B]/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-[250px] h-[250px] bg-[#112d4e]/5 rounded-full blur-3xl" />
@@ -538,7 +538,7 @@ export function HowItWorks() {
   ];
 
   return (
-    <section className="py-20 lg:py-28 bg-white relative">
+    <section id="como-funciona" className="py-20 lg:py-28 bg-white relative">
       <div className="relative max-w-6xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-6">
@@ -597,7 +597,7 @@ export function HowItWorks() {
 // ============================================
 export function Authority() {
   return (
-    <section className="py-20 lg:py-28 bg-[#f8fafc] relative overflow-hidden">
+    <section id="metodologia" className="py-20 lg:py-28 bg-[#f8fafc] relative overflow-hidden">
       {/* Elemento decorativo */}
       <div className="absolute top-1/2 -translate-y-1/2 left-0 w-px h-[60%] bg-gradient-to-b from-transparent via-[#F5793B]/20 to-transparent hidden lg:block" />
       
@@ -707,7 +707,7 @@ export function Authority() {
 // ============================================
 export function CTAFinal() {
   return (
-    <section className="py-24 lg:py-32 bg-[#112d4e] relative overflow-hidden">
+    <section id="comecar" className="py-24 lg:py-32 bg-[#112d4e] relative overflow-hidden">
       {/* Elementos decorativos */}
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#F5793B]/10 rounded-full blur-[100px]" />
