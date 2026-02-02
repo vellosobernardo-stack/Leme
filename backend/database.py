@@ -3,7 +3,7 @@ Configuração do banco de dados
 Suporta SQLite (local) e PostgreSQL (produção)
 """
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 from config import get_settings
 
@@ -53,3 +53,32 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def run_migrations():
+    """
+    Executa migrações simples no startup.
+    Adiciona colunas que podem estar faltando no banco de produção.
+    """
+    migrations = [
+        # Coluna para Stripe (paywall)
+        ("analises", "stripe_session_id", "VARCHAR(200)"),
+        # Coluna de pagamento
+        ("analises", "pago", "BOOLEAN DEFAULT FALSE"),
+        ("analises", "pago_em", "TIMESTAMP"),
+    ]
+    
+    with engine.connect() as conn:
+        for table, column, col_type in migrations:
+            try:
+                # Tenta adicionar a coluna - se já existir, ignora o erro
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"))
+                conn.commit()
+                print(f"[Migration] ✅ Coluna {column} adicionada em {table}")
+            except Exception as e:
+                # Coluna já existe ou outro erro - segue em frente
+                conn.rollback()
+                if "already exists" in str(e).lower() or "duplicate column" in str(e).lower():
+                    print(f"[Migration] ⏭️ Coluna {column} já existe em {table}")
+                else:
+                    print(f"[Migration] ⚠️ Erro ao adicionar {column}: {e}")

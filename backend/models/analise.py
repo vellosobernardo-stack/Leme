@@ -126,7 +126,12 @@ class Analise(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # ========== CONTROLE DE E-MAILS ==========
-    email_30d_enviado_em = Column(DateTime, nullable=True)  # E-mail de reengajamento 30 dias
+    email_30d_enviado_em = Column(DateTime, nullable=True)
+    
+    # ========== PAGAMENTO (PAYWALL - STRIPE) ==========
+    pago = Column(Boolean, default=False)
+    stripe_session_id = Column(String(200), nullable=True)
+    pago_em = Column(DateTime, nullable=True)
     
     def __repr__(self):
         return f"<Analise {self.nome_empresa} - {self.mes_referencia}/{self.ano_referencia}>"
