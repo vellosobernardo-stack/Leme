@@ -2,7 +2,7 @@ export {
   Header, 
   Hero, 
   TrustBar,
-  HeroPreAbertura,
+  // HeroPreAbertura,  // Removido temporariamente
   ValueDelivery, 
   HowItWorks, 
   Authority, 
