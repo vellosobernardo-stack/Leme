@@ -2,7 +2,7 @@ import {
   Header, 
   Hero, 
   TrustBar,
-  HeroPreAbertura,
+  // HeroPreAbertura, // Temporariamente removido - foco na proposta central
   ValueDelivery, 
   HowItWorks, 
   Authority, 
@@ -17,7 +17,7 @@ export default function Home() {
       <main>
         <Hero />
         <TrustBar />
-        <HeroPreAbertura />
+        {/* HeroPreAbertura removido temporariamente - código preservado em components/landing/HeroPreAbertura.tsx */}
         <ValueDelivery />
         <HowItWorks />
         <Authority />

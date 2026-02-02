@@ -1,10 +1,11 @@
 // app/dashboard/[id]/page.tsx
-// Página do Dashboard com ID dinâmico na URL
+// Página do Dashboard com ID dinâmico na URL e Paywall
 
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import HeaderNavigation from "@/components/dashboard/HeaderNavigation";
 import ValuationCard from "@/components/dashboard/ValuationCard";
@@ -14,8 +15,11 @@ import BlocoIndicadores from "@/components/dashboard/BlocoIndicadores";
 import DiagnosticoCard from "@/components/dashboard/DiagnosticoCard";
 import PlanoAcaoSection from "@/components/dashboard/PlanoAcaoSection";
 import HistoricoTable from "@/components/dashboard/HistoricoTable";
+import PaywallOverlay from "@/components/dashboard/PaywallOverlay";
+import PaywallModal from "@/components/dashboard/PaywallModal";
 import { buscarDashboardPorId } from "@/lib/api";
 import { DashboardData } from "@/types/dashboard";
+import { AlertTriangle, Download } from "lucide-react";
 
 // Declaração do gtag para TypeScript
 declare global {
@@ -24,17 +28,27 @@ declare global {
   }
 }
 
+// E-mail admin que tem acesso liberado sem pagar (para testes)
+const ADMIN_EMAIL = "bavstecnologia@gmail.com";
+
 interface DashboardPageProps {
   params: { id: string };
 }
 
 export default function DashboardPage({ params }: DashboardPageProps) {
   const { id } = params;
+  const searchParams = useSearchParams();
   
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [exportando, setExportando] = useState(false);
+  
+  // Estado do paywall
+  const [pago, setPago] = useState(false);
+  const [modalAberto, setModalAberto] = useState(false);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     async function carregarDados() {
@@ -49,6 +63,14 @@ export default function DashboardPage({ params }: DashboardPageProps) {
         setError(null);
         const resultado = await buscarDashboardPorId(id);
         setData(resultado);
+        
+        // Verifica se é admin (libera sem pagar)
+        if (resultado.empresa.email === ADMIN_EMAIL) {
+          setPago(true);
+        } else {
+          // Verifica status de pagamento
+          await verificarStatusPagamento();
+        }
         
         // Dispara evento de conversão do Google Ads quando carrega com sucesso
         if (typeof window !== "undefined" && window.gtag) {
@@ -66,6 +88,61 @@ export default function DashboardPage({ params }: DashboardPageProps) {
 
     carregarDados();
   }, [id]);
+
+  // Verificar se a análise já foi paga
+  const verificarStatusPagamento = async () => {
+    try {
+      // Primeiro verifica no backend se já está marcado como pago
+      const response = await fetch(`${API_URL}/pagamento/status/${id}`);
+      if (response.ok) {
+        const statusData = await response.json();
+        if (statusData.pago === true) {
+          setPago(true);
+          return;
+        }
+      }
+
+      // Se voltou do Stripe com ?pago=true, confirma o pagamento
+      const pagoParam = searchParams.get('pago');
+      if (pagoParam === 'true') {
+        await confirmarPagamentoStripe();
+      }
+    } catch (err) {
+      console.error("Erro ao verificar pagamento:", err);
+    }
+  };
+
+  // Confirma pagamento após retorno do Stripe
+  const confirmarPagamentoStripe = async () => {
+    try {
+      // Chama endpoint para verificar e liberar a análise
+      const response = await fetch(`${API_URL}/pagamento/confirmar-retorno`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ analise_id: id })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.confirmado) {
+          setPago(true);
+          
+          // Remove ?pago=true da URL sem recarregar
+          const url = new URL(window.location.href);
+          url.searchParams.delete('pago');
+          window.history.replaceState({}, '', url.toString());
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao confirmar pagamento:", err);
+    }
+  };
+
+  // Callback quando pagamento é confirmado (via modal)
+  const handlePagamentoConfirmado = () => {
+    setPago(true);
+    setModalAberto(false);
+  };
 
   // Função para exportar PDF via backend
   const handleExportarPDF = async () => {
@@ -117,8 +194,6 @@ export default function DashboardPage({ params }: DashboardPageProps) {
         ]
       };
 
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      
       const response = await fetch(`${API_URL}/report`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -189,7 +264,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
       {/* Conteúdo principal */}
       <main className="max-w-7xl mx-auto px-4 pb-16">
         
-        {/* ========== SEÇÃO: RESUMO ========== */}
+        {/* ========== SEÇÃO: RESUMO (LIBERADO) ========== */}
         <section id="resumo" className="mb-16">
           <div className="text-center mb-8">
             <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Resumo Executivo</h2>
@@ -209,7 +284,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           />
         </section>
 
-        {/* ========== SEÇÃO: INDICADORES ========== */}
+        {/* ========== SEÇÃO: INDICADORES (LIBERADO) ========== */}
         <section id="indicadores" className="mb-16">
           <div className="text-center mb-8">
             <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Indicadores Financeiros</h2>
@@ -224,7 +299,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           </div>
         </section>
 
-        {/* ========== SEÇÃO: DIAGNÓSTICO ========== */}
+        {/* ========== SEÇÃO: DIAGNÓSTICO (LIBERADO) ========== */}
         <section id="diagnostico" className="mb-16">
           <div className="text-center mb-8">
             <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Diagnóstico</h2>
@@ -243,25 +318,50 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           </div>
         </section>
 
-        {/* ========== SEÇÃO: PLANO DE AÇÃO ========== */}
+        {/* ========== SEÇÃO: PLANO DE AÇÃO (PAYWALL) ========== */}
         <section id="plano" className="mb-16">
           <div className="text-center mb-8">
             <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Plano de Ação</h2>
             <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
           </div>
           
-          <PlanoAcaoSection plano={data.plano_acao} />
+          {pago ? (
+            <PlanoAcaoSection plano={data.plano_acao} analiseId={id} />
+          ) : (
+            <PaywallOverlay onDesbloquear={() => setModalAberto(true)}>
+              <PlanoAcaoSection plano={data.plano_acao} analiseId={id} />
+            </PaywallOverlay>
+          )}
         </section>
 
-        {/* ========== SEÇÃO: HISTÓRICO ========== */}
+        {/* ========== SEÇÃO: HISTÓRICO (PAYWALL) ========== */}
         <section id="historico" className="mb-16">
           <div className="text-center mb-8">
             <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Histórico de Análises</h2>
             <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
           </div>
           
-          <HistoricoTable historico={data.historico} />
+          {pago ? (
+            <HistoricoTable historico={data.historico} />
+          ) : (
+            <PaywallOverlay onDesbloquear={() => setModalAberto(true)}>
+              <HistoricoTable historico={data.historico} />
+            </PaywallOverlay>
+          )}
         </section>
+
+        {/* ========== AVISO PÓS-PAGAMENTO ========== */}
+        {pago && (
+          <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-amber-800">Importante: Baixe seu PDF antes de sair</p>
+              <p className="text-sm text-amber-700 mt-1">
+                Esta página não ficará disponível após você sair. Recomendamos baixar o relatório em PDF para consultar depois.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* ========== AÇÕES FINAIS ========== */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
@@ -272,27 +372,43 @@ export default function DashboardPage({ params }: DashboardPageProps) {
             Nova Análise
           </Link>
           
-          <button 
-            onClick={handleExportarPDF}
-            disabled={exportando}
-            className="px-8 py-4 bg-white text-primary border border-border/40 rounded-xl font-medium hover:bg-gray-50 transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {exportando ? (
-              <>
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
-                Gerando PDF...
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Exportar PDF
-              </>
-            )}
-          </button>
+          {pago ? (
+            <button 
+              onClick={handleExportarPDF}
+              disabled={exportando}
+              className="px-8 py-4 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {exportando ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Gerando PDF...
+                </>
+              ) : (
+                <>
+                  <Download className="w-5 h-5" />
+                  Baixar PDF
+                </>
+              )}
+            </button>
+          ) : (
+            <button 
+              onClick={() => setModalAberto(true)}
+              className="px-8 py-4 bg-white text-primary border border-border/40 rounded-xl font-medium hover:bg-gray-50 transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+            >
+              Desbloquear Plano Completo - R$ 19,90
+            </button>
+          )}
         </div>
       </main>
+
+      {/* Modal de Pagamento */}
+      <PaywallModal
+        isOpen={modalAberto}
+        onClose={() => setModalAberto(false)}
+        analiseId={id}
+        empresaNome={data.empresa.nome}
+        onPagamentoConfirmado={handlePagamentoConfirmado}
+      />
     </div>
   );
 }

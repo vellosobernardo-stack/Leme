@@ -14,13 +14,12 @@ import {
   CheckCircle2,
   Zap,
   Target,
-  Users,
-  Lightbulb
+  // Lightbulb // Usado apenas no HeroPreAbertura (temporariamente desativado)
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 // ============================================
-// HEADER (ATUALIZADO - com link pré-abertura)
+// HEADER (SEM LINK PRÉ-ABERTURA)
 // ============================================
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
@@ -53,32 +52,17 @@ export function Header() {
           </span>
         </Link>
 
-        {/* Links de navegação */}
-        <div className="flex items-center gap-6">
-          {/* Link para pré-abertura */}
-          <Link
-            href="/pre-abertura"
-            className={`text-sm font-medium transition-colors hidden sm:block ${
-              scrolled 
-                ? "text-[#112d4e]/70 hover:text-[#112d4e]" 
-                : "text-white/70 hover:text-white"
-            }`}
-          >
-            Analisar ideia de negócio
-          </Link>
-
-          {/* CTA principal */}
-          <Link
-            href="/analise"
-            className={`px-5 py-2 rounded-full font-medium text-sm transition-all ${
-              scrolled 
-                ? "bg-[#112d4e] text-white hover:bg-[#1a4578]" 
-                : "bg-white text-[#112d4e] hover:bg-gray-100"
-            }`}
-          >
-            Começar
-          </Link>
-        </div>
+        {/* CTA principal */}
+        <Link
+          href="/analise"
+          className={`px-5 py-2 rounded-full font-medium text-sm transition-all ${
+            scrolled 
+              ? "bg-[#112d4e] text-white hover:bg-[#1a4578]" 
+              : "bg-white text-[#112d4e] hover:bg-gray-100"
+          }`}
+        >
+          Começar
+        </Link>
       </div>
     </header>
   );
@@ -266,19 +250,19 @@ export function TrustBar() {
 }
 
 // ============================================
-// HERO PRÉ-ABERTURA 
+// HERO PRÉ-ABERTURA (TEMPORARIAMENTE DESATIVADO)
+// Código preservado para reativação futura
 // ============================================
+/*
 export function HeroPreAbertura() {
   return (
     <section id="pre-abertura" className="py-20 lg:py-28 bg-white relative overflow-hidden">
-      {/* Elementos decorativos sutis */}
       <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-blue-50 rounded-full blur-3xl opacity-50" />
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-[#F5793B]/5 rounded-full blur-3xl" />
       
       <div className="relative max-w-6xl mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           
-          {/* Texto */}
           <div>
             <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 px-4 py-2 rounded-full mb-6">
               <Lightbulb className="w-4 h-4 text-[#112d4e]" />
@@ -296,7 +280,6 @@ export function HeroPreAbertura() {
               e receba um checklist para os primeiros 30 dias.
             </p>
 
-            {/* Benefícios */}
             <div className="space-y-3 mb-8">
               {[
                 "Compare seu capital com a média do setor",
@@ -312,7 +295,6 @@ export function HeroPreAbertura() {
               ))}
             </div>
 
-            {/* CTA */}
             <Link
               href="/pre-abertura"
               className="group inline-flex items-center gap-3 bg-[#112d4e] hover:bg-[#1a4578] text-white px-8 py-4 text-lg font-semibold rounded-full transition-all hover:-translate-y-0.5"
@@ -326,20 +308,16 @@ export function HeroPreAbertura() {
             </p>
           </div>
 
-          {/* Card visual */}
           <div className="relative">
             <div className="absolute inset-0 bg-[#112d4e]/5 rounded-3xl blur-2xl scale-95" />
             
             <div className="relative bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-              {/* Header do card */}
               <div className="bg-[#112d4e] px-6 py-5">
                 <p className="text-white/60 text-sm mb-1">Análise Pré-abertura</p>
                 <p className="text-white font-semibold text-lg">Seu projeto de negócio</p>
               </div>
               
-              {/* Conteúdo */}
               <div className="p-6 space-y-5">
-                {/* Comparativo Capital */}
                 <div>
                   <div className="flex items-center justify-between text-sm mb-2">
                     <span className="text-gray-500">Seu capital</span>
@@ -354,7 +332,6 @@ export function HeroPreAbertura() {
                   </div>
                 </div>
 
-                {/* Comparativo Faturamento */}
                 <div>
                   <div className="flex items-center justify-between text-sm mb-2">
                     <span className="text-gray-500">Faturamento esperado</span>
@@ -369,7 +346,6 @@ export function HeroPreAbertura() {
                   </div>
                 </div>
 
-                {/* Alerta exemplo */}
                 <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
                   <div className="flex gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
@@ -382,7 +358,6 @@ export function HeroPreAbertura() {
                   </div>
                 </div>
 
-                {/* Checklist preview */}
                 <div className="border-t border-gray-100 pt-4">
                   <p className="text-sm font-medium text-gray-700 mb-3">Primeiros 30 dias</p>
                   <div className="space-y-2">
@@ -403,6 +378,7 @@ export function HeroPreAbertura() {
     </section>
   );
 }
+*/
 
 // ============================================
 // VALUE DELIVERY
