@@ -24,3 +24,5 @@ email-validator
 
 # CORS (permitir frontend acessar)
 # Já vem com FastAPI, não precisa instalar separado
+
+stripe
