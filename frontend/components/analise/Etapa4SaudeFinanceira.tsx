@@ -268,9 +268,9 @@ function PassoReceita({ dados, erros, mesReferenciaLabel, getMesLabel, atualizar
 
       <InputMonetario
         label={`Receita total em ${mesReferenciaLabel} *`}
-        valor={dados.receita}
-        onChange={(v) => atualizarDados("receita", v)}
-        erro={erros.receita}
+        valor={dados.receita_atual}
+        onChange={(v) => atualizarDados("receita_atual", v)}
+        erro={erros.receita_atual}
         dica="Tudo que entrou de venda de produto ou serviço."
         autoFocus
       />
@@ -290,18 +290,18 @@ function PassoReceita({ dados, erros, mesReferenciaLabel, getMesLabel, atualizar
           </p>
           <InputMonetario
             label={`Receita em ${getMesLabel(1)}`}
-            valor={dados.receita_historico?.mes_anterior || 0}
-            onChange={(v) => atualizarReceitaHistorico("mes_anterior", v)}
+            valor={dados.receita_historico?.mes_passado || 0}
+            onChange={(v) => atualizarReceitaHistorico("mes_passado", v)}
           />
           <InputMonetario
             label={`Receita em ${getMesLabel(2)}`}
-            valor={dados.receita_historico?.dois_meses || 0}
-            onChange={(v) => atualizarReceitaHistorico("dois_meses", v)}
+            valor={dados.receita_historico?.dois_meses_atras || 0}
+            onChange={(v) => atualizarReceitaHistorico("dois_meses_atras", v)}
           />
           <InputMonetario
             label={`Receita em ${getMesLabel(3)}`}
-            valor={dados.receita_historico?.tres_meses || 0}
-            onChange={(v) => atualizarReceitaHistorico("tres_meses", v)}
+            valor={dados.receita_historico?.tres_meses_atras || 0}
+            onChange={(v) => atualizarReceitaHistorico("tres_meses_atras", v)}
           />
         </div>
       )}
@@ -328,8 +328,8 @@ function PassoCustos({ dados, atualizarDados }: PassoCustosProps) {
 
       <InputMonetario
         label="Custo direto das vendas (CMV) *"
-        valor={dados.custo_mercadoria}
-        onChange={(v) => atualizarDados("custo_mercadoria", v)}
+        valor={dados.custo_vendas}
+        onChange={(v) => atualizarDados("custo_vendas", v)}
         dica="Quanto você paga pelo que vende: mercadoria, matéria-prima, insumos diretos."
         autoFocus
       />
@@ -339,13 +339,6 @@ function PassoCustos({ dados, atualizarDados }: PassoCustosProps) {
         valor={dados.despesas_fixas}
         onChange={(v) => atualizarDados("despesas_fixas", v)}
         dica="Aluguel, salários, contador, internet, energia... O que vem todo mês."
-      />
-
-      <InputMonetario
-        label="Despesas variáveis do mês"
-        valor={dados.despesas_variaveis}
-        onChange={(v) => atualizarDados("despesas_variaveis", v)}
-        dica="Comissões, frete, embalagens, taxas de cartão... Varia conforme a venda."
       />
     </div>
   );
@@ -370,8 +363,8 @@ function PassoCaixa({ dados, atualizarDados }: PassoCaixaProps) {
 
       <InputMonetario
         label="Quanto tem em caixa hoje? *"
-        valor={dados.caixa_disponivel}
-        onChange={(v) => atualizarDados("caixa_disponivel", v)}
+        valor={dados.caixa_bancos}
+        onChange={(v) => atualizarDados("caixa_bancos", v)}
         dica="Conta corrente + aplicações de curto prazo + dinheiro em espécie."
         autoFocus
       />
