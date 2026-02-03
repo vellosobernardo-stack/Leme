@@ -262,52 +262,49 @@ function PassoReceita({ dados, erros, mesReferenciaLabel, getMesLabel, atualizar
           Vamos falar de receita
         </h2>
         <p className="text-sm text-foreground-muted">
-          Quanto sua empresa faturou recentemente?
+          Quanto sua empresa faturou em {mesReferenciaLabel}?
         </p>
       </div>
 
-      {/* Pergunta obrigatória */}
       <InputMonetario
-        label={`Quanto sua empresa faturou em ${mesReferenciaLabel}? *`}
-        valor={dados.receita_atual}
-        onChange={(v) => atualizarDados("receita_atual", v)}
-        erro={erros.receita_atual}
+        label={`Receita total em ${mesReferenciaLabel} *`}
+        valor={dados.receita}
+        onChange={(v) => atualizarDados("receita", v)}
+        erro={erros.receita}
+        dica="Tudo que entrou de venda de produto ou serviço."
         autoFocus
       />
 
-      {/* Perguntas extras opcionais */}
-      <div className="pt-2">
-        <button
-          type="button"
-          onClick={() => setMostrarExtras(!mostrarExtras)}
-          className="text-sm text-primary hover:underline flex items-center gap-1"
-        >
-          {mostrarExtras ? "▼" : "▶"} Quer informar os meses anteriores? (opcional)
-        </button>
+      <button
+        type="button"
+        onClick={() => setMostrarExtras(!mostrarExtras)}
+        className="text-sm text-primary hover:underline flex items-center gap-1"
+      >
+        {mostrarExtras ? "▼" : "▶"} Informar receita dos meses anteriores (opcional)
+      </button>
 
-        {mostrarExtras && (
-          <div className="mt-4 space-y-4 pl-4 border-l-2 border-primary/20 animate-fade-in">
-            <p className="text-sm text-foreground-muted">
-              Isso nos ajuda a calcular a tendência de crescimento.
-            </p>
-            <InputMonetario
-              label={`${getMesLabel(1)} (mês passado)`}
-              valor={dados.receita_historico.mes_passado}
-              onChange={(v) => atualizarReceitaHistorico("mes_passado", v)}
-            />
-            <InputMonetario
-              label={`${getMesLabel(2)} (2 meses atrás)`}
-              valor={dados.receita_historico.dois_meses_atras}
-              onChange={(v) => atualizarReceitaHistorico("dois_meses_atras", v)}
-            />
-            <InputMonetario
-              label={`${getMesLabel(3)} (3 meses atrás)`}
-              valor={dados.receita_historico.tres_meses_atras}
-              onChange={(v) => atualizarReceitaHistorico("tres_meses_atras", v)}
-            />
-          </div>
-        )}
-      </div>
+      {mostrarExtras && (
+        <div className="space-y-4 pl-4 border-l-2 border-primary/20 animate-fade-in">
+          <p className="text-xs text-foreground-muted">
+            Isso ajuda a calcular tendências. Deixe em branco se não souber.
+          </p>
+          <InputMonetario
+            label={`Receita em ${getMesLabel(1)}`}
+            valor={dados.receita_historico?.mes_anterior || 0}
+            onChange={(v) => atualizarReceitaHistorico("mes_anterior", v)}
+          />
+          <InputMonetario
+            label={`Receita em ${getMesLabel(2)}`}
+            valor={dados.receita_historico?.dois_meses || 0}
+            onChange={(v) => atualizarReceitaHistorico("dois_meses", v)}
+          />
+          <InputMonetario
+            label={`Receita em ${getMesLabel(3)}`}
+            valor={dados.receita_historico?.tres_meses || 0}
+            onChange={(v) => atualizarReceitaHistorico("tres_meses", v)}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -325,23 +322,30 @@ function PassoCustos({ dados, atualizarDados }: PassoCustosProps) {
           Custos e despesas
         </h2>
         <p className="text-sm text-foreground-muted">
-          O que sai do caixa pra manter a empresa rodando.
+          Vamos entender pra onde vai o dinheiro.
         </p>
       </div>
 
       <InputMonetario
-        label="Quanto custa o que você vende? (CMV) *"
-        valor={dados.custo_vendas}
-        onChange={(v) => atualizarDados("custo_vendas", v)}
-        dica="Mercadoria, matéria-prima, insumos, embalagens..."
+        label="Custo direto das vendas (CMV) *"
+        valor={dados.custo_mercadoria}
+        onChange={(v) => atualizarDados("custo_mercadoria", v)}
+        dica="Quanto você paga pelo que vende: mercadoria, matéria-prima, insumos diretos."
         autoFocus
       />
 
       <InputMonetario
-        label="E as despesas fixas mensais, quanto dá? *"
+        label="Despesas fixas mensais *"
         valor={dados.despesas_fixas}
         onChange={(v) => atualizarDados("despesas_fixas", v)}
-        dica="Aluguel, salários, conta de luz, internet, contador..."
+        dica="Aluguel, salários, contador, internet, energia... O que vem todo mês."
+      />
+
+      <InputMonetario
+        label="Despesas variáveis do mês"
+        valor={dados.despesas_variaveis}
+        onChange={(v) => atualizarDados("despesas_variaveis", v)}
+        dica="Comissões, frete, embalagens, taxas de cartão... Varia conforme a venda."
       />
     </div>
   );
@@ -357,18 +361,18 @@ function PassoCaixa({ dados, atualizarDados }: PassoCaixaProps) {
     <div className="space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
-          Caixa e fluxo
+          Situação do caixa
         </h2>
         <p className="text-sm text-foreground-muted">
-          Como está a liquidez da empresa hoje.
+          Como está a saúde financeira no curto prazo.
         </p>
       </div>
 
       <InputMonetario
-        label="Quanto tem em caixa e banco hoje? *"
-        valor={dados.caixa_bancos}
-        onChange={(v) => atualizarDados("caixa_bancos", v)}
-        dica="Conta corrente, poupança, dinheiro em espécie..."
+        label="Quanto tem em caixa hoje? *"
+        valor={dados.caixa_disponivel}
+        onChange={(v) => atualizarDados("caixa_disponivel", v)}
+        dica="Conta corrente + aplicações de curto prazo + dinheiro em espécie."
         autoFocus
       />
 
@@ -513,6 +517,29 @@ interface PassoEquipeProps {
 }
 
 function PassoEquipe({ dados, erros, atualizarDados }: PassoEquipeProps) {
+  // ===== CORREÇÃO: Usar estado local para controlar o input =====
+  const [inputValue, setInputValue] = useState(dados.num_funcionarios.toString());
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+    
+    // Só atualiza o estado global se for um número válido
+    const parsed = parseInt(value);
+    if (!isNaN(parsed) && parsed >= 1) {
+      atualizarDados("num_funcionarios", parsed);
+    }
+  };
+
+  const handleBlur = () => {
+    // Ao sair do campo, garante valor mínimo de 1
+    const parsed = parseInt(inputValue);
+    if (isNaN(parsed) || parsed < 1) {
+      setInputValue("1");
+      atualizarDados("num_funcionarios", 1);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -530,9 +557,13 @@ function PassoEquipe({ dados, erros, atualizarDados }: PassoEquipeProps) {
         </label>
         <input
           type="number"
+          inputMode="numeric"
+          pattern="[0-9]*"
           min="1"
-          value={dados.num_funcionarios}
-          onChange={(e) => atualizarDados("num_funcionarios", parseInt(e.target.value) || 1)}
+          value={inputValue}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          onFocus={(e) => e.target.select()}
           className={`input w-32 focus:ring-2 focus:ring-primary/20 transition-all ${erros.num_funcionarios ? "input-error" : ""}`}
           autoFocus
         />

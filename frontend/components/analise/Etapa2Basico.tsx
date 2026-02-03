@@ -27,10 +27,10 @@ export default function Etapa2Basico({
 
   return (
     <div className="max-w-lg mx-auto animate-fade-in">
-      {/* Cabeçalho */}
+      {/* Cabeçalho - Título alterado para não sugerir "básico" */}
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-foreground mb-2">
-          Informações Básicas
+          Sobre sua empresa
         </h1>
         <p className="text-foreground-muted">
           Precisamos de alguns dados para personalizar sua análise
