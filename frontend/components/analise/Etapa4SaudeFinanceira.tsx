@@ -12,14 +12,14 @@ interface Etapa4Props {
   alertas: string[];
   carregando: boolean;
   passoEtapa4: PassoEtapa4;
-  sessaoId: string | null; // Adicionado
+  sessaoId: string | null;
   atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
   atualizarReceitaHistorico: (campo: keyof ReceitaHistorico, valor: number) => void;
   setCarregando: (v: boolean) => void;
   avancarPassoEtapa4: () => boolean;
   voltarPassoEtapa4: () => boolean;
   voltar: () => void;
-  limparSessao: () => void; // Adicionado
+  limparSessao: () => void;
 }
 
 export default function Etapa4SaudeFinanceira({
@@ -77,7 +77,6 @@ export default function Etapa4SaudeFinanceira({
       setAnimando(true);
       setTimeout(() => setAnimando(false), 300);
     } else {
-      // Se não conseguiu voltar passo (está no passo 1), volta etapa
       voltar();
     }
   };
@@ -87,10 +86,9 @@ export default function Etapa4SaudeFinanceira({
     try {
       const resultado = await criarAnalise(dados);
       
-      // Conclui a sessão no backend (não bloqueia se falhar)
       if (sessaoId) {
         await concluirSessao(sessaoId, resultado.id);
-        limparSessao(); // Limpa do localStorage
+        limparSessao();
       }
       
       router.push(`/dashboard/${resultado.id}`);
@@ -110,35 +108,26 @@ export default function Etapa4SaudeFinanceira({
     : "animate-fade-in";
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Cabeçalho do passo atual */}
-      <div className="text-center mb-6">
-        <p className="text-sm text-primary font-medium mb-1">
+    <div className="max-w-2xl mx-auto pb-24">
+      {/* Cabeçalho do passo — compacto no mobile pequeno */}
+      <div className="text-center mb-4 sm:mb-6">
+        {/* Mobile pequeno: só título do passo */}
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">
           {passoInfo.titulo}
-        </p>
-        <h1 className="text-2xl font-bold text-foreground">
-          Saúde Financeira
         </h1>
-      </div>
-
-      {/* Badge de valores aproximados */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-6 text-center">
-        <p className="text-sm text-blue-800 font-medium">
-          Use valores aproximados - não precisa ser exato.
-        </p>
       </div>
 
       {/* Alertas */}
       {alertas.length > 0 && (
-        <div className="mb-6 space-y-2">
+        <div className="mb-4 space-y-2">
           {alertas.map((alerta, i) => (
             <div key={i} className="alert alert-warning">{alerta}</div>
           ))}
         </div>
       )}
 
-      {/* Conteúdo do passo atual */}
-      <div className={`bg-white rounded-xl shadow-sm border border-border p-6 mb-6 ${animacaoClass}`}>
+      {/* Conteúdo do passo atual — padding reduzido no mobile */}
+      <div className={`bg-white rounded-xl shadow-sm border border-border p-4 sm:p-6 mb-4 ${animacaoClass}`}>
         {passoEtapa4 === 1 && (
           <PassoReceita
             dados={dados}
@@ -197,45 +186,47 @@ export default function Etapa4SaudeFinanceira({
         )}
       </div>
 
-      {/* Indicador de passos */}
-      <div className="flex justify-center gap-2 mb-6">
+      {/* Indicador de passos — compacto */}
+      <div className="flex justify-center gap-1.5 mb-4">
         {[1, 2, 3, 4, 5, 6, 7].map((passo) => (
           <div
             key={passo}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+            className={`h-1.5 rounded-full transition-all duration-300 ${
               passo === passoEtapa4
                 ? "bg-primary w-6"
                 : passo < passoEtapa4
-                ? "bg-primary"
-                : "bg-gray-300"
+                ? "bg-primary w-1.5"
+                : "bg-gray-200 w-1.5"
             }`}
           />
         ))}
       </div>
 
-      {/* Botões de navegação */}
-      <div className="flex gap-4">
-        <button
-          type="button"
-          onClick={handleVoltar}
-          className="btn-secondary flex-1"
-          disabled={carregando}
-        >
-          Voltar
-        </button>
-        <button
-          type="button"
-          onClick={handleAvancar}
-          className="btn-primary flex-1"
-          disabled={carregando}
-        >
-          {carregando
-            ? "Processando..."
-            : passoEtapa4 === 7
-            ? "Gerar Análise Completa"
-            : "Próximo"
-          }
-        </button>
+      {/* Botões sticky no mobile */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border p-4 sm:relative sm:border-0 sm:p-0 sm:bg-transparent z-40">
+        <div className="flex gap-3 max-w-2xl mx-auto">
+          <button
+            type="button"
+            onClick={handleVoltar}
+            className="btn-secondary flex-1 py-3 sm:py-2.5"
+            disabled={carregando}
+          >
+            Voltar
+          </button>
+          <button
+            type="button"
+            onClick={handleAvancar}
+            className="btn-primary flex-1 py-3 sm:py-2.5"
+            disabled={carregando}
+          >
+            {carregando
+              ? "Processando..."
+              : passoEtapa4 === 7
+              ? "Gerar Análise"
+              : "Próximo"
+            }
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -256,12 +247,13 @@ function PassoReceita({ dados, erros, mesReferenciaLabel, getMesLabel, atualizar
   const [mostrarExtras, setMostrarExtras] = useState(false);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
+      {/* Subtítulo — colapsado no mobile pequeno, visível em telas maiores */}
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
           Vamos falar de receita
         </h2>
-        <p className="text-sm text-foreground-muted">
+        <p className="hidden sm:block text-sm text-foreground-muted">
           Quanto sua empresa faturou em {mesReferenciaLabel}?
         </p>
       </div>
@@ -316,12 +308,12 @@ interface PassoCustosProps {
 
 function PassoCustos({ dados, atualizarDados }: PassoCustosProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
           Custos e despesas
         </h2>
-        <p className="text-sm text-foreground-muted">
+        <p className="hidden sm:block text-sm text-foreground-muted">
           Vamos entender pra onde vai o dinheiro.
         </p>
       </div>
@@ -351,12 +343,12 @@ interface PassoCaixaProps {
 
 function PassoCaixa({ dados, atualizarDados }: PassoCaixaProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
           Situação do caixa
         </h2>
-        <p className="text-sm text-foreground-muted">
+        <p className="hidden sm:block text-sm text-foreground-muted">
           Como está a saúde financeira no curto prazo.
         </p>
       </div>
@@ -394,12 +386,12 @@ interface PassoEstoqueProps {
 
 function PassoEstoque({ dados, erros, atualizarDados }: PassoEstoqueProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
           Sobre estoque
         </h2>
-        <p className="text-sm text-foreground-muted">
+        <p className="hidden sm:block text-sm text-foreground-muted">
           Nem todo negócio trabalha com estoque, e tudo bem.
         </p>
       </div>
@@ -433,12 +425,12 @@ interface PassoDividasProps {
 
 function PassoDividas({ dados, erros, atualizarDados }: PassoDividasProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
           Sobre dívidas
         </h2>
-        <p className="text-sm text-foreground-muted">
+        <p className="hidden sm:block text-sm text-foreground-muted">
           Ter dívida não é necessariamente ruim - o importante é saber gerenciar.
         </p>
       </div>
@@ -472,12 +464,12 @@ interface PassoBensProps {
 
 function PassoBens({ dados, erros, atualizarDados }: PassoBensProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
           Bens e equipamentos
         </h2>
-        <p className="text-sm text-foreground-muted">
+        <p className="hidden sm:block text-sm text-foreground-muted">
           Coisas que a empresa possui e que têm valor.
         </p>
       </div>
@@ -510,14 +502,11 @@ interface PassoEquipeProps {
 }
 
 function PassoEquipe({ dados, erros, atualizarDados }: PassoEquipeProps) {
-  // ===== CORREÇÃO: Usar estado local para controlar o input =====
   const [inputValue, setInputValue] = useState(dados.num_funcionarios.toString());
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
-    
-    // Só atualiza o estado global se for um número válido
     const parsed = parseInt(value);
     if (!isNaN(parsed) && parsed >= 1) {
       atualizarDados("num_funcionarios", parsed);
@@ -525,7 +514,6 @@ function PassoEquipe({ dados, erros, atualizarDados }: PassoEquipeProps) {
   };
 
   const handleBlur = () => {
-    // Ao sair do campo, garante valor mínimo de 1
     const parsed = parseInt(inputValue);
     if (isNaN(parsed) || parsed < 1) {
       setInputValue("1");
@@ -534,12 +522,12 @@ function PassoEquipe({ dados, erros, atualizarDados }: PassoEquipeProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
           Por último, sua equipe
         </h2>
-        <p className="text-sm text-foreground-muted">
+        <p className="hidden sm:block text-sm text-foreground-muted">
           Quase lá! Só mais uma informação.
         </p>
       </div>
@@ -586,8 +574,8 @@ function InputMonetario({ label, valor, onChange, erro, dica, autoFocus }: Input
   const [displayValue, setDisplayValue] = useState(
     valor > 0 ? valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : ""
   );
+  const [focado, setFocado] = useState(false);
 
-  // Atualiza o display quando o valor externo muda
   useEffect(() => {
     setDisplayValue(
       valor > 0 ? valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : ""
@@ -612,6 +600,8 @@ function InputMonetario({ label, valor, onChange, erro, dica, autoFocus }: Input
           type="text"
           value={displayValue}
           onChange={handleChange}
+          onFocus={(e) => { setFocado(true); }}
+          onBlur={() => setFocado(false)}
           placeholder="0,00"
           autoFocus={autoFocus}
           style={{ paddingLeft: "3.5rem" }}
@@ -620,7 +610,14 @@ function InputMonetario({ label, valor, onChange, erro, dica, autoFocus }: Input
         />
       </div>
       {erro && <p className="text-danger text-sm mt-1">{erro}</p>}
-      {dica && <p className="help-text">{dica}</p>}
+      {/* Dica: sempre visível em telas maiores, só no foco no mobile pequeno */}
+      {dica && (
+        <p className={`help-text transition-all duration-200 ${
+          focado ? "opacity-100 max-h-10" : "sm:opacity-100 sm:max-h-10 opacity-0 max-h-0 overflow-hidden"
+        }`}>
+          {dica}
+        </p>
+      )}
     </div>
   );
 }
@@ -639,7 +636,7 @@ function PerguntaSimNao({ pergunta, valor, onChange }: PerguntaSimNaoProps) {
         <button
           type="button"
           onClick={() => onChange(false)}
-          className={`px-6 py-2 rounded-lg border-2 transition-all ${
+          className={`px-6 py-3 sm:py-2 rounded-lg border-2 transition-all min-w-[70px] ${
             !valor ? "border-primary bg-primary text-white" : "border-border hover:border-primary"
           }`}
         >
@@ -648,7 +645,7 @@ function PerguntaSimNao({ pergunta, valor, onChange }: PerguntaSimNaoProps) {
         <button
           type="button"
           onClick={() => onChange(true)}
-          className={`px-6 py-2 rounded-lg border-2 transition-all ${
+          className={`px-6 py-3 sm:py-2 rounded-lg border-2 transition-all min-w-[70px] ${
             valor ? "border-primary bg-primary text-white" : "border-border hover:border-primary"
           }`}
         >

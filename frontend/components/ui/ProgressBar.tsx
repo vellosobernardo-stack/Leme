@@ -6,7 +6,7 @@ interface ProgressBarProps {
 export default function ProgressBar({ progresso, mostrarPercentual = true }: ProgressBarProps) {
   return (
     <div className="w-full">
-      {/* Container da barra */}
+      {/* Barra de progresso */}
       <div className="progress-bar relative">
         <div
           className="progress-bar-fill transition-all duration-500 ease-out"

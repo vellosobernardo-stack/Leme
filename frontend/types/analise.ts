@@ -83,7 +83,7 @@ export type EtapaFluxo = 1 | 2 | 3 | 4;
 
 export const ETAPAS_INFO = {
   1: { titulo: "Identificação", descricao: "Nome e email" },
-  2: { titulo: "Informações Básicas", descricao: "Setor e período" },
+  2: { titulo: "Sobre sua empesa", descricao: "Setor e período" },
   3: { titulo: "Método de Entrada", descricao: "Como fornecer os dados" },
   4: { titulo: "Saúde Financeira", descricao: "Dados financeiros" },
 } as const;

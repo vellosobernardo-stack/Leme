@@ -231,6 +231,7 @@ export function useAnalise() {
   }, []);
 
   // Avançar etapa principal
+  // Etapa 3 removida — de Etapa 2 vai direto para Etapa 4
   const avancar = useCallback(async () => {
     let validacao: ResultadoValidacao = { valido: true, erros: {}, alertas: [] };
 
@@ -247,7 +248,13 @@ export function useAnalise() {
         await criarSessao();
       }
       
-      setEtapaAtual((prev) => (prev + 1) as EtapaFluxo);
+      // Se saindo da Etapa 2, pula para Etapa 4 (método manual é default)
+      if (etapaAtual === 2) {
+        setDados((prev) => ({ ...prev, metodo_entrada: "manual" }));
+        setEtapaAtual(4 as EtapaFluxo);
+      } else {
+        setEtapaAtual((prev) => (prev + 1) as EtapaFluxo);
+      }
       return true;
     }
 
@@ -255,12 +262,15 @@ export function useAnalise() {
   }, [etapaAtual, validarEtapa1, validarEtapa2, validarEtapa4, criarSessao]);
 
   // Voltar etapa principal
+  // Etapa 3 removida — de Etapa 4 volta direto para Etapa 2
   const voltar = useCallback(() => {
-    if (etapaAtual > 1) {
+    if (etapaAtual === 4) {
+      setEtapaAtual(2 as EtapaFluxo);
+    } else if (etapaAtual > 1) {
       setEtapaAtual((prev) => (prev - 1) as EtapaFluxo);
-      setErros({});
-      setAlertas([]);
     }
+    setErros({});
+    setAlertas([]);
   }, [etapaAtual]);
 
   // Toggle card (mantido para compatibilidade)
@@ -276,20 +286,18 @@ export function useAnalise() {
   );
 
   // Cálculo de progresso com valores limpos
+  // Etapa 3 removida — fluxo vai de Etapa 2 direto para Etapa 4
   const calcularProgresso = useCallback(() => {
-    // Etapas 1, 2, 3: valores fixos
-    // Etapa 4: de 30% a 100% (7 passos = 10% cada)
     const progressoMap: Record<number, number> = {
-      1: 5,   // Etapa 1: Identificação
-      2: 15,  // Etapa 2: Informações Básicas
-      3: 20,  // Etapa 3: Método de Entrada
+      1: 0,   // Etapa 1: Identificação (barra escondida)
+      2: 10,  // Etapa 2: Sobre sua empresa (Perfil)
     };
 
     if (etapaAtual < 4) {
-      return progressoMap[etapaAtual];
+      return progressoMap[etapaAtual] ?? 0;
     }
 
-    // Etapa 4: 30% + (passo * 10%), máximo 100%
+    // Etapa 4 (Saúde Financeira): 7 passos de 30% a 100%
     const progressoEtapa4: Record<number, number> = {
       1: 30,  // Receita
       2: 40,  // Custos
@@ -297,7 +305,7 @@ export function useAnalise() {
       4: 60,  // Estoque
       5: 70,  // Dívidas
       6: 80,  // Bens
-      7: 100, // Equipe (final)
+      7: 90,  // Equipe (botão "Gerar" leva a 100%)
     };
 
     return progressoEtapa4[passoEtapa4];

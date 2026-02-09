@@ -80,19 +80,19 @@ export function Hero() {
         <div className="absolute top-0 right-0 w-[60%] h-[70%] bg-gradient-to-bl from-[#1a4578]/60 to-transparent" />
         <div className="absolute bottom-0 left-0 w-[50%] h-[60%] bg-gradient-to-tr from-[#F5793B]/15 to-transparent" />
         
-        {/* Círculos decorativos */}
-        <div className="absolute top-[20%] left-[10%] w-2 h-2 bg-[#F5793B] rounded-full animate-pulse" />
-        <div className="absolute top-[30%] right-[15%] w-1.5 h-1.5 bg-white/40 rounded-full" />
-        <div className="absolute bottom-[25%] left-[20%] w-3 h-3 border border-white/20 rounded-full" />
-        <div className="absolute top-[60%] right-[25%] w-2 h-2 bg-white/20 rounded-full" />
+        {/* Círculos decorativos - apenas desktop */}
+        <div className="hidden md:block absolute top-[20%] left-[10%] w-2 h-2 bg-[#F5793B] rounded-full animate-pulse" />
+        <div className="hidden md:block absolute top-[30%] right-[15%] w-1.5 h-1.5 bg-white/40 rounded-full" />
+        <div className="hidden md:block absolute bottom-[25%] left-[20%] w-3 h-3 border border-white/20 rounded-full" />
+        <div className="hidden md:block absolute top-[60%] right-[25%] w-2 h-2 bg-white/20 rounded-full" />
         
-        {/* Linhas decorativas */}
-        <div className="absolute top-0 left-[25%] w-px h-32 bg-gradient-to-b from-white/10 to-transparent" />
-        <div className="absolute bottom-0 right-[35%] w-px h-40 bg-gradient-to-t from-[#F5793B]/20 to-transparent" />
+        {/* Linhas decorativas - apenas desktop */}
+        <div className="hidden md:block absolute top-0 left-[25%] w-px h-32 bg-gradient-to-b from-white/10 to-transparent" />
+        <div className="hidden md:block absolute bottom-0 right-[35%] w-px h-40 bg-gradient-to-t from-[#F5793B]/20 to-transparent" />
         
-        {/* Círculo grande decorativo */}
-        <div className="absolute -bottom-[200px] -left-[100px] w-[400px] h-[400px] border border-white/5 rounded-full" />
-        <div className="absolute -top-[150px] -right-[150px] w-[500px] h-[500px] border border-[#F5793B]/10 rounded-full" />
+        {/* Círculo grande decorativo - apenas desktop */}
+        <div className="hidden md:block absolute -bottom-[200px] -left-[100px] w-[400px] h-[400px] border border-white/5 rounded-full" />
+        <div className="hidden md:block absolute -top-[150px] -right-[150px] w-[500px] h-[500px] border border-[#F5793B]/10 rounded-full" />
       </div>
 
       {/* Conteúdo */}
@@ -107,13 +107,9 @@ export function Hero() {
               <span className="text-sm text-white/80">Seus dados não são compartilhados</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-[3.2rem] font-bold text-white leading-tight mb-6">
-              Entenda as finanças
-              <br />
-              da sua empresa com
-              <br />
-              clareza e segurança.
-              <br />
+            <h1 className="text-3xl sm:text-4xl lg:text-[3.2rem] font-bold text-white leading-tight mb-6">
+              Entenda as finanças da sua empresa com clareza e segurança.
+              {" "}
               <span className="text-[#F5793B]">Em minutos.</span>
             </h1>
 
@@ -143,8 +139,8 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Mockup - contraste reduzido, menos animação */}
-          <div className="relative">
+          {/* Mockup - apenas desktop/tablet */}
+          <div className="relative hidden lg:block">
             {/* Glow atrás do mockup - estático, mais sutil */}
             <div className="absolute inset-0 bg-[#F5793B]/10 rounded-3xl blur-3xl scale-90" />
             
@@ -233,14 +229,14 @@ export function Hero() {
 export function TrustBar() {
   return (
     <section id="seguranca" className="py-6 bg-[#0d2240]">
-      <div className="max-w-5xl mx-auto px-6 flex flex-wrap justify-center gap-8 lg:gap-14">
+      <div className="max-w-5xl mx-auto px-6 flex flex-col items-start gap-3 pl-[25%] sm:pl-6 sm:flex-row sm:items-center sm:justify-center sm:gap-8 lg:gap-14">
         {[
           { icon: Lock, text: "Criptografia de ponta a ponta" },
           { icon: Shield, text: "100% conforme LGPD" },
           { icon: FileCheck, text: "Dados nunca compartilhados" },
         ].map((item, i) => (
           <div key={i} className="flex items-center gap-2">
-            <item.icon className="w-4 h-4 text-[#F5793B]" />
+            <item.icon className="w-4 h-4 text-[#F5793B] flex-shrink-0" />
             <span className="text-sm text-white/70">{item.text}</span>
           </div>
         ))}
@@ -688,8 +684,8 @@ export function CTAFinal() {
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#F5793B]/10 rounded-full blur-[100px]" />
       </div>
-      <div className="absolute top-10 left-10 w-3 h-3 border border-white/10 rounded-full" />
-      <div className="absolute bottom-10 right-10 w-2 h-2 bg-[#F5793B]/30 rounded-full" />
+      <div className="hidden md:block absolute top-10 left-10 w-3 h-3 border border-white/10 rounded-full" />
+      <div className="hidden md:block absolute bottom-10 right-10 w-2 h-2 bg-[#F5793B]/30 rounded-full" />
       
       <div className="relative max-w-3xl mx-auto px-6 text-center">
         <h2 className="text-3xl lg:text-5xl font-bold text-white mb-4">
@@ -745,7 +741,7 @@ export function Footer() {
           </a>
         </div>
         <div className="mt-6 pt-6 border-t border-white/5 text-center text-white/30 text-xs">
-          © 2025 Leme. Todos os direitos reservados.
+          © 2026 Leme. Todos os direitos reservados.
         </div>
       </div>
     </footer>
