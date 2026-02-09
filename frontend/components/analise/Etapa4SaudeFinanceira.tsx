@@ -601,7 +601,7 @@ interface InputMonetarioProps {
   autoFocus?: boolean;
   enterKeyHint?: "next" | "done" | "go";
   onEnter?: () => void;
-  inputRef?: React.RefObject<HTMLInputElement | null>;
+  inputRef?: React.RefObject<HTMLInputElement>;
 }
 
 function InputMonetario({ label, valor, onChange, erro, dica, autoFocus, enterKeyHint = "done", onEnter, inputRef }: InputMonetarioProps) {
@@ -610,7 +610,7 @@ function InputMonetario({ label, valor, onChange, erro, dica, autoFocus, enterKe
   );
   const [focado, setFocado] = useState(false);
   const localRef = useRef<HTMLInputElement>(null);
-  const ref = inputRef || localRef;
+  const activeRef = inputRef || localRef;
 
   useEffect(() => {
     setDisplayValue(
@@ -646,7 +646,7 @@ function InputMonetario({ label, valor, onChange, erro, dica, autoFocus, enterKe
           R$
         </span>
         <input
-          ref={ref}
+          ref={activeRef as React.LegacyRef<HTMLInputElement>}
           type="text"
           inputMode="numeric"
           enterKeyHint={enterKeyHint}
