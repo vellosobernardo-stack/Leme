@@ -55,6 +55,13 @@ export default function Etapa1Identificacao({
             value={dados.nome_empresa}
             onChange={(e) => atualizarDados("nome_empresa", e.target.value)}
             placeholder="Digite o nome da sua empresa"
+            enterKeyHint="next"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                document.getElementById("email")?.focus();
+              }
+            }}
             className={`input py-3 sm:py-2 ${erros.nome_empresa ? "input-error" : ""}`}
             autoFocus
           />
@@ -74,6 +81,7 @@ export default function Etapa1Identificacao({
             value={dados.email}
             onChange={(e) => atualizarDados("email", e.target.value)}
             placeholder="seu@email.com"
+            enterKeyHint="go"
             className={`input py-3 sm:py-2 ${erros.email ? "input-error" : ""}`}
             data-hj-suppress
           />

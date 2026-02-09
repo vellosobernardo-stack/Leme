@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { DadosAnalise, ErrosCampo, ReceitaHistorico, MESES } from "@/types/analise";
 import { criarAnalise, concluirSessao } from "@/lib/api";
@@ -41,7 +41,6 @@ export default function Etapa4SaudeFinanceira({
   const [animando, setAnimando] = useState(false);
   const [direcao, setDirecao] = useState<"frente" | "tras">("frente");
 
-  // Retorna o nome do mês baseado em quantos meses atrás
   const getMesLabel = (mesesAtras: number) => {
     let mes = dados.mes_referencia - mesesAtras;
     let ano = dados.ano_referencia;
@@ -55,7 +54,6 @@ export default function Etapa4SaudeFinanceira({
   const mesReferenciaLabel = MESES.find((m) => m.value === dados.mes_referencia)?.label || "";
   const passoInfo = PASSOS_ETAPA4_INFO[passoEtapa4];
 
-  // Animação de transição entre passos
   const handleAvancar = () => {
     if (passoEtapa4 === 7) {
       handleSubmit();
@@ -100,7 +98,12 @@ export default function Etapa4SaudeFinanceira({
     }
   };
 
-  // Classe de animação
+  // Form submit = avançar (faz o "Ir" do Samsung funcionar)
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleAvancar();
+  };
+
   const animacaoClass = animando
     ? direcao === "frente"
       ? "animate-slide-in-right"
@@ -109,9 +112,8 @@ export default function Etapa4SaudeFinanceira({
 
   return (
     <div className="max-w-2xl mx-auto pb-24">
-      {/* Cabeçalho do passo — compacto no mobile pequeno */}
+      {/* Cabeçalho do passo */}
       <div className="text-center mb-4 sm:mb-6">
-        {/* Mobile pequeno: só título do passo */}
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">
           {passoInfo.titulo}
         </h1>
@@ -126,67 +128,73 @@ export default function Etapa4SaudeFinanceira({
         </div>
       )}
 
-      {/* Conteúdo do passo atual — padding reduzido no mobile */}
-      <div className={`bg-white rounded-xl shadow-sm border border-border p-4 sm:p-6 mb-4 ${animacaoClass}`}>
-        {passoEtapa4 === 1 && (
-          <PassoReceita
-            dados={dados}
-            erros={erros}
-            mesReferenciaLabel={mesReferenciaLabel}
-            getMesLabel={getMesLabel}
-            atualizarDados={atualizarDados}
-            atualizarReceitaHistorico={atualizarReceitaHistorico}
-          />
-        )}
+      {/* Form wrapper — faz o "Ir"/"Go" do teclado mobile submeter */}
+      <form onSubmit={handleFormSubmit}>
+        {/* Conteúdo do passo atual */}
+        <div className={`bg-white rounded-xl shadow-sm border border-border p-4 sm:p-6 mb-4 ${animacaoClass}`}>
+          {passoEtapa4 === 1 && (
+            <PassoReceita
+              dados={dados}
+              erros={erros}
+              mesReferenciaLabel={mesReferenciaLabel}
+              getMesLabel={getMesLabel}
+              atualizarDados={atualizarDados}
+              atualizarReceitaHistorico={atualizarReceitaHistorico}
+            />
+          )}
 
-        {passoEtapa4 === 2 && (
-          <PassoCustos
-            dados={dados}
-            atualizarDados={atualizarDados}
-          />
-        )}
+          {passoEtapa4 === 2 && (
+            <PassoCustos
+              dados={dados}
+              atualizarDados={atualizarDados}
+            />
+          )}
 
-        {passoEtapa4 === 3 && (
-          <PassoCaixa
-            dados={dados}
-            atualizarDados={atualizarDados}
-          />
-        )}
+          {passoEtapa4 === 3 && (
+            <PassoCaixa
+              dados={dados}
+              atualizarDados={atualizarDados}
+            />
+          )}
 
-        {passoEtapa4 === 4 && (
-          <PassoEstoque
-            dados={dados}
-            erros={erros}
-            atualizarDados={atualizarDados}
-          />
-        )}
+          {passoEtapa4 === 4 && (
+            <PassoEstoque
+              dados={dados}
+              erros={erros}
+              atualizarDados={atualizarDados}
+            />
+          )}
 
-        {passoEtapa4 === 5 && (
-          <PassoDividas
-            dados={dados}
-            erros={erros}
-            atualizarDados={atualizarDados}
-          />
-        )}
+          {passoEtapa4 === 5 && (
+            <PassoDividas
+              dados={dados}
+              erros={erros}
+              atualizarDados={atualizarDados}
+            />
+          )}
 
-        {passoEtapa4 === 6 && (
-          <PassoBens
-            dados={dados}
-            erros={erros}
-            atualizarDados={atualizarDados}
-          />
-        )}
+          {passoEtapa4 === 6 && (
+            <PassoBens
+              dados={dados}
+              erros={erros}
+              atualizarDados={atualizarDados}
+            />
+          )}
 
-        {passoEtapa4 === 7 && (
-          <PassoEquipe
-            dados={dados}
-            erros={erros}
-            atualizarDados={atualizarDados}
-          />
-        )}
-      </div>
+          {passoEtapa4 === 7 && (
+            <PassoEquipe
+              dados={dados}
+              erros={erros}
+              atualizarDados={atualizarDados}
+            />
+          )}
+        </div>
 
-      {/* Indicador de passos — compacto */}
+        {/* Botão submit invisível — necessário para o "Ir" do teclado funcionar */}
+        <button type="submit" className="hidden" tabIndex={-1} aria-hidden="true" />
+      </form>
+
+      {/* Indicador de passos */}
       <div className="flex justify-center gap-1.5 mb-4">
         {[1, 2, 3, 4, 5, 6, 7].map((passo) => (
           <div
@@ -202,7 +210,7 @@ export default function Etapa4SaudeFinanceira({
         ))}
       </div>
 
-      {/* Botões sticky no mobile */}
+      {/* Botões sticky */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border p-4 sm:relative sm:border-0 sm:p-0 sm:bg-transparent z-40">
         <div className="flex gap-3 max-w-2xl mx-auto">
           <button
@@ -248,7 +256,6 @@ function PassoReceita({ dados, erros, mesReferenciaLabel, getMesLabel, atualizar
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Subtítulo — colapsado no mobile pequeno, visível em telas maiores */}
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
           Vamos falar de receita
@@ -265,6 +272,7 @@ function PassoReceita({ dados, erros, mesReferenciaLabel, getMesLabel, atualizar
         erro={erros.receita_atual}
         dica="Tudo que entrou de venda de produto ou serviço."
         autoFocus
+        enterKeyHint="done"
       />
 
       <button
@@ -284,16 +292,19 @@ function PassoReceita({ dados, erros, mesReferenciaLabel, getMesLabel, atualizar
             label={`Receita em ${getMesLabel(1)}`}
             valor={dados.receita_historico?.mes_passado || 0}
             onChange={(v) => atualizarReceitaHistorico("mes_passado", v)}
+            enterKeyHint="next"
           />
           <InputMonetario
             label={`Receita em ${getMesLabel(2)}`}
             valor={dados.receita_historico?.dois_meses_atras || 0}
             onChange={(v) => atualizarReceitaHistorico("dois_meses_atras", v)}
+            enterKeyHint="next"
           />
           <InputMonetario
             label={`Receita em ${getMesLabel(3)}`}
             valor={dados.receita_historico?.tres_meses_atras || 0}
             onChange={(v) => atualizarReceitaHistorico("tres_meses_atras", v)}
+            enterKeyHint="done"
           />
         </div>
       )}
@@ -307,6 +318,8 @@ interface PassoCustosProps {
 }
 
 function PassoCustos({ dados, atualizarDados }: PassoCustosProps) {
+  const segundoInputRef = useRef<HTMLInputElement>(null);
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div>
@@ -324,6 +337,8 @@ function PassoCustos({ dados, atualizarDados }: PassoCustosProps) {
         onChange={(v) => atualizarDados("custo_vendas", v)}
         dica="Quanto você paga pelo que vende: mercadoria, matéria-prima, insumos diretos."
         autoFocus
+        enterKeyHint="next"
+        onEnter={() => segundoInputRef.current?.focus()}
       />
 
       <InputMonetario
@@ -331,6 +346,8 @@ function PassoCustos({ dados, atualizarDados }: PassoCustosProps) {
         valor={dados.despesas_fixas}
         onChange={(v) => atualizarDados("despesas_fixas", v)}
         dica="Aluguel, salários, contador, internet, energia... O que vem todo mês."
+        enterKeyHint="done"
+        inputRef={segundoInputRef}
       />
     </div>
   );
@@ -342,6 +359,9 @@ interface PassoCaixaProps {
 }
 
 function PassoCaixa({ dados, atualizarDados }: PassoCaixaProps) {
+  const segundoRef = useRef<HTMLInputElement>(null);
+  const terceiroRef = useRef<HTMLInputElement>(null);
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div>
@@ -359,6 +379,8 @@ function PassoCaixa({ dados, atualizarDados }: PassoCaixaProps) {
         onChange={(v) => atualizarDados("caixa_bancos", v)}
         dica="Conta corrente + aplicações de curto prazo + dinheiro em espécie."
         autoFocus
+        enterKeyHint="next"
+        onEnter={() => segundoRef.current?.focus()}
       />
 
       <InputMonetario
@@ -366,6 +388,9 @@ function PassoCaixa({ dados, atualizarDados }: PassoCaixaProps) {
         valor={dados.contas_receber}
         onChange={(v) => atualizarDados("contas_receber", v)}
         dica="Clientes que ainda vão te pagar."
+        enterKeyHint="next"
+        inputRef={segundoRef}
+        onEnter={() => terceiroRef.current?.focus()}
       />
 
       <InputMonetario
@@ -373,6 +398,8 @@ function PassoCaixa({ dados, atualizarDados }: PassoCaixaProps) {
         valor={dados.contas_pagar}
         onChange={(v) => atualizarDados("contas_pagar", v)}
         dica="Fornecedores, aluguel, folha, parcelas, impostos..."
+        enterKeyHint="done"
+        inputRef={terceiroRef}
       />
     </div>
   );
@@ -410,6 +437,7 @@ function PassoEstoque({ dados, erros, atualizarDados }: PassoEstoqueProps) {
             onChange={(v) => atualizarDados("estoque", v)}
             erro={erros.estoque}
             dica="Pense no que você pagou, não no preço de venda."
+            enterKeyHint="done"
           />
         </div>
       )}
@@ -449,6 +477,7 @@ function PassoDividas({ dados, erros, atualizarDados }: PassoDividasProps) {
             onChange={(v) => atualizarDados("dividas_totais", v)}
             erro={erros.dividas_totais}
             dica="Empréstimos, financiamentos, cartão parcelado da empresa..."
+            enterKeyHint="done"
           />
         </div>
       )}
@@ -488,6 +517,7 @@ function PassoBens({ dados, erros, atualizarDados }: PassoBensProps) {
             onChange={(v) => atualizarDados("bens_equipamentos", v)}
             erro={erros.bens_equipamentos}
             dica="Máquinas, móveis, computadores, veículos..."
+            enterKeyHint="done"
           />
         </div>
       )}
@@ -540,12 +570,13 @@ function PassoEquipe({ dados, erros, atualizarDados }: PassoEquipeProps) {
           type="number"
           inputMode="numeric"
           pattern="[0-9]*"
+          enterKeyHint="done"
           min="1"
           value={inputValue}
           onChange={handleChange}
           onBlur={handleBlur}
           onFocus={(e) => e.target.select()}
-          className={`input w-32 focus:ring-2 focus:ring-primary/20 transition-all ${erros.num_funcionarios ? "input-error" : ""}`}
+          className={`input w-32 py-3 sm:py-2 focus:ring-2 focus:ring-primary/20 transition-all ${erros.num_funcionarios ? "input-error" : ""}`}
           autoFocus
         />
         {erros.num_funcionarios && (
@@ -568,13 +599,18 @@ interface InputMonetarioProps {
   erro?: string;
   dica?: string;
   autoFocus?: boolean;
+  enterKeyHint?: "next" | "done" | "go";
+  onEnter?: () => void;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
-function InputMonetario({ label, valor, onChange, erro, dica, autoFocus }: InputMonetarioProps) {
+function InputMonetario({ label, valor, onChange, erro, dica, autoFocus, enterKeyHint = "done", onEnter, inputRef }: InputMonetarioProps) {
   const [displayValue, setDisplayValue] = useState(
     valor > 0 ? valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : ""
   );
   const [focado, setFocado] = useState(false);
+  const localRef = useRef<HTMLInputElement>(null);
+  const ref = inputRef || localRef;
 
   useEffect(() => {
     setDisplayValue(
@@ -589,6 +625,19 @@ function InputMonetario({ label, valor, onChange, erro, dica, autoFocus }: Input
     onChange(numero);
   };
 
+  // Enter: pula para próximo input ou submete o form
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (onEnter) {
+        onEnter();
+      } else {
+        // Se não tem onEnter, faz blur (fecha teclado) e deixa o form submit cuidar
+        (e.target as HTMLInputElement).blur();
+      }
+    }
+  };
+
   return (
     <div>
       <label className="label">{label}</label>
@@ -597,20 +646,23 @@ function InputMonetario({ label, valor, onChange, erro, dica, autoFocus }: Input
           R$
         </span>
         <input
+          ref={ref}
           type="text"
+          inputMode="numeric"
+          enterKeyHint={enterKeyHint}
           value={displayValue}
           onChange={handleChange}
-          onFocus={(e) => { setFocado(true); }}
+          onKeyDown={handleKeyDown}
+          onFocus={() => setFocado(true)}
           onBlur={() => setFocado(false)}
           placeholder="0,00"
           autoFocus={autoFocus}
           style={{ paddingLeft: "3.5rem" }}
-          className={`input focus:ring-2 focus:ring-primary/20 transition-all ${erro ? "input-error" : ""}`}
+          className={`input py-3 sm:py-2 focus:ring-2 focus:ring-primary/20 transition-all ${erro ? "input-error" : ""}`}
           data-hj-suppress
         />
       </div>
       {erro && <p className="text-danger text-sm mt-1">{erro}</p>}
-      {/* Dica: sempre visível em telas maiores, só no foco no mobile pequeno */}
       {dica && (
         <p className={`help-text transition-all duration-200 ${
           focado ? "opacity-100 max-h-10" : "sm:opacity-100 sm:max-h-10 opacity-0 max-h-0 overflow-hidden"

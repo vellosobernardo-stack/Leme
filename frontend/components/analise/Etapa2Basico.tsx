@@ -17,8 +17,8 @@ export default function Etapa2Basico({
   avancar,
   voltar,
 }: Etapa2Props) {
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     await avancar();
   };
 
@@ -127,19 +127,19 @@ export default function Etapa2Basico({
         <p className="help-text mb-4 sm:mb-6 text-xs">
           Dados do mês mais recente com informações completas
         </p>
-
-        {/* Botões — sticky no mobile */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border p-4 sm:relative sm:border-0 sm:p-0 sm:bg-transparent z-40">
-          <div className="flex gap-3 max-w-lg mx-auto">
-            <button type="button" onClick={voltar} className="btn-secondary flex-1 py-3 sm:py-2.5">
-              Voltar
-            </button>
-            <button type="submit" className="btn-primary flex-1 py-3 sm:py-2.5">
-              Próximo
-            </button>
-          </div>
-        </div>
       </form>
+
+      {/* Botões — fora do card, sticky no mobile */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border p-4 sm:relative sm:border-0 sm:p-0 sm:bg-transparent sm:mt-4 z-40">
+        <div className="flex gap-3 max-w-lg mx-auto">
+          <button type="button" onClick={voltar} className="btn-secondary flex-1 py-3 sm:py-2.5">
+            Voltar
+          </button>
+          <button type="button" onClick={handleSubmit} className="btn-primary flex-1 py-3 sm:py-2.5">
+            Próximo
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
