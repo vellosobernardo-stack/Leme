@@ -95,11 +95,17 @@ async def enviar_email(
         return False
 
 
-async def enviar_email_abandono_1(nome_empresa: str, email: str) -> bool:
+async def enviar_email_abandono_1(nome_empresa: str, email: str, sessao_id: str = None) -> bool:
     """
     Envia o primeiro e-mail de abandono (3-6h após início).
     Tom: amigável, direto.
     """
+    
+    # Link com sessão para continuar de onde parou
+    if sessao_id:
+        link_continuar = f"https://leme.app.br/analise?sessao={sessao_id}"
+    else:
+        link_continuar = "https://leme.app.br/analise"
     
     assunto = f"Você já começou a análise da {nome_empresa} — falta pouco para concluir"
     
@@ -142,7 +148,7 @@ async def enviar_email_abandono_1(nome_empresa: str, email: str) -> bool:
                 
                 <!-- CTA -->
                 <div style="text-align: center; margin-bottom: 32px;">
-                    <a href="https://leme.app.br/analise" 
+                    <a href="{link_continuar}" 
                        style="display: inline-block; background-color: #112D4E; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
                         Continuar minha análise
                     </a>
@@ -169,11 +175,17 @@ async def enviar_email_abandono_1(nome_empresa: str, email: str) -> bool:
     )
 
 
-async def enviar_email_abandono_2(nome_empresa: str, email: str) -> bool:
+async def enviar_email_abandono_2(nome_empresa: str, email: str, sessao_id: str = None) -> bool:
     """
     Envia o segundo e-mail de abandono (48h após início).
     Tom: último lembrete, sem pressão.
     """
+    
+    # Link com sessão para continuar de onde parou
+    if sessao_id:
+        link_continuar = f"https://leme.app.br/analise?sessao={sessao_id}"
+    else:
+        link_continuar = "https://leme.app.br/analise"
     
     assunto = f"Sua análise financeira da {nome_empresa} ainda está disponível"
     
@@ -220,7 +232,7 @@ async def enviar_email_abandono_2(nome_empresa: str, email: str) -> bool:
                 
                 <!-- CTA -->
                 <div style="text-align: center; margin-bottom: 32px;">
-                    <a href="https://leme.app.br/analise" 
+                    <a href="{link_continuar}" 
                        style="display: inline-block; background-color: #F5793B; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">
                         Finalizar minha análise
                     </a>

@@ -59,6 +59,7 @@ async def processar_abandonos(db: Session) -> dict:
         sucesso = await enviar_email_abandono_1(
             nome_empresa=sessao.nome_empresa,
             email=sessao.email,
+            sessao_id=str(sessao.id),  # Passa o ID para o link de continuação
         )
         
         if sucesso:
@@ -86,6 +87,7 @@ async def processar_abandonos(db: Session) -> dict:
         sucesso = await enviar_email_abandono_2(
             nome_empresa=sessao.nome_empresa,
             email=sessao.email,
+            sessao_id=str(sessao.id),  # Passa o ID para o link de continuação
         )
         
         if sucesso:
@@ -133,6 +135,7 @@ async def processar_abandono_manual(db: Session, sessao_id: str, tipo_email: int
         sucesso = await enviar_email_abandono_1(
             nome_empresa=sessao.nome_empresa,
             email=sessao.email,
+            sessao_id=str(sessao.id),  # Passa o ID para o link de continuação
         )
         if sucesso:
             sessao.email_1_enviado_em = agora
@@ -144,6 +147,7 @@ async def processar_abandono_manual(db: Session, sessao_id: str, tipo_email: int
         sucesso = await enviar_email_abandono_2(
             nome_empresa=sessao.nome_empresa,
             email=sessao.email,
+            sessao_id=str(sessao.id),  # Passa o ID para o link de continuação
         )
         if sucesso:
             sessao.email_2_enviado_em = agora
