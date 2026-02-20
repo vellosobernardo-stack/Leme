@@ -3,6 +3,7 @@ export {
   Hero, 
   TrustBar,
   // HeroPreAbertura,  // Removido temporariamente
+  PainSection,
   ValueDelivery, 
   HowItWorks, 
   Authority, 

@@ -107,14 +107,15 @@ export function Hero() {
               <span className="text-sm text-white/80">Seus dados não são compartilhados</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-[3.2rem] font-bold text-white leading-tight mb-6">
-              Entenda as finanças da sua empresa com clareza e segurança.
-              {" "}
-              <span className="text-[#F5793B]">Em minutos.</span>
-            </h1>
+<h1 className="text-3xl sm:text-4xl lg:text-[3.2rem] font-bold text-white leading-tight mb-6">
+  Sua empresa está realmente saudável
+  <br className="hidden lg:block" />
+  {" "}
+  <span className="text-[#F5793B]">— ou só parece estar?</span>
+</h1>
 
             <p className="text-lg text-white/60 max-w-md mb-8">
-              O Leme transforma dados financeiros em diagnósticos claros e acionáveis.
+              Descubra em 3 minutos se você tem riscos escondidos no seu caixa, na sua margem ou no seu crescimento.
             </p>
 
             <div className="flex flex-wrap gap-6 mb-10 text-white/60 text-sm">
@@ -132,7 +133,7 @@ export function Hero() {
                 href="/analise"
                 className="group inline-flex items-center gap-3 bg-[#F5793B] hover:bg-[#e86a2e] text-white px-8 py-4 text-lg font-semibold rounded-full transition-all hover:-translate-y-0.5 shadow-lg shadow-[#F5793B]/20"
               >
-                Começar análise grátis
+                Fazer meu diagnóstico
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <p className="text-white/40 text-sm mt-3 ml-1">Totalmente confidencial</p>
@@ -240,6 +241,49 @@ export function TrustBar() {
             <span className="text-sm text-white/70">{item.text}</span>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// SEÇÃO DE DOR — Espelho emocional
+// ============================================
+export function PainSection() {
+  const doubts = [
+    "O caixa aguenta os próximos 2 meses?",
+    "Seu lucro reflete realmente o esforço que você faz?",
+    "Seu crescimento está sustentável?",
+    "Você toma decisões com base em números claros?",
+  ];
+
+  return (
+    <section className="py-16 bg-white lg:hidden">
+      <div className="max-w-3xl mx-auto px-6 text-center">
+        <h2 className="text-2xl lg:text-3xl font-bold text-[#112d4e] mb-10">
+          Você sabe o risco real do seu negócio hoje?
+        </h2>
+
+        <div className="space-y-4 mb-10 max-w-md mx-auto">
+          {doubts.map((doubt, i) => (
+            <div key={i} className="flex items-center gap-3 text-left">
+              <span className="text-[#F5793B] text-lg font-bold flex-shrink-0">✗</span>
+              <p className="text-gray-700 text-base lg:text-lg">{doubt}</p>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-gray-500 text-base lg:text-lg max-w-lg mx-auto">
+          Se alguma dessas dúvidas já passou pela sua cabeça,{" "}
+          <span className="text-[#112d4e] font-semibold">você precisa de um diagnóstico claro.</span>
+        </p>
+<Link
+  href="/analise"
+  className="inline-flex items-center gap-2 text-[#F5793B] font-semibold mt-8 hover:gap-3 transition-all"
+>
+  Fazer meu diagnóstico
+  <ArrowRight className="w-4 h-4" />
+</Link>
       </div>
     </section>
   );
@@ -382,10 +426,10 @@ export function HeroPreAbertura() {
 export function ValueDelivery() {
   // Hierarquia: Gancho → Ação → Síntese → Prova
   const features = [
-    { icon: Zap, title: "Diagnóstico inteligente", description: "Mostra onde você ganha, onde perde e onde agir" },
-    { icon: Target, title: "Plano de ação 30/60/90", description: "Passos claros do que fazer agora, no próximo mês e no trimestre" },
-    { icon: TrendingUp, title: "Score de saúde financeira", description: "Uma nota de 0 a 100 que resume tudo de forma simples" },
-    { icon: BarChart3, title: "10 indicadores essenciais", description: "Os números que realmente importam para decidir" },
+    { icon: Zap, title: "Diagnóstico inteligente", description: "Mostra onde você ganha, onde perde e onde pode estar desperdiçando dinheiro" },
+    { icon: Target, title: "Plano de ação 30/60/90", description: "Passos claros para corrigir agora o que pode virar prejuízo depois" },
+    { icon: TrendingUp, title: "Score de saúde financeira", description: "Uma nota de 0 a 100 que revela se seu negócio está seguro ou em risco" },
+    { icon: BarChart3, title: "10 indicadores essenciais", description: "Os números que mostram se sua empresa está estruturada para crescer — ou vulnerável" },
   ];
 
   return (
@@ -399,7 +443,7 @@ export function ValueDelivery() {
         <div className="text-center mb-6">
           <p className="text-[#F5793B] font-semibold mb-3 uppercase tracking-wide text-sm">O que você recebe</p>
           <h2 className="text-3xl lg:text-4xl font-bold text-[#112d4e]">
-            Um diagnóstico financeiro completo em minutos
+            O que você não está vendo pode estar custando caro
           </h2>
         </div>
         
@@ -502,8 +546,8 @@ export function HowItWorks() {
     { 
       number: "03", 
       step: "Passo 3 de 3",
-      title: "Você decide melhor", 
-      description: "Receba um diagnóstico claro com riscos, forças e um plano de ação prático para os próximos meses.", 
+      title: "Saiba exatamente o que corrigir", 
+      description: "Receba um diagnóstico com riscos, forças e um plano prático do que fazer — e do que parar de fazer.", 
       color: "bg-emerald-500",
       isFirst: false
     }
@@ -604,7 +648,7 @@ export function Authority() {
               {[
                 { value: "10+", label: "Indicadores" },
                 { value: "3", label: "Minutos" },
-                { value: "100%", label: "Gratuito" },
+                { value: "100%", label: "Online" },
               ].map((stat, i) => (
                 <div key={i}>
                   <p className="text-3xl font-bold text-[#112d4e]">{stat.value}</p>
@@ -693,7 +737,7 @@ export function CTAFinal() {
         </h2>
         
         <p className="text-lg text-white/60 mb-3 max-w-xl mx-auto">
-          Descubra a saúde financeira da sua empresa em menos de 3 minutos.
+          Descubra em 3 minutos. Grátis e confidencial.
         </p>
         
         <p className="text-white/40 mb-10">
@@ -704,7 +748,7 @@ export function CTAFinal() {
           href="/analise"
           className="group inline-flex items-center gap-3 bg-[#F5793B] hover:bg-[#e86a2e] text-white px-10 py-5 text-lg font-semibold rounded-full transition-all hover:-translate-y-0.5 shadow-lg shadow-[#F5793B]/20"
         >
-          Começar análise grátis
+          Fazer diagnóstico
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
         </Link>
         
