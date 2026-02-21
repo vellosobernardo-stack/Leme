@@ -328,5 +328,13 @@ export const mockDashboardData: DashboardData = {
       score: 65,
       status: 'atencao'
     }
-  ]
+  ],
+
+  // ========== SIMULADOR ==========
+  simulador: {
+    caixa_disponivel: 15000,
+    receita_mensal: 25000,
+    custo_vendas: 8000,
+    despesas_fixas: 12000,
+  }
 };
