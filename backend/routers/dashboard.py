@@ -250,73 +250,199 @@ def gerar_payback(valor_empresa_min: float, valor_empresa_max: float, lucro_anua
     }
 
 def gerar_diagnostico(analise: Analise) -> dict:
-    """Gera diagnóstico baseado nos indicadores"""
+    """
+    Gera diagnóstico v2 — conectado com simulador, linguagem leiga.
+    
+    Princípios:
+    - Pontos fortes: dizer o que PERMITE, não só o que é bom
+    - Pontos de atenção: ser ESPECÍFICO e INCÔMODO com números reais
+    - Conectar com o simulador (queda de receita, sobra, fôlego)
+    - Máximo 4+4 para dar profundidade sem sobrecarregar
+    """
     pontos_fortes = []
     pontos_atencao = []
     
-    # Margem Bruta
-    if analise.margem_bruta:
-        margem = float(analise.margem_bruta)
-        if margem >= 40:
-            pontos_fortes.append({
-                "titulo": "Margem bruta saudável",
-                "descricao": f"Com {margem:.0f}% de margem, você tem boa capacidade de absorver variações de custo e investir em melhorias."
-            })
-        elif margem < 20:
-            pontos_atencao.append({
-                "titulo": "Margem bruta baixa",
-                "descricao": f"Com apenas {margem:.0f}% de margem, sua empresa tem pouca flexibilidade. Considere revisar preços ou reduzir custos."
-            })
+    # Extrair valores com segurança
+    receita = float(analise.receita_atual) if analise.receita_atual else 0
+    custo = float(analise.custo_vendas) if analise.custo_vendas else 0
+    despesas = float(analise.despesas_fixas) if analise.despesas_fixas else 0
+    caixa = float(analise.caixa_bancos) if analise.caixa_bancos else 0
+    margem = float(analise.margem_bruta) if analise.margem_bruta else 0
+    resultado = float(analise.resultado_mes) if analise.resultado_mes else 0
+    folego = analise.folego_caixa if analise.folego_caixa else 0
+    peso_div = float(analise.peso_divida) if analise.peso_divida else 0
+    ciclo = analise.ciclo_financeiro if analise.ciclo_financeiro else 0
+    funcionarios = analise.num_funcionarios if analise.num_funcionarios else 0
+    rec_func = float(analise.receita_funcionario) if analise.receita_funcionario else 0
+    pe = float(analise.ponto_equilibrio) if analise.ponto_equilibrio else 0
     
-    # Fôlego de Caixa
-    if analise.folego_caixa:
-        folego = analise.folego_caixa
-        if folego >= 60:
-            pontos_fortes.append({
-                "titulo": "Reserva de caixa adequada",
-                "descricao": f"{folego} dias de fôlego permite enfrentar imprevistos sem comprometer a operação."
-            })
-        elif folego < 30:
-            pontos_atencao.append({
-                "titulo": "Reserva de caixa crítica",
-                "descricao": f"Com apenas {folego} dias de fôlego, qualquer imprevisto pode comprometer o pagamento de contas."
-            })
+    custo_total = custo + despesas
     
-    # Resultado do Mês
-    if analise.resultado_mes:
-        resultado = float(analise.resultado_mes)
-        if resultado > 0:
+    # Cálculo do simulador (mesmo motor do frontend)
+    sobra = receita - custo_total
+    receita_est = receita * 0.7  # cenário -30%
+    sobra_est = receita_est - custo_total
+    queda_valor = receita - receita_est
+    
+    # ========== MARGEM BRUTA ==========
+    if margem >= 40:
+        pontos_fortes.append({
+            "titulo": "Margem bruta excelente",
+            "descricao": f"Com {margem:.1f}% de margem, sua empresa consegue agregar muito valor ao seu produto/serviço."
+        })
+    elif margem >= 25:
+        pontos_fortes.append({
+            "titulo": "Margem bruta adequada",
+            "descricao": f"Com {margem:.1f}% de margem, você tem espaço para absorver variações de custo sem comprometer o resultado."
+        })
+    elif margem >= 15:
+        pontos_atencao.append({
+            "titulo": "Margem bruta apertada",
+            "descricao": f"Com {margem:.1f}% de margem, um aumento de custo de fornecedor ou matéria-prima já pode comprometer seu resultado. Avalie revisar preços."
+        })
+    elif margem >= 0:
+        pontos_atencao.append({
+            "titulo": "Margem bruta muito baixa",
+            "descricao": f"Com apenas {margem:.1f}% de margem, quase tudo que entra é consumido pelo custo. Sua empresa está vulnerável a qualquer variação de preço."
+        })
+    else:
+        pontos_atencao.append({
+            "titulo": "Margem bruta negativa",
+            "descricao": "Seu custo de vendas é maior que a receita. Cada venda gera prejuízo. Revisão de preço ou fornecedores é urgente."
+        })
+    
+    # ========== RESULTADO / SOBRA MENSAL ==========
+    if resultado > 0 and receita > 0:
+        sobra_pct = (resultado / receita) * 100
+        if sobra_pct >= 15:
+            pontos_fortes.append({
+                "titulo": "Rentabilidade muito boa",
+                "descricao": f"Sobram {formatar_moeda(resultado)} por mês ({sobra_pct:.1f}% da receita). Isso dá margem para investir em crescimento ou reforçar reservas."
+            })
+        elif sobra_pct >= 5:
             pontos_fortes.append({
                 "titulo": "Resultado positivo",
-                "descricao": f"Empresa lucrativa com resultado de {formatar_moeda(resultado)} no mês."
+                "descricao": f"Sobram {formatar_moeda(resultado)} por mês. Empresa se sustenta, mas a folga é moderada."
             })
         else:
             pontos_atencao.append({
-                "titulo": "Resultado negativo",
-                "descricao": f"A empresa está operando com prejuízo de {formatar_moeda(abs(float(analise.resultado_mes)))}. Ação urgente necessária."
+                "titulo": "Sobra mensal muito baixa",
+                "descricao": f"Depois de pagar tudo, sobram apenas {formatar_moeda(resultado)} ({sobra_pct:.1f}% da receita). Um pequeno imprevisto já pode zerar essa sobra."
             })
+    elif resultado == 0:
+        pontos_atencao.append({
+            "titulo": "Resultado zerado",
+            "descricao": "A receita cobre exatamente os custos. Não há sobra para imprevistos nem para crescer."
+        })
+    elif resultado < 0:
+        pontos_atencao.append({
+            "titulo": "Empresa operando no prejuízo",
+            "descricao": f"As despesas superam o faturamento em {formatar_moeda(abs(resultado))} por mês. Sem ajustes, o caixa será consumido."
+        })
     
-    # Ciclo Financeiro
-    if analise.ciclo_financeiro:
-        ciclo = analise.ciclo_financeiro
-        if ciclo > 45:
+    # ========== VULNERABILIDADE A QUEDA (conecta com simulador) ==========
+    if receita > 0 and sobra > 0:
+        if sobra_est < 0:
+            # Lucro vira prejuízo com -30%
             pontos_atencao.append({
-                "titulo": "Ciclo financeiro acima do ideal",
-                "descricao": f"{ciclo} dias é alto para o setor. Negocie melhores prazos com fornecedores ou reduza prazo de recebimento."
+                "titulo": "Vulnerável a queda de vendas",
+                "descricao": f"Uma queda de {formatar_moeda(queda_valor)} nas vendas já faria sua empresa operar no prejuízo, consumindo o caixa."
             })
+        elif sobra_est > 0 and sobra > 0:
+            erosao = round((1 - sobra_est / sobra) * 100)
+            if erosao >= 60:
+                pontos_atencao.append({
+                    "titulo": "Alta dependência do faturamento atual",
+                    "descricao": f"Uma queda de 30% na receita reduziria sua sobra mensal em {erosao}%. Diversificar fontes de receita reduz esse risco."
+                })
     
-    # Peso da Dívida
-    if analise.peso_divida:
-        peso = float(analise.peso_divida)
-        if peso > 30:
+    # ========== FÔLEGO / CAIXA ==========
+    if folego >= 120:
+        pontos_fortes.append({
+            "titulo": "Reserva de caixa confortável",
+            "descricao": f"Com {folego} dias de fôlego, sua empresa tem tempo para reagir a imprevistos sem comprometer a operação."
+        })
+    elif folego >= 60:
+        pontos_fortes.append({
+            "titulo": "Reserva de caixa adequada",
+            "descricao": f"Com {folego} dias de fôlego, você tem uma margem de segurança razoável, mas considere reforçar."
+        })
+    elif folego >= 30:
+        pontos_atencao.append({
+            "titulo": "Reserva de caixa limitada",
+            "descricao": f"Com apenas {folego} dias de fôlego, um atraso em recebimento ou despesa inesperada já pode apertar o caixa."
+        })
+    elif folego > 0:
+        pontos_atencao.append({
+            "titulo": "Reserva de caixa crítica",
+            "descricao": f"Com apenas {folego} dias de fôlego, qualquer imprevisto pode comprometer o pagamento de contas."
+        })
+    
+    # ========== DÍVIDA ==========
+    if peso_div == 0:
+        pontos_fortes.append({
+            "titulo": "Empresa sem dívidas",
+            "descricao": "Situação financeira sólida, com liberdade para investir quando necessário."
+        })
+    elif peso_div < 15:
+        pontos_fortes.append({
+            "titulo": "Endividamento controlado",
+            "descricao": f"Dívidas representam {peso_div:.0f}% da receita anual. Nível saudável que não pressiona o caixa."
+        })
+    elif peso_div >= 30:
+        pontos_atencao.append({
+            "titulo": "Endividamento elevado",
+            "descricao": f"Dívidas representam {peso_div:.0f}% da receita anual. Isso compromete parte do faturamento e limita novos investimentos."
+        })
+    
+    # ========== PONTO DE EQUILÍBRIO ==========
+    if pe > 0 and receita > 0:
+        pe_pct = (pe / receita) * 100
+        folga_pe = receita - pe
+        if pe_pct >= 90:
             pontos_atencao.append({
-                "titulo": "Endividamento elevado",
-                "descricao": f"{peso:.0f}% da receita anual em dívidas. Priorize quitar as de maior juros antes de novos investimentos."
+                "titulo": "Operando muito perto do limite",
+                "descricao": f"Você precisa faturar pelo menos {formatar_moeda(pe)} por mês para cobrir os custos. Sua folga é de apenas {formatar_moeda(folga_pe)}."
+            })
+        elif pe_pct >= 70:
+            pontos_atencao.append({
+                "titulo": "Ponto de equilíbrio alto",
+                "descricao": f"Seu custo fixo exige um faturamento mínimo de {formatar_moeda(pe)} para não dar prejuízo. Considere reduzir despesas fixas."
             })
     
+    # ========== PRODUTIVIDADE ==========
+    if funcionarios and funcionarios > 0 and rec_func > 0:
+        if rec_func >= 10000:
+            pontos_fortes.append({
+                "titulo": "Boa produtividade por funcionário",
+                "descricao": f"Cada funcionário gera {formatar_moeda(rec_func)} de receita. Equipe enxuta e eficiente."
+            })
+        elif rec_func < 5000:
+            pontos_atencao.append({
+                "titulo": "Produtividade baixa por funcionário",
+                "descricao": f"Cada funcionário gera apenas {formatar_moeda(rec_func)} de receita. Avalie se a equipe está dimensionada para o faturamento atual."
+            })
+    
+    # ========== TENDÊNCIA ==========
+    if analise.tendencia_receita is not None:
+        tend = float(analise.tendencia_receita)
+        if tend >= 10:
+            pontos_fortes.append({
+                "titulo": "Receita em crescimento",
+                "descricao": f"Tendência de alta de {tend:.0f}%. Bom momento para planejar expansão com base sólida."
+            })
+        elif tend <= -10:
+            pontos_atencao.append({
+                "titulo": "Receita em queda",
+                "descricao": f"Tendência de queda de {abs(tend):.0f}%. Se mantida, pode comprometer a sustentabilidade. Investigue a causa."
+            })
+    
+    # Ordenar: mais impactantes primeiro
+    # Pontos fortes: prioriza resultado > margem > caixa
+    # Pontos atenção: prioriza prejuízo > vulnerabilidade > caixa
     return {
-        "pontos_fortes": pontos_fortes[:3],  # Máximo 3
-        "pontos_atencao": pontos_atencao[:3]  # Máximo 3
+        "pontos_fortes": pontos_fortes[:4],  # Máximo 4
+        "pontos_atencao": pontos_atencao[:4]  # Máximo 4
     }
 
 
@@ -959,7 +1085,14 @@ def get_dashboard_by_id(
                 "status": get_status(float(a.score_saude) if a.score_saude else 0, "score")
             }
             for a in historico_db
-        ]
+        ],
+
+        "simulador": {
+            "caixa_disponivel": float(analise.caixa_bancos) if analise.caixa_bancos else 0,
+            "receita_mensal": float(analise.receita_atual) if analise.receita_atual else 0,
+            "custo_vendas": float(analise.custo_vendas) if analise.custo_vendas else 0,
+            "despesas_fixas": float(analise.despesas_fixas) if analise.despesas_fixas else 0,
+        }
     }
 
 @router.get("/{email}")
@@ -1076,5 +1209,12 @@ def get_dashboard(
                 "status": get_status(float(a.score_saude) if a.score_saude else 0, "score")
             }
             for a in historico_db
-        ]
+        ],
+
+        "simulador": {
+            "caixa_disponivel": float(analise.caixa_bancos) if analise.caixa_bancos else 0,
+            "receita_mensal": float(analise.receita_atual) if analise.receita_atual else 0,
+            "custo_vendas": float(analise.custo_vendas) if analise.custo_vendas else 0,
+            "despesas_fixas": float(analise.despesas_fixas) if analise.despesas_fixas else 0,
+        }
     }

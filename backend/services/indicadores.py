@@ -263,74 +263,150 @@ def _calcular_score(
     tendencia_receita: float
 ) -> float:
     """
-    Calcula o Score de Saúde Financeira (0-100).
-    Agora penaliza capital mínimo negativo e margem negativa.
+    Score de Saúde Financeira (0-100) v2.
+    
+    Mudanças vs v1:
+    - Tetos de segurança (caps) que impedem score alto com riscos reais
+    - Penalizações cruzadas (margem apertada + caixa baixo = pior)
+    - Distribuição mais honesta: ~20% verde, ~50% amarelo, ~30% vermelho
+    - Score reflete RISCO, não só matemática
     """
     score = 0
+    
+    # ========== INDICADORES (soma até 100) ==========
     
     # 1. Margem Bruta (20 pts)
     if margem_bruta >= 40:
         score += 20
-    elif margem_bruta >= 20:
-        score += 15
+    elif margem_bruta >= 25:
+        score += 14
+    elif margem_bruta >= 15:
+        score += 8
     elif margem_bruta >= 0:
-        score += 10
-    # margem negativa = 0 pontos (antes dava 0 implicitamente, agora explícito)
+        score += 3
+    # margem negativa = 0 pontos
     
-    # 2. Resultado do Mês (20 pts)
+    # 2. Resultado do Mês (25 pts) — peso maior, é o mais importante
     if resultado_mes > 0 and receita > 0:
-        resultado_percentual = (resultado_mes / receita) * 100
-        if resultado_percentual >= 10:
+        resultado_pct = (resultado_mes / receita) * 100
+        if resultado_pct >= 15:
+            score += 25
+        elif resultado_pct >= 10:
             score += 20
+        elif resultado_pct >= 5:
+            score += 14
         else:
-            score += 15
+            # Lucro < 5% da receita — margem muito apertada
+            score += 8
     elif resultado_mes == 0:
-        score += 5  # empate: não é bom, mas não é prejuízo
+        score += 3
     # resultado negativo = 0 pontos
     
     # 3. Fôlego de Caixa (20 pts)
-    if folego_caixa >= 90:
+    if folego_caixa >= 120:
         score += 20
+    elif folego_caixa >= 90:
+        score += 16
     elif folego_caixa >= 60:
-        score += 15
+        score += 11
     elif folego_caixa >= 30:
-        score += 10
-    else:
         score += 5
+    else:
+        score += 2
     
     # 4. Ponto de Equilíbrio (15 pts)
     if ponto_equilibrio is not None and receita > 0:
-        pe_percentual = (ponto_equilibrio / receita) * 100
-        if pe_percentual < 50:
+        pe_pct = (ponto_equilibrio / receita) * 100
+        if pe_pct < 50:
             score += 15
-        elif pe_percentual < 80:
+        elif pe_pct < 70:
             score += 10
-        elif pe_percentual < 100:
+        elif pe_pct < 85:
             score += 5
-        # PE >= receita = 0 pontos (empresa não atinge equilíbrio)
+        elif pe_pct < 100:
+            score += 2
+        # PE >= receita = 0 pontos
     elif ponto_equilibrio is None:
-        # Margem negativa, não calculável — penaliza
         score += 0
     
     # 5. Peso da Dívida (10 pts)
     if peso_divida is None or peso_divida == 0:
-        score += 10  # sem dívida = ótimo
-    elif peso_divida < 20:
-        score += 8
+        score += 10
+    elif peso_divida < 15:
+        score += 7
+    elif peso_divida < 30:
+        score += 4
     elif peso_divida < 50:
-        score += 5
-    elif peso_divida < 100:
         score += 2
-    # dívida >= receita anual = 0 pontos
+    # dívida >= 50% receita anual = 0 pontos
     
-    # 6. Tendência (15 pts)
+    # 6. Tendência (10 pts) — peso menor, é volátil
     if tendencia_receita >= 10:
-        score += 15
+        score += 10
     elif tendencia_receita > 5:
-        score += 12
+        score += 7
     elif tendencia_receita >= -5:
-        score += 8
-    else:
-        score += 3
+        score += 4
+    elif tendencia_receita >= -15:
+        score += 2
+    # queda > 15% = 0 pontos
     
-    return score
+    # ========== TETOS DE SEGURANÇA (CAPS) ==========
+    # Esses tetos impedem que um score fique alto quando há risco real.
+    # Um indicador crítico LIMITA o score máximo, independente dos outros.
+    
+    # Se resultado é negativo (prejuízo) → máximo 40
+    if resultado_mes < 0:
+        score = min(score, 40)
+    
+    # Se sobra mensal < 5% da receita → máximo 65 (nunca verde)
+    if receita > 0 and resultado_mes >= 0:
+        sobra_pct = (resultado_mes / receita) * 100
+        if sobra_pct < 5:
+            score = min(score, 65)
+    
+    # Se fôlego < 30 dias → máximo 50
+    if folego_caixa < 30:
+        score = min(score, 50)
+    
+    # Se fôlego < 60 dias → máximo 65 (nunca verde)
+    if folego_caixa < 60:
+        score = min(score, 65)
+    
+    # Se fôlego < 90 dias → máximo 72 (teto amarelo alto)
+    if folego_caixa < 90:
+        score = min(score, 72)
+    
+    # Se margem < 10% → máximo 60
+    if margem_bruta < 10:
+        score = min(score, 60)
+    
+    # Se PE >= receita (não atinge equilíbrio) → máximo 45
+    if ponto_equilibrio is not None and receita > 0 and ponto_equilibrio >= receita:
+        score = min(score, 45)
+    
+    # Se dívida > 50% da receita anual → máximo 55
+    if peso_divida is not None and peso_divida > 50:
+        score = min(score, 55)
+    
+    # Se tendência fortemente negativa (> -10%) → máximo 68
+    if tendencia_receita < -10:
+        score = min(score, 68)
+    
+    # ========== PENALIZAÇÃO CRUZADA ==========
+    # Combinações perigosas que são piores que a soma das partes
+    
+    # Margem apertada + caixa baixo = muito vulnerável
+    if margem_bruta < 15 and folego_caixa < 60:
+        score = min(score, 42)
+    
+    # Prejuízo + caixa baixo = risco de ruptura
+    if resultado_mes < 0 and folego_caixa < 60:
+        score = min(score, 30)
+    
+    # Prejuízo + dívida alta = situação crítica
+    if resultado_mes < 0 and peso_divida is not None and peso_divida > 30:
+        score = min(score, 25)
+    
+    # Garantir range 0-100
+    return max(0, min(100, score))
