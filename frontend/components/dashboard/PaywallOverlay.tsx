@@ -1,5 +1,5 @@
 // components/dashboard/PaywallOverlay.tsx
-// Paywall limpo sem blur — comunica valor diretamente
+// Paywall v2 — contextualizado por seção, com variação por perfil
 
 "use client";
 
@@ -7,10 +7,25 @@ import { Lock, CheckCircle, Zap } from 'lucide-react';
 
 interface PaywallOverlayProps {
   onDesbloquear: () => void;
-  children?: React.ReactNode; // mantém a interface mas não usa mais
+  titulo?: string;
+  descricao?: string;
+  textoBotao?: string;
+  children?: React.ReactNode;
 }
 
-export default function PaywallOverlay({ onDesbloquear }: PaywallOverlayProps) {
+const BENEFICIOS = [
+  "Diagnóstico dos pontos fortes e de melhoria",
+  "12 ações práticas baseadas nos seus números",
+  "Histórico de evolução da empresa",
+  "Relatório completo em PDF",
+];
+
+export default function PaywallOverlay({
+  onDesbloquear,
+  titulo = "Seu plano de ação está pronto",
+  descricao = "12 ações práticas divididas em 30, 60 e 90 dias — personalizadas para o seu negócio",
+  textoBotao = "Desbloquear por R$ 19,90",
+}: PaywallOverlayProps) {
   return (
     <div className="px-4 sm:px-0 py-6">
       <div className="bg-white rounded-2xl shadow-lg border border-border/60 p-6 sm:p-8 max-w-md mx-auto text-center">
@@ -21,11 +36,11 @@ export default function PaywallOverlay({ onDesbloquear }: PaywallOverlayProps) {
 
         {/* Título */}
         <h3 className="text-xl sm:text-2xl font-bold text-primary mb-2">
-          Seu plano de ação está pronto
+          {titulo}
         </h3>
 
         <p className="text-sm text-muted-foreground mb-5">
-          12 ações práticas divididas em 30, 60 e 90 dias — personalizadas para o seu negócio
+          {descricao}
         </p>
 
         {/* Preço */}
@@ -36,12 +51,7 @@ export default function PaywallOverlay({ onDesbloquear }: PaywallOverlayProps) {
 
         {/* Benefícios */}
         <div className="text-left space-y-2.5 mb-6">
-          {[
-            "12 ações práticas baseadas nos seus números",
-            "Checklist interativo para execução",
-            "Histórico de evolução da empresa",
-            "Relatório completo em PDF",
-          ].map((item, i) => (
+          {BENEFICIOS.map((item, i) => (
             <div key={i} className="flex items-center gap-2.5">
               <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
               <span className="text-sm text-gray-700">{item}</span>
@@ -55,7 +65,7 @@ export default function PaywallOverlay({ onDesbloquear }: PaywallOverlayProps) {
           className="w-full py-3.5 bg-primary text-white rounded-xl font-semibold text-base hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
         >
           <Zap className="w-4 h-4" />
-          Ver meu plano de ação
+          {textoBotao}
         </button>
 
         {/* Formas de pagamento */}

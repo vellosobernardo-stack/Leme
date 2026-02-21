@@ -204,7 +204,7 @@ export function Hero() {
 
             {/* Badge flutuante - Indicadores (sem animação própria) */}
             <div className="absolute -top-3 -right-3 bg-[#112d4e] text-white rounded-lg shadow-xl px-3 py-2">
-              <p className="text-xs font-semibold">10 indicadores</p>
+              <p className="text-xs font-semibold">Indicadores</p>
             </div>
           </div>
         </div>
@@ -429,7 +429,7 @@ export function ValueDelivery() {
     { icon: Zap, title: "Diagnóstico inteligente", description: "Mostra onde você ganha, onde perde e onde pode estar desperdiçando dinheiro" },
     { icon: Target, title: "Plano de ação 30/60/90", description: "Passos claros para corrigir agora o que pode virar prejuízo depois" },
     { icon: TrendingUp, title: "Score de saúde financeira", description: "Uma nota de 0 a 100 que revela se seu negócio está seguro ou em risco" },
-    { icon: BarChart3, title: "10 indicadores essenciais", description: "Os números que mostram se sua empresa está estruturada para crescer — ou vulnerável" },
+    { icon: BarChart3, title: "Indicadores essenciais", description: "Os números que mostram se sua empresa está estruturada para crescer — ou vulnerável" },
   ];
 
   return (

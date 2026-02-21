@@ -15,6 +15,7 @@ import BlocoIndicadores from "@/components/dashboard/BlocoIndicadores";
 import DiagnosticoCard from "@/components/dashboard/DiagnosticoCard";
 import PlanoAcaoSection from "@/components/dashboard/PlanoAcaoSection";
 import HistoricoTable from "@/components/dashboard/HistoricoTable";
+import SimuladorSobrevivencia from "@/components/dashboard/SimuladorSobrevivencia";
 import PaywallOverlay from "@/components/dashboard/PaywallOverlay";
 import PaywallModal from "@/components/dashboard/PaywallModal";
 import { buscarDashboardPorId } from "@/lib/api";
@@ -291,31 +292,61 @@ export default function DashboardPage({ params }: DashboardPageProps) {
             <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
           </div>
           
-          {/* 3 Blocos de Indicadores */}
+          {/* Blocos de Indicadores (sem "Caixa e Operação" — coberto pelo Simulador) */}
           <div className="space-y-6">
-            {data.blocos_indicadores.map((bloco) => (
-              <BlocoIndicadores key={bloco.id} bloco={bloco} />
-            ))}
+            {data.blocos_indicadores
+              .filter((bloco) => bloco.id !== 'caixa')
+              .map((bloco) => (
+                <BlocoIndicadores key={bloco.id} bloco={bloco} />
+              ))}
+          </div>
+
+          {/* Simulador de Sobrevivência */}
+          <div className="mt-6">
+            <SimuladorSobrevivencia dados={data.simulador} />
           </div>
         </section>
 
-        {/* ========== SEÇÃO: DIAGNÓSTICO (LIBERADO) ========== */}
+        {/* ========== SEÇÃO: DIAGNÓSTICO (1+1 ABERTO + PAYWALL) ========== */}
         <section id="diagnostico" className="mb-16">
           <div className="text-center mb-8">
             <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Diagnóstico</h2>
             <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <DiagnosticoCard 
-              tipo="fortes" 
-              pontos={data.diagnostico.pontos_fortes} 
-            />
-            <DiagnosticoCard 
-              tipo="atencao" 
-              pontos={data.diagnostico.pontos_atencao} 
-            />
-          </div>
+          {pago ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <DiagnosticoCard 
+                tipo="fortes" 
+                pontos={data.diagnostico.pontos_fortes} 
+              />
+              <DiagnosticoCard 
+                tipo="atencao" 
+                pontos={data.diagnostico.pontos_atencao} 
+              />
+            </div>
+          ) : (
+            <>
+              {/* 1 forte + 1 atenção visíveis (preview) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <DiagnosticoCard 
+                  tipo="fortes" 
+                  pontos={data.diagnostico.pontos_fortes.slice(0, 1)} 
+                />
+                <DiagnosticoCard 
+                  tipo="atencao" 
+                  pontos={data.diagnostico.pontos_atencao.slice(0, 1)} 
+                />
+              </div>
+
+              <PaywallOverlay 
+                onDesbloquear={() => setModalAberto(true)}
+                titulo="Veja o diagnóstico completo"
+                descricao="Entenda todos os pontos fortes e de atenção do seu negócio — com recomendações práticas"
+                textoBotao="Desbloquear diagnóstico"
+              />
+            </>
+          )}
         </section>
 
         {/* ========== SEÇÃO: PLANO DE AÇÃO (PAYWALL) ========== */}
@@ -328,9 +359,12 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           {pago ? (
             <PlanoAcaoSection plano={data.plano_acao} analiseId={id} />
           ) : (
-            <PaywallOverlay onDesbloquear={() => setModalAberto(true)}>
-              <PlanoAcaoSection plano={data.plano_acao} analiseId={id} />
-            </PaywallOverlay>
+            <PaywallOverlay 
+              onDesbloquear={() => setModalAberto(true)}
+              titulo="Seu plano de ação está pronto"
+              descricao="12 ações práticas divididas em 30, 60 e 90 dias — personalizadas para o seu negócio"
+              textoBotao="Ver meu plano de ação"
+            />
           )}
         </section>
 
@@ -344,9 +378,12 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           {pago ? (
             <HistoricoTable historico={data.historico} />
           ) : (
-            <PaywallOverlay onDesbloquear={() => setModalAberto(true)}>
-              <HistoricoTable historico={data.historico} />
-            </PaywallOverlay>
+            <PaywallOverlay 
+              onDesbloquear={() => setModalAberto(true)}
+              titulo="Acompanhe sua evolução"
+              descricao="Compare seus resultados mês a mês e veja se sua empresa está melhorando"
+              textoBotao="Ver histórico completo"
+            />
           )}
         </section>
 

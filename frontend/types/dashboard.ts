@@ -110,6 +110,14 @@ export interface AnaliseHistorico {
   status: StatusType;
 }
 
+// ========== SIMULADOR ==========
+export interface SimuladorData {
+  caixa_disponivel: number;
+  receita_mensal: number;
+  custo_vendas: number;
+  despesas_fixas: number;
+}
+
 // ========== DASHBOARD COMPLETO ==========
 export interface DashboardData {
   empresa: EmpresaInfo;
@@ -122,4 +130,5 @@ export interface DashboardData {
   diagnostico: Diagnostico;
   plano_acao: PlanoAcao;
   historico: AnaliseHistorico[];
+  simulador: SimuladorData;
 }
