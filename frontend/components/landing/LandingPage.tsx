@@ -14,6 +14,12 @@ import {
   CheckCircle2,
   Zap,
   Target,
+  Users,
+  Star,
+  Instagram,
+  MessageCircle,
+  Mail,
+  MapPin,
   // Lightbulb // Usado apenas no HeroPreAbertura (temporariamente desativado)
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -107,19 +113,23 @@ export function Hero() {
               <span className="text-sm text-white/80">Seus dados não são compartilhados</span>
             </div>
 
-<h1 className="text-3xl sm:text-4xl lg:text-[3.2rem] font-bold text-white leading-tight mb-6">
+<h1 className="text-3xl sm:text-4xl lg:text-[3.2rem] font-bold text-white leading-[1.2] sm:leading-[1.25] lg:leading-[1.2] mb-6">
   Sua empresa está realmente saudável
   <br className="hidden lg:block" />
   {" "}
   <span className="text-[#F5793B]">— ou só parece estar?</span>
 </h1>
 
-            <p className="text-lg text-white/60 max-w-md mb-8">
+            <p className="text-lg text-white/60 max-w-md mb-2">
               Descubra em 3 minutos se você tem riscos escondidos no seu caixa, na sua margem ou no seu crescimento.
             </p>
 
+            <p className="text-sm text-white/35 mb-8">
+              Criado por especialistas em finanças para pequenas empresas.
+            </p>
+
             <div className="flex flex-wrap gap-6 mb-10 text-white/60 text-sm">
-              {["Sem planilhas", "Sem fórmulas", "100% online"].map((item, i) => (
+              {["Sem planilhas", "Sem CNPJ", "100% online"].map((item, i) => (
                 <div key={i} className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#F5793B]" />
                   <span>{item}</span>
@@ -136,7 +146,7 @@ export function Hero() {
                 Fazer meu diagnóstico
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <p className="text-white/40 text-sm mt-3 ml-1">Totalmente confidencial</p>
+              <p className="text-white/40 text-sm mt-3 ml-1">Resultado na hora — você vê seu risco real em segundos.</p>
             </div>
           </div>
 
@@ -155,17 +165,17 @@ export function Hero() {
                   </div>
                   <div className="text-right">
                     <p className="text-white/50 text-xs">Score</p>
-                    <p className="text-[#F5793B] font-bold text-3xl">88</p>
+                    <p className="text-yellow-500 font-bold text-3xl">54</p>
                   </div>
                 </div>
                 
                 <div className="p-5 space-y-3">
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      { icon: TrendingUp, label: "Margem Bruta", value: "42,5%", status: "Saudável", color: "text-green-500" },
-                      { icon: DollarSign, label: "Fôlego de Caixa", value: "67 dias", status: "Confortável", color: "text-blue-500" },
-                      { icon: PieChart, label: "Ponto de Equilíbrio", value: "R$ 45k", status: "Atingido", color: "text-purple-500" },
-                      { icon: BarChart3, label: "Resultado", value: "R$ 12k", status: "Positivo", color: "text-[#F5793B]" },
+                      { icon: TrendingUp, label: "Margem Bruta", value: "42,5%", status: "Saudável", color: "text-green-500", statusColor: "text-green-600" },
+                      { icon: DollarSign, label: "Fôlego de Caixa", value: "18 dias", status: "Risco", color: "text-red-500", statusColor: "text-red-600" },
+                      { icon: PieChart, label: "Ponto de Equilíbrio", value: "R$ 45k", status: "Atingido", color: "text-purple-500", statusColor: "text-green-600" },
+                      { icon: BarChart3, label: "Resultado", value: "R$ 3,2k", status: "Atenção", color: "text-yellow-500", statusColor: "text-yellow-600" },
                     ].map((item, i) => (
                       <div key={i} className="bg-gray-50/80 rounded-xl p-4">
                         <div className="flex items-center gap-2 mb-2">
@@ -173,7 +183,7 @@ export function Hero() {
                           <span className="text-xs text-gray-500">{item.label}</span>
                         </div>
                         <p className="text-lg font-bold text-[#112d4e]">{item.value}</p>
-                        <p className="text-xs text-green-600">● {item.status}</p>
+                        <p className={`text-xs ${item.statusColor}`}>● {item.status}</p>
                       </div>
                     ))}
                   </div>
@@ -181,10 +191,10 @@ export function Hero() {
                   <div>
                     <div className="flex justify-between text-xs text-gray-500 mb-2">
                       <span>Saúde Financeira</span>
-                      <span className="text-green-600 font-medium">Muito Boa</span>
+                      <span className="text-yellow-600 font-medium">Atenção</span>
                     </div>
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full w-[88%] bg-gradient-to-r from-green-400 to-green-500 rounded-full" />
+                      <div className="h-full w-[54%] bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full" />
                     </div>
                   </div>
                 </div>
@@ -225,6 +235,36 @@ export function Hero() {
 }
 
 // ============================================
+// SOCIAL PROOF — Prova social com dados reais
+// ============================================
+export function SocialProof() {
+  return (
+    <section className="py-8 bg-[#0d2240] border-t border-white/5">
+      <div className="max-w-5xl mx-auto px-6">
+        {/* Números em grid — 3 colunas mesmo no mobile */}
+        <div className="grid grid-cols-3 gap-4 sm:gap-8 mb-5">
+          {[
+            { value: "100+", label: "análises realizadas" },
+            { value: "92%", label: "avaliaram como relevante" },
+            { value: "3 min", label: "tempo médio de análise" },
+          ].map((stat, i) => (
+            <div key={i} className="text-center">
+              <p className="text-xl sm:text-2xl font-bold text-white">{stat.value}</p>
+              <p className="text-xs sm:text-sm text-white/40 mt-1">{stat.label}</p>
+            </div>
+          ))}
+        </div>
+        
+        {/* Credibilidade — sem estrelas */}
+        <p className="text-center text-sm text-white/30">
+          Criado por especialistas com experiência em consultoria financeira
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
 // TRUST BAR
 // ============================================
 export function TrustBar() {
@@ -251,39 +291,66 @@ export function TrustBar() {
 // ============================================
 export function PainSection() {
   const doubts = [
-    "O caixa aguenta os próximos 2 meses?",
-    "Seu lucro reflete realmente o esforço que você faz?",
-    "Seu crescimento está sustentável?",
-    "Você toma decisões com base em números claros?",
+    {
+      question: "Quanto realmente sobra no fim do mês — depois de tudo?",
+      subtext: "Não o que parece sobrar. O que de fato fica.",
+    },
+    {
+      question: "Se um cliente grande atrasar, quantos dias você aguenta?",
+      subtext: "Muitos donos descobrem a resposta tarde demais.",
+    },
+    {
+      question: "Você sabe o custo real de cada venda, com imposto e tudo?",
+      subtext: "Vender muito e lucrar pouco é mais comum do que parece.",
+    },
+    {
+      question: "As retiradas do caixa estão controladas — ou no feeling?",
+      subtext: "Misturar contas é o erro mais silencioso que existe.",
+    },
   ];
 
   return (
-    <section className="py-16 bg-white lg:hidden">
-      <div className="max-w-3xl mx-auto px-6 text-center">
-        <h2 className="text-2xl lg:text-3xl font-bold text-[#112d4e] mb-10">
-          Você sabe o risco real do seu negócio hoje?
-        </h2>
+    <section className="py-16 lg:py-20 bg-white">
+      <div className="max-w-5xl mx-auto px-6">
+        {/* Header */}
+        <div className="text-center mb-10 lg:mb-14">
+          <h2 className="text-2xl lg:text-3xl font-bold text-[#112d4e] mb-3">
+            Você sabe responder essas perguntas sobre seu negócio?
+          </h2>
+          <p className="text-gray-500 max-w-lg mx-auto">
+            Se bateu dúvida em qualquer uma, seu negócio pode ter riscos que você ainda não enxerga.
+          </p>
+        </div>
 
-        <div className="space-y-4 mb-10 max-w-md mx-auto">
+        {/* Grid de perguntas — 2 colunas no desktop */}
+        <div className="grid sm:grid-cols-2 gap-4 lg:gap-5 mb-10 max-w-3xl mx-auto">
           {doubts.map((doubt, i) => (
-            <div key={i} className="flex items-center gap-3 text-left">
-              <span className="text-[#F5793B] text-lg font-bold flex-shrink-0">✗</span>
-              <p className="text-gray-700 text-base lg:text-lg">{doubt}</p>
+            <div 
+              key={i} 
+              className="flex items-start gap-3 bg-[#f8fafc] rounded-xl p-5 border border-gray-100"
+            >
+              <span className="text-[#F5793B] text-lg font-bold flex-shrink-0 mt-0.5">?</span>
+              <div>
+                <p className="text-gray-800 font-medium text-base mb-1">{doubt.question}</p>
+                <p className="text-gray-400 text-sm">{doubt.subtext}</p>
+              </div>
             </div>
           ))}
         </div>
 
-        <p className="text-gray-500 text-base lg:text-lg max-w-lg mx-auto">
-          Se alguma dessas dúvidas já passou pela sua cabeça,{" "}
-          <span className="text-[#112d4e] font-semibold">você precisa de um diagnóstico claro.</span>
-        </p>
-<Link
-  href="/analise"
-  className="inline-flex items-center gap-2 text-[#F5793B] font-semibold mt-8 hover:gap-3 transition-all"
->
-  Fazer meu diagnóstico
-  <ArrowRight className="w-4 h-4" />
-</Link>
+        {/* CTA */}
+        <div className="text-center">
+          <p className="text-gray-500 mb-5">
+            O Leme responde todas essas perguntas em <span className="text-[#112d4e] font-semibold">3 minutos</span>.
+          </p>
+          <Link
+            href="/analise"
+            className="inline-flex items-center gap-2 text-[#F5793B] font-semibold hover:gap-3 transition-all"
+          >
+            Fazer meu diagnóstico
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -752,8 +819,13 @@ export function CTAFinal() {
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
         </Link>
         
+        {/* Frase anti-medo de trabalho */}
+        <p className="text-white/50 text-sm mt-6 max-w-md mx-auto">
+          Você recebe ações práticas que cabem na sua rotina. Sem planilha. Sem reunião. Sem complicação.
+        </p>
+
         {/* Elemento de tranquilidade */}
-        <div className="flex items-center justify-center gap-2 mt-6 text-white/30">
+        <div className="flex items-center justify-center gap-2 mt-4 text-white/30">
           <Lock className="w-3.5 h-3.5" />
           <span className="text-sm">Seus dados permanecem privados</span>
         </div>
@@ -769,7 +841,8 @@ export function Footer() {
   return (
     <footer className="py-10 bg-[#081524]">
       <div className="max-w-6xl mx-auto px-6">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        {/* Linha principal */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <Link href="/" className="flex items-center gap-2">
             <Image 
               src="/images/logo-white.svg"
@@ -780,12 +853,33 @@ export function Footer() {
             />
             <span className="text-white/70 font-semibold">Leme</span>
           </Link>
-          <a href="mailto:contato@leme.app.br" className="text-white/40 hover:text-white transition-colors text-sm">
-            contato@leme.app.br
-          </a>
+          
+          {/* Canais de contato */}
+          <div className="flex items-center gap-5">
+            <a href="mailto:contato@leme.app.br" className="text-white/40 hover:text-white transition-colors" title="Email">
+              <Mail className="w-4 h-4" />
+            </a>
+            <a href="https://instagram.com/leme.app" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors" title="Instagram">
+              <Instagram className="w-4 h-4" />
+            </a>
+            <a href="https://wa.me/5521999999999" target="_blank" rel="noopener noreferrer" className="text-white/40 hover:text-white transition-colors" title="WhatsApp">
+              <MessageCircle className="w-4 h-4" />
+            </a>
+          </div>
         </div>
-        <div className="mt-6 pt-6 border-t border-white/5 text-center text-white/30 text-xs">
-          © 2026 Leme. Todos os direitos reservados.
+        
+        {/* Info de credibilidade */}
+        <div className="mt-6 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-4 text-white/25 text-xs">
+            <div className="flex items-center gap-1">
+              <MapPin className="w-3 h-3" />
+              <span>Rio de Janeiro, RJ</span>
+            </div>
+            <span>Especialistas com +10 anos em análise de empresas</span>
+          </div>
+          <p className="text-white/25 text-xs">
+            © 2026 Leme. Todos os direitos reservados.
+          </p>
         </div>
       </div>
     </footer>

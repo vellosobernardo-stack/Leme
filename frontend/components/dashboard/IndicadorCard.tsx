@@ -1,5 +1,6 @@
 // components/dashboard/IndicadorCard.tsx
 // Card individual de indicador financeiro
+// v2 — suporta modo grátis (sem explicação) e pago (com explicação)
 
 import { 
   Percent, 
@@ -16,6 +17,7 @@ import { Indicador } from '@/types/dashboard';
 
 interface IndicadorCardProps {
   indicador: Indicador;
+  isPago?: boolean; // false = grátis (sem explicação), true = pago (completo)
 }
 
 // Mapa de ícones
@@ -54,7 +56,7 @@ function formatarValor(valor: number | string, unidade: string): string {
   return String(valor);
 }
 
-export default function IndicadorCard({ indicador }: IndicadorCardProps) {
+export default function IndicadorCard({ indicador, isPago = false }: IndicadorCardProps) {
   const Icone = icones[indicador.icone] || Percent;
 
   // Cores por status
@@ -115,11 +117,13 @@ export default function IndicadorCard({ indicador }: IndicadorCardProps) {
         {formatarValor(indicador.valor, indicador.unidade)}
       </p>
 
-      {/* Explicação */}
-      <div className="flex items-start gap-2 text-xs text-muted-foreground">
-        <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-        <p>{indicador.explicacao}</p>
-      </div>
+      {/* Explicação — só aparece na versão paga */}
+      {isPago && indicador.explicacao && (
+        <div className="flex items-start gap-2 text-xs text-muted-foreground">
+          <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+          <p>{indicador.explicacao}</p>
+        </div>
+      )}
     </div>
   );
 }

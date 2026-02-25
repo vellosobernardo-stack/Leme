@@ -1,15 +1,16 @@
 // components/dashboard/PlanoAcaoSection.tsx
-// Seção do plano de ação 30/60/90 dias com checklist interativo
+// "O que fazer" — Plano de ação com micro-ações
+// v2 — Essa semana / Este mês / Próximos 90 dias + tempo, dificuldade, faz sozinho
 
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Clock, Calendar, CalendarCheck, AlertCircle, Circle } from 'lucide-react';
+import { Zap, Calendar, CalendarCheck, AlertCircle, Circle, Clock, User, Users } from 'lucide-react';
 import { PlanoAcao } from '@/types/dashboard';
 
 interface PlanoAcaoSectionProps {
   plano: PlanoAcao;
-  analiseId?: string; // Para salvar progresso por análise
+  analiseId?: string;
 }
 
 export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionProps) {
@@ -72,19 +73,21 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
   const periodos = [
     {
       key: '30' as const,
-      titulo: '30 Dias',
+      titulo: 'Essa semana',
       subtitulo: plano.plano_30_dias.subtitulo,
       acoes: plano.plano_30_dias.acoes,
-      icon: Clock,
+      icon: Zap,
       color: 'bg-blue-500',
       lightColor: 'bg-blue-50',
       lightColorChecked: 'bg-blue-100',
       borderColor: 'border-blue-200',
       progressColor: 'bg-blue-500',
+      badge: 'Rápido',
+      badgeColor: 'bg-blue-100 text-blue-700',
     },
     {
       key: '60' as const,
-      titulo: '60 Dias',
+      titulo: 'Este mês',
       subtitulo: plano.plano_60_dias.subtitulo,
       acoes: plano.plano_60_dias.acoes,
       icon: Calendar,
@@ -93,10 +96,12 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
       lightColorChecked: 'bg-purple-100',
       borderColor: 'border-purple-200',
       progressColor: 'bg-purple-500',
+      badge: 'Impacto médio',
+      badgeColor: 'bg-purple-100 text-purple-700',
     },
     {
       key: '90' as const,
-      titulo: '90 Dias',
+      titulo: 'Próximos 90 dias',
       subtitulo: plano.plano_90_dias.subtitulo,
       acoes: plano.plano_90_dias.acoes,
       icon: CalendarCheck,
@@ -105,6 +110,8 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
       lightColorChecked: 'bg-orange-100',
       borderColor: 'border-orange-200',
       progressColor: 'bg-orange-500',
+      badge: 'Estrutural',
+      badgeColor: 'bg-orange-100 text-orange-700',
     },
   ];
 
@@ -136,7 +143,12 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
               </span>
             </div>
             
-            {/* Subtítulo */}
+            {/* Badge + Subtítulo */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${periodo.badgeColor}`}>
+                {periodo.badge}
+              </span>
+            </div>
             <p className="text-sm text-muted-foreground mb-3">
               {periodo.subtitulo}
             </p>
@@ -211,6 +223,41 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
                         }`}>
                           {acao.titulo}
                         </h4>
+
+                        {/* Micro-ações: tags de tempo, dificuldade, faz sozinho */}
+                        {'tempo_estimado' in acao && (acao as any).tempo_estimado && (
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {(acao as any).tempo_estimado && (
+                              <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
+                                isChecked ? 'bg-gray-100 text-gray-400' : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                <Clock className="w-3 h-3" />
+                                {(acao as any).tempo_estimado}
+                              </span>
+                            )}
+                            {(acao as any).dificuldade && (
+                              <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
+                                isChecked ? 'bg-gray-100 text-gray-400' :
+                                (acao as any).dificuldade === 'Fácil' ? 'bg-green-100 text-green-700' :
+                                (acao as any).dificuldade === 'Médio' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-700'
+                              }`}>
+                                {(acao as any).dificuldade}
+                              </span>
+                            )}
+                            {(acao as any).faz_sozinho !== undefined && (
+                              <span className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
+                                isChecked ? 'bg-gray-100 text-gray-400' : 'bg-gray-100 text-gray-600'
+                              }`}>
+                                {(acao as any).faz_sozinho ? (
+                                  <><User className="w-3 h-3" /> Faz sozinho</>
+                                ) : (
+                                  <><Users className="w-3 h-3" /> Precisa de ajuda</>
+                                )}
+                              </span>
+                            )}
+                          </div>
+                        )}
 
                         {/* Descrição */}
                         <p className={`text-sm mb-3 leading-relaxed transition-all ${

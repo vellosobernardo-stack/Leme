@@ -89,7 +89,14 @@ export default function Etapa1Identificacao({
             <p className="text-danger text-sm mt-1">{erros.email}</p>
           )}
           <p className="help-text text-xs">
-            Usamos apenas para salvar sua análise
+            Apenas para salvar seu diagnóstico. Sem spam, prometido.
+          </p>
+        </div>
+
+        {/* Info de segurança */}
+        <div className="bg-gray-50 rounded-lg p-3 mb-4 sm:mb-6">
+          <p className="text-xs text-gray-500 text-center">
+            Seus dados são confidenciais e usados apenas para gerar sua análise.
           </p>
         </div>
 

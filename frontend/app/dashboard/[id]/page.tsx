@@ -19,6 +19,7 @@ import SimuladorSobrevivencia from "@/components/dashboard/SimuladorSobrevivenci
 import PaywallOverlay from "@/components/dashboard/PaywallOverlay";
 import PaywallModal from "@/components/dashboard/PaywallModal";
 import { buscarDashboardPorId } from "@/lib/api";
+import { calcularFraseImpacto } from "@/lib/fraseImpacto";
 import { DashboardData } from "@/types/dashboard";
 import { AlertTriangle, Download } from "lucide-react";
 
@@ -252,6 +253,31 @@ export default function DashboardPage({ params }: DashboardPageProps) {
     );
   }
 
+  // Calcula frase de impacto personalizada para o paywall
+  const fraseImpacto = (() => {
+    const todosIndicadores = data.blocos_indicadores.flatMap(b => b.indicadores);
+    const buscar = (nome: string) => {
+      const ind = todosIndicadores.find(i => 
+        i.nome.toLowerCase().includes(nome.toLowerCase())
+      );
+      return ind ? Number(ind.valor) : undefined;
+    };
+
+    // Tenta acessar saldo de estresse — pode ter nomes diferentes dependendo do backend
+    const simEstresse = data.simulador?.saldo_estresse 
+      ?? data.simulador?.saldo_stress 
+      ?? data.simulador?.resultado_estresse;
+    
+    return calcularFraseImpacto({
+      empresaNome: data.empresa.nome,
+      scoreValor: data.score.valor,
+      margemBruta: buscar('margem'),
+      resultadoMes: buscar('resultado'),
+      folegoEmDias: buscar('fôlego') ?? buscar('folego'),
+      simuladorEstressePositivo: simEstresse != null ? simEstresse >= 0 : undefined,
+    });
+  })();
+
   return (
     <div className="min-h-screen bg-[#F7FAFD]">
       {/* Header integrado com navegação */}
@@ -297,9 +323,22 @@ export default function DashboardPage({ params }: DashboardPageProps) {
             {data.blocos_indicadores
               .filter((bloco) => bloco.id !== 'caixa')
               .map((bloco) => (
-                <BlocoIndicadores key={bloco.id} bloco={bloco} />
+                <BlocoIndicadores key={bloco.id} bloco={bloco} isPago={pago} />
               ))}
           </div>
+
+          {/* CTA para desbloquear explicações (só no grátis) */}
+          {!pago && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setModalAberto(true)}
+                className="inline-flex items-center gap-2 text-sm text-primary/70 hover:text-primary transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Desbloqueie para ver o que cada indicador significa na prática
+              </button>
+            </div>
+          )}
 
           {/* Simulador de Sobrevivência */}
           <div className="mt-6">
@@ -319,28 +358,34 @@ export default function DashboardPage({ params }: DashboardPageProps) {
               <DiagnosticoCard 
                 tipo="fortes" 
                 pontos={data.diagnostico.pontos_fortes} 
+                isPago={true}
               />
               <DiagnosticoCard 
                 tipo="atencao" 
                 pontos={data.diagnostico.pontos_atencao} 
+                isPago={true}
               />
             </div>
           ) : (
             <>
-              {/* 1 forte + 1 atenção visíveis (preview) */}
+              {/* Todos os títulos visíveis, descrições travadas */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <DiagnosticoCard 
                   tipo="fortes" 
-                  pontos={data.diagnostico.pontos_fortes.slice(0, 1)} 
+                  pontos={data.diagnostico.pontos_fortes} 
+                  isPago={false}
                 />
                 <DiagnosticoCard 
                   tipo="atencao" 
-                  pontos={data.diagnostico.pontos_atencao.slice(0, 1)} 
+                  pontos={data.diagnostico.pontos_atencao} 
+                  isPago={false}
                 />
               </div>
 
               <PaywallOverlay 
                 onDesbloquear={() => setModalAberto(true)}
+                empresaNome={data.empresa.nome}
+                fraseImpacto={fraseImpacto}
                 titulo="Veja o diagnóstico completo"
                 descricao="Entenda todos os pontos fortes e de atenção do seu negócio — com recomendações práticas"
                 textoBotao="Desbloquear diagnóstico"
@@ -361,6 +406,8 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           ) : (
             <PaywallOverlay 
               onDesbloquear={() => setModalAberto(true)}
+              empresaNome={data.empresa.nome}
+              fraseImpacto={fraseImpacto}
               titulo="Seu plano de ação está pronto"
               descricao="12 ações práticas divididas em 30, 60 e 90 dias — personalizadas para o seu negócio"
               textoBotao="Ver meu plano de ação"
@@ -380,6 +427,8 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           ) : (
             <PaywallOverlay 
               onDesbloquear={() => setModalAberto(true)}
+              empresaNome={data.empresa.nome}
+              fraseImpacto={fraseImpacto}
               titulo="Acompanhe sua evolução"
               descricao="Compare seus resultados mês a mês e veja se sua empresa está melhorando"
               textoBotao="Ver histórico completo"

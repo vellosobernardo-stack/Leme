@@ -1,6 +1,7 @@
 export { 
   Header, 
   Hero, 
+  SocialProof,
   TrustBar,
   // HeroPreAbertura,  // Removido temporariamente
   PainSection,

@@ -1,5 +1,6 @@
 // components/dashboard/HeaderNavigation.tsx
 // Header integrado com navegação sticky
+// v2 — "Plano 30/60/90" → "O que fazer"
 
 'use client';
 
@@ -10,7 +11,7 @@ import {
   LayoutDashboard, 
   BarChart3, 
   Stethoscope, 
-  CalendarDays, 
+  Lightbulb, 
   History 
 } from 'lucide-react';
 
@@ -18,7 +19,7 @@ const anchors = [
   { id: 'resumo', label: 'Resumo', icon: LayoutDashboard },
   { id: 'indicadores', label: 'Indicadores', icon: BarChart3 },
   { id: 'diagnostico', label: 'Diagnóstico', icon: Stethoscope },
-  { id: 'plano', label: 'Plano 30/60/90', icon: CalendarDays },
+  { id: 'plano', label: 'O que fazer', icon: Lightbulb },
   { id: 'historico', label: 'Histórico', icon: History },
 ];
 

@@ -54,6 +54,89 @@ export default function Etapa4SaudeFinanceira({
   const mesReferenciaLabel = MESES.find((m) => m.value === dados.mes_referencia)?.label || "";
   const passoInfo = PASSOS_ETAPA4_INFO[passoEtapa4];
 
+  // ========== MINI-INSIGHTS entre passos ==========
+  const getInsight = (): { texto: string; tipo: 'positivo' | 'atencao' | 'neutro' | 'educativo' } | null => {
+    // Após Receita (passo 1) → antes de Custos (passo 2)
+    if (passoEtapa4 === 2 && dados.receita_atual > 0) {
+      return {
+        texto: `Receita de R$ ${dados.receita_atual.toLocaleString('pt-BR', { minimumFractionDigits: 0 })} registrada. Agora vamos entender quanto disso realmente fica com você.`,
+        tipo: 'neutro',
+      };
+    }
+
+    // Após Custos (passo 2) → antes de Caixa (passo 3)
+    if (passoEtapa4 === 3 && dados.receita_atual > 0 && dados.custo_vendas >= 0) {
+      const margem = dados.receita_atual > 0 
+        ? ((dados.receita_atual - dados.custo_vendas - dados.despesas_fixas) / dados.receita_atual * 100)
+        : 0;
+      const sobra = dados.receita_atual - dados.custo_vendas - dados.despesas_fixas;
+      
+      if (sobra > 0) {
+        return {
+          texto: `Boa: de cada R$ 100 que entra, sobram R$ ${Math.round(margem)}. Agora vamos ver se o caixa acompanha esse resultado.`,
+          tipo: 'positivo',
+        };
+      } else {
+        return {
+          texto: `Atenção: suas despesas estão maiores que o faturamento em R$ ${Math.abs(Math.round(sobra)).toLocaleString('pt-BR')}. Vamos entender a situação do seu caixa.`,
+          tipo: 'atencao',
+        };
+      }
+    }
+
+    // Após Caixa (passo 3) → antes de Estoque (passo 4)
+    if (passoEtapa4 === 4 && dados.caixa_bancos > 0) {
+      const despesaDiaria = dados.despesas_fixas > 0 ? dados.despesas_fixas / 30 : 0;
+      const diasFolego = despesaDiaria > 0 ? Math.round(dados.caixa_bancos / despesaDiaria) : 0;
+      
+      if (diasFolego > 60) {
+        return {
+          texto: `Seu caixa cobre cerca de ${diasFolego} dias de despesas. É uma reserva confortável.`,
+          tipo: 'positivo',
+        };
+      } else if (diasFolego > 0) {
+        return {
+          texto: `Seu caixa cobre cerca de ${diasFolego} dias de despesas. Vamos ver o cenário completo.`,
+          tipo: diasFolego < 30 ? 'atencao' : 'neutro',
+        };
+      }
+    }
+
+    // Após Estoque (passo 4) → antes de Dívidas (passo 5)
+    if (passoEtapa4 === 5) {
+      return {
+        texto: 'Dica: separar o dinheiro da empresa do pessoal é o primeiro passo pra saber de verdade quanto seu negócio ganha.',
+        tipo: 'educativo',
+      };
+    }
+
+    // Após Dívidas (passo 5) → antes de Bens (passo 6)
+    if (passoEtapa4 === 6) {
+      if (dados.tem_dividas && dados.dividas_totais && dados.dividas_totais > 0) {
+        return {
+          texto: 'Ter dívida pode ser estratégico — o importante é saber se ela cabe no seu faturamento. Já estamos calculando isso.',
+          tipo: 'educativo',
+        };
+      }
+      return {
+        texto: 'Estamos montando o retrato completo do seu negócio. Falta pouco.',
+        tipo: 'neutro',
+      };
+    }
+
+    // Após Bens (passo 6) → antes de Equipe (passo 7)
+    if (passoEtapa4 === 7) {
+      return {
+        texto: 'Última pergunta! Com essa informação vamos calcular a produtividade da sua equipe.',
+        tipo: 'neutro',
+      };
+    }
+
+    return null;
+  };
+
+  const insight = getInsight();
+
   const handleAvancar = () => {
     if (passoEtapa4 === 7) {
       handleSubmit();
@@ -118,6 +201,27 @@ export default function Etapa4SaudeFinanceira({
           {passoInfo.titulo}
         </h1>
       </div>
+
+      {/* Mini-insight entre passos */}
+      {insight && (
+        <div className={`mb-4 p-3 rounded-lg text-sm flex items-start gap-2 animate-fade-in ${
+          insight.tipo === 'positivo' 
+            ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' 
+            : insight.tipo === 'atencao'
+            ? 'bg-amber-50 border border-amber-200 text-amber-800'
+            : insight.tipo === 'educativo'
+            ? 'bg-blue-50 border border-blue-200 text-blue-800'
+            : 'bg-gray-50 border border-gray-200 text-gray-700'
+        }`}>
+          <span className="flex-shrink-0 mt-0.5">
+            {insight.tipo === 'positivo' && '✓'}
+            {insight.tipo === 'atencao' && '⚠'}
+            {insight.tipo === 'educativo' && '💡'}
+            {insight.tipo === 'neutro' && '→'}
+          </span>
+          <p>{insight.texto}</p>
+        </div>
+      )}
 
       {/* Alertas */}
       {alertas.length > 0 && (
@@ -228,9 +332,9 @@ export default function Etapa4SaudeFinanceira({
             disabled={carregando}
           >
             {carregando
-              ? "Processando..."
+              ? "Analisando seus números..."
               : passoEtapa4 === 7
-              ? "Gerar Análise"
+              ? "Ver meu diagnóstico"
               : "Próximo"
             }
           </button>
@@ -258,10 +362,10 @@ function PassoReceita({ dados, erros, mesReferenciaLabel, getMesLabel, atualizar
     <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
-          Vamos falar de receita
+          Quanto entrou de dinheiro?
         </h2>
         <p className="hidden sm:block text-sm text-foreground-muted">
-          Quanto sua empresa faturou em {mesReferenciaLabel}?
+          Tudo que sua empresa faturou em {mesReferenciaLabel}.
         </p>
       </div>
 
@@ -270,7 +374,7 @@ function PassoReceita({ dados, erros, mesReferenciaLabel, getMesLabel, atualizar
         valor={dados.receita_atual}
         onChange={(v) => atualizarDados("receita_atual", v)}
         erro={erros.receita_atual}
-        dica="Tudo que entrou de venda de produto ou serviço."
+        dica="Tudo que entrou de venda de produto ou serviço. Valor aproximado já vale."
         autoFocus
         enterKeyHint="done"
       />
@@ -324,10 +428,10 @@ function PassoCustos({ dados, atualizarDados }: PassoCustosProps) {
     <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
-          Custos e despesas
+          Pra onde vai o seu dinheiro?
         </h2>
         <p className="hidden sm:block text-sm text-foreground-muted">
-          Vamos entender pra onde vai o dinheiro.
+          Aqui a gente descobre quanto realmente sobra pra você.
         </p>
       </div>
 
@@ -366,10 +470,10 @@ function PassoCaixa({ dados, atualizarDados }: PassoCaixaProps) {
     <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
-          Situação do caixa
+          Quanto você tem pra respirar?
         </h2>
         <p className="hidden sm:block text-sm text-foreground-muted">
-          Como está a saúde financeira no curto prazo.
+          Vamos entender se o caixa da empresa está tranquilo ou apertado.
         </p>
       </div>
 
@@ -416,10 +520,10 @@ function PassoEstoque({ dados, erros, atualizarDados }: PassoEstoqueProps) {
     <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
-          Sobre estoque
+          Tem dinheiro parado em estoque?
         </h2>
         <p className="hidden sm:block text-sm text-foreground-muted">
-          Nem todo negócio trabalha com estoque, e tudo bem.
+          Estoque é dinheiro — só que em forma de produto. Nem todo negócio tem, e tudo bem.
         </p>
       </div>
 
@@ -456,10 +560,10 @@ function PassoDividas({ dados, erros, atualizarDados }: PassoDividasProps) {
     <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
-          Sobre dívidas
+          E as dívidas?
         </h2>
         <p className="hidden sm:block text-sm text-foreground-muted">
-          Ter dívida não é necessariamente ruim - o importante é saber gerenciar.
+          Ter dívida não é pecado — o que importa é se ela cabe no seu faturamento.
         </p>
       </div>
 
@@ -496,10 +600,10 @@ function PassoBens({ dados, erros, atualizarDados }: PassoBensProps) {
     <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
-          Bens e equipamentos
+          O que sua empresa tem de valor?
         </h2>
         <p className="hidden sm:block text-sm text-foreground-muted">
-          Coisas que a empresa possui e que têm valor.
+          Máquinas, equipamentos, veículos — tudo que poderia ser vendido se precisasse.
         </p>
       </div>
 
@@ -555,10 +659,10 @@ function PassoEquipe({ dados, erros, atualizarDados }: PassoEquipeProps) {
     <div className="space-y-4 sm:space-y-6">
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-1">
-          Por último, sua equipe
+          Quase lá: sua equipe
         </h2>
         <p className="hidden sm:block text-sm text-foreground-muted">
-          Quase lá! Só mais uma informação.
+          Última pergunta! Vamos calcular quanto sua empresa gera por pessoa.
         </p>
       </div>
 

@@ -48,6 +48,22 @@ export function useAnalise() {
     return null;
   });
 
+  // Captura ref de parceiro da URL (ex: ?ref=rbr)
+  const [refParceiro] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      // Primeiro tenta pegar da URL atual
+      const params = new URLSearchParams(window.location.search);
+      const ref = params.get("ref");
+      if (ref) {
+        localStorage.setItem("leme_ref_parceiro", ref);
+        return ref;
+      }
+      // Se não tem na URL, tenta recuperar do localStorage
+      return localStorage.getItem("leme_ref_parceiro");
+    }
+    return null;
+  });
+
   // Atualizar campo simples
   const atualizarDados = useCallback(
     <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => {
@@ -323,6 +339,7 @@ export function useAnalise() {
     alertas,
     progresso,
     sessaoId, // Expõe para uso no submit final
+    refParceiro, // Ref de parceiro (ex: "rbr" para RBR Contabilidade)
     
     // Funções de dados
     atualizarDados,

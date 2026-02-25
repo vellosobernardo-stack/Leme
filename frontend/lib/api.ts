@@ -58,7 +58,7 @@ export async function concluirSessao(sessaoId: string, analiseId: string) {
 /**
  * Prepara os dados do formulário para enviar à API
  */
-function prepararDadosParaApi(dados: DadosAnalise) {
+function prepararDadosParaApi(dados: DadosAnalise, refParceiro?: string | null) {
   return {
     nome_empresa: dados.nome_empresa,
     email: dados.email,
@@ -84,14 +84,15 @@ function prepararDadosParaApi(dados: DadosAnalise) {
     tem_bens: dados.tem_bens,
     bens_equipamentos: dados.tem_bens ? dados.bens_equipamentos : null,
     num_funcionarios: dados.num_funcionarios,
+    ref_parceiro: refParceiro || null,
   };
 }
 
 /**
  * Cria uma nova análise
  */
-export async function criarAnalise(dados: DadosAnalise) {
-  const dadosFormatados = prepararDadosParaApi(dados);
+export async function criarAnalise(dados: DadosAnalise, refParceiro?: string | null) {
+  const dadosFormatados = prepararDadosParaApi(dados, refParceiro);
 
   const response = await fetch(`${API_BASE}/api/v1/analise/nova`, {
     method: "POST",

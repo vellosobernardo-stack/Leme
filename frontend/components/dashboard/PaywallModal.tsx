@@ -1,5 +1,6 @@
 // components/dashboard/PaywallModal.tsx
 // Modal que cria checkout Stripe e redireciona
+// v2 — texto alinhado com PaywallOverlay v3
 
 "use client";
 
@@ -97,7 +98,7 @@ export default function PaywallModal({
             <p className="font-semibold text-gray-900 text-lg">{empresaNome}</p>
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Plano de Ação Completo</span>
+                <span className="text-muted-foreground">Diagnóstico + Plano de Correção</span>
                 <span className="text-2xl font-bold text-primary">R$ 19,90</span>
               </div>
             </div>
@@ -109,19 +110,19 @@ export default function PaywallModal({
             <ul className="text-sm text-muted-foreground space-y-2">
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                Plano de ação 30/60/90 dias personalizado
+                Diagnóstico completo: pontos fortes e de atenção
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                Checklist interativo para execução
+                Ações práticas com tempo estimado e dificuldade
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                Histórico de evolução da empresa
+                Todos os indicadores com explicação detalhada
               </li>
               <li className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                Relatório completo em PDF
+                PDF para compartilhar com contador ou sócio
               </li>
             </ul>
           </div>
@@ -147,15 +148,20 @@ export default function PaywallModal({
 
           {/* Formas de pagamento */}
           <div className="mt-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              Cartão de crédito, débito ou PIX
+            <p className="text-xs text-muted-foreground">
+              Pagamento único. Sem assinatura. Sem surpresas.
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              PIX ou Cartão de Crédito/Débito
             </p>
           </div>
 
-          {/* Segurança */}
-          <div className="mt-4 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-            <ShieldCheck className="w-4 h-4" />
-            <span>Pagamento seguro processado pelo Stripe</span>
+          {/* Garantia */}
+          <div className="mt-4 pt-4 border-t border-border/40">
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <ShieldCheck className="w-4 h-4 text-green-600" />
+              <span>Se não te ajudar, devolvemos em 7 dias.</span>
+            </div>
           </div>
         </div>
       </div>
