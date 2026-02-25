@@ -524,7 +524,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": "Eliminar o prejuízo mensal",
             "prioridade": "Alta",
             "descricao": desc,
-            "resultado_esperado": f"Zerar o prejuízo de {formatar_moeda(abs(resultado))}/mês em 30 dias"
+            "resultado_esperado": f"Zerar o prejuízo de {formatar_moeda(abs(resultado))}/mês em 30 dias",
+            "tempo_estimado": "1-2h",
+            "dificuldade": "Médio",
+            "faz_sozinho": True
         }))
     
     # 🔴 Fôlego de caixa crítico (< 30 dias)
@@ -533,7 +536,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Aumentar fôlego de caixa de {folego} para 60 dias",
             "prioridade": "Alta",
             "descricao": f"Seu caixa de {formatar_moeda(caixa)} cobre apenas {folego} dias de operação. Você precisa de mais {formatar_moeda(gap_folego_reais)}. Antecipe {formatar_moeda(receber)} em recebíveis e renegocie prazos de pagamento (+15 dias ganha {formatar_moeda(impacto_renegociar_15dias)} de fôlego).",
-            "resultado_esperado": f"Atingir {formatar_moeda(caixa + gap_folego_reais)} em caixa (60 dias de fôlego)"
+            "resultado_esperado": f"Atingir {formatar_moeda(caixa + gap_folego_reais)} em caixa (60 dias de fôlego)",
+            "tempo_estimado": "1-2h",
+            "dificuldade": "Médio",
+            "faz_sozinho": True
         }))
     
     # 🔴 Capital de giro negativo
@@ -542,7 +548,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": "Resolver déficit de capital de giro",
             "prioridade": "Alta",
             "descricao": f"Você tem {formatar_moeda(receber)} a receber e {formatar_moeda(pagar)} a pagar — déficit de {formatar_moeda(abs(capital))}. Renegocie prazos com os 3 maiores fornecedores (+15 dias = {formatar_moeda(impacto_renegociar_15dias)} de alívio) e antecipe cobranças (ofereça 3% de desconto para pagamento em 7 dias).",
-            "resultado_esperado": f"Eliminar o déficit de {formatar_moeda(abs(capital))} no capital de giro"
+            "resultado_esperado": f"Eliminar o déficit de {formatar_moeda(abs(capital))} no capital de giro",
+            "tempo_estimado": "2-3h",
+            "dificuldade": "Médio",
+            "faz_sozinho": True
         }))
     
     # 🔴 Margem bruta crítica (abaixo de metade do benchmark do setor)
@@ -551,7 +560,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Revisar precificação urgente — margem de {margem:.0f}% (setor: {benchmark_margem}%)",
             "prioridade": "Alta",
             "descricao": f"Seus custos diretos ({formatar_moeda(custo)}) consomem {100 - margem:.0f}% da receita. No setor de {setor_nome}, a margem saudável é {benchmark_margem}%. Para atingir esse nível, reduza custos em {formatar_moeda(impacto_margem)} ou aumente preços. Comece pelos 3 produtos/serviços com maior volume.",
-            "resultado_esperado": f"Elevar margem de {margem:.0f}% para pelo menos {int(benchmark_margem * 0.6)}% — ganho de +{formatar_moeda(receita * (benchmark_margem * 0.6 - margem) / 100)}/mês"
+            "resultado_esperado": f"Elevar margem de {margem:.0f}% para pelo menos {int(benchmark_margem * 0.6)}% — ganho de +{formatar_moeda(receita * (benchmark_margem * 0.6 - margem) / 100)}/mês",
+            "tempo_estimado": "2-3h",
+            "dificuldade": "Avançado",
+            "faz_sozinho": False
         }))
     
     # 🔴 Dívida crítica (> 50%)
@@ -560,7 +572,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Renegociar dívidas — {peso_div:.0f}% da receita anual",
             "prioridade": "Alta",
             "descricao": f"Suas dívidas de {formatar_moeda(dividas)} equivalem a {peso_div:.0f}% do faturamento anual ({formatar_moeda(receita * 12)}). Liste todas por taxa de juros e renegocie as 3 mais caras — busque redução de pelo menos 20% nos juros.",
-            "resultado_esperado": f"Reduzir o peso da dívida de {peso_div:.0f}% para abaixo de 50%"
+            "resultado_esperado": f"Reduzir o peso da dívida de {peso_div:.0f}% para abaixo de 50%",
+            "tempo_estimado": "2-4h",
+            "dificuldade": "Avançado",
+            "faz_sozinho": False
         }))
     
     # 🟡 Margem em atenção (abaixo do benchmark, mas não crítica)
@@ -569,7 +584,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Melhorar margem de {margem:.0f}% para {benchmark_margem}% (meta do setor)",
             "prioridade": "Alta",
             "descricao": f"Cada ponto de margem a mais = +{formatar_moeda(receita * 0.01)}/mês. Para ir de {margem:.0f}% a {benchmark_margem}% ({setor_nome}), o ganho seria +{formatar_moeda(impacto_margem)}/mês. Revise custos dos 5 produtos mais vendidos e negocie com fornecedores.",
-            "resultado_esperado": f"Ganho de até +{formatar_moeda(impacto_margem)}/mês atingindo margem de {benchmark_margem}%"
+            "resultado_esperado": f"Ganho de até +{formatar_moeda(impacto_margem)}/mês atingindo margem de {benchmark_margem}%",
+            "tempo_estimado": "1-2h",
+            "dificuldade": "Médio",
+            "faz_sozinho": True
         }))
     
     # 🟡 Capital positivo mas caixa insuficiente
@@ -578,7 +596,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": "Reforçar caixa para cobrir capital de giro",
             "prioridade": "Alta",
             "descricao": f"Seu capital de giro necessário é {formatar_moeda(capital)}, mas seu caixa é {formatar_moeda(caixa)} — faltam {formatar_moeda(gap_capital)}. Antecipe cobranças e negocie prazos para fechar esse gap.",
-            "resultado_esperado": f"Acumular mais {formatar_moeda(gap_capital)} em caixa nos próximos 30 dias"
+            "resultado_esperado": f"Acumular mais {formatar_moeda(gap_capital)} em caixa nos próximos 30 dias",
+            "tempo_estimado": "1-2h",
+            "dificuldade": "Médio",
+            "faz_sozinho": True
         }))
     
     # 🟡 Tendência de queda
@@ -587,7 +608,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Investigar queda de receita ({tendencia:.0f}%)",
             "prioridade": "Alta",
             "descricao": f"Sua receita caiu {abs(tendencia):.0f}% nos últimos meses. Identifique: quais clientes pararam de comprar? Qual produto caiu mais? Há sazonalidade ou perda real? Fale com os 5 maiores clientes esta semana.",
-            "resultado_esperado": "Diagnóstico claro da queda e plano para reverter a tendência"
+            "resultado_esperado": "Diagnóstico claro da queda e plano para reverter a tendência",
+            "tempo_estimado": "1h",
+            "dificuldade": "Fácil",
+            "faz_sozinho": True
         }))
     
     # Fallbacks 30 dias
@@ -596,7 +620,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Reduzir despesas fixas de {formatar_moeda(despesas)}/mês",
             "prioridade": "Média",
             "descricao": f"Suas despesas fixas consomem {(despesas/receita*100):.0f}% da receita. Liste todas por valor e corte ou renegocie as 3 maiores. Uma redução de 10% = economia de {formatar_moeda(despesas * 0.1)}/mês.",
-            "resultado_esperado": f"Economizar {formatar_moeda(despesas * 0.1)}/mês (10% das despesas fixas)"
+            "resultado_esperado": f"Economizar {formatar_moeda(despesas * 0.1)}/mês (10% das despesas fixas)",
+            "tempo_estimado": "1h",
+            "dificuldade": "Fácil",
+            "faz_sozinho": True
         }))
     
     if receber > 0:
@@ -604,14 +631,20 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Acelerar recebimento de {formatar_moeda(receber)}",
             "prioridade": "Média",
             "descricao": f"Você tem {formatar_moeda(receber)} a receber. Ofereça 3-5% de desconto para pagamento antecipado. Monte régua de cobrança: lembrete 3 dias antes, cobrança no dia, follow-up em 3/7/15 dias.",
-            "resultado_esperado": f"Receber pelo menos {formatar_moeda(receber * 0.8)} dentro de 15 dias"
+            "resultado_esperado": f"Receber pelo menos {formatar_moeda(receber * 0.8)} dentro de 15 dias",
+            "tempo_estimado": "30 min",
+            "dificuldade": "Fácil",
+            "faz_sozinho": True
         }))
     
     acoes_30.append((10, {
         "titulo": "Criar controle financeiro semanal",
         "prioridade": "Média",
         "descricao": f"Separe 30 minutos toda segunda para conferir: saldo em caixa, contas a pagar da semana, recebimentos previstos. Seus gastos mensais são {formatar_moeda(custo + despesas)} — acompanhar semanalmente evita surpresas.",
-        "resultado_esperado": "Visibilidade completa do fluxo de caixa semanal"
+        "resultado_esperado": "Visibilidade completa do fluxo de caixa semanal",
+        "tempo_estimado": "30 min",
+        "dificuldade": "Fácil",
+        "faz_sozinho": True
     }))
     
     # ==========================================
@@ -624,7 +657,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Testar reajuste de preço em 3 produtos principais",
             "prioridade": "Média",
             "descricao": f"Com margem de {margem:.0f}% (meta do setor: {benchmark_margem}%), um aumento de 5% no preço médio geraria +{formatar_moeda(receita * 0.05)}/mês sem aumentar custos. Selecione 3 itens com menor sensibilidade a preço e teste por 30 dias.",
-            "resultado_esperado": f"Aproximar margem de {margem:.0f}% da meta de {benchmark_margem}% — ganho de +{formatar_moeda(impacto_margem)}/mês"
+            "resultado_esperado": f"Aproximar margem de {margem:.0f}% da meta de {benchmark_margem}% — ganho de +{formatar_moeda(impacto_margem)}/mês",
+            "tempo_estimado": "1h",
+            "dificuldade": "Médio",
+            "faz_sozinho": True
         }))
     
     # Fôlego entre 30-60
@@ -635,7 +671,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Ampliar fôlego de {folego} para 90 dias",
             "prioridade": "Média",
             "descricao": f"Faltam {formatar_moeda(meta_reais)} para atingir 90 dias de reserva. Separe {reserva_mensal}/mês em conta exclusiva para emergências.",
-            "resultado_esperado": f"Acumular {formatar_moeda(meta_reais)} de reserva adicional"
+            "resultado_esperado": f"Acumular {formatar_moeda(meta_reais)} de reserva adicional",
+            "tempo_estimado": "30 min",
+            "dificuldade": "Fácil",
+            "faz_sozinho": True
         }))
     
     # Ciclo financeiro alto
@@ -644,7 +683,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Reduzir ciclo financeiro de {ciclo} para menos de 45 dias",
             "prioridade": "Média",
             "descricao": f"Seu dinheiro fica preso por {ciclo} dias entre pagar e receber. Negocie +15 dias com fornecedores (libera ~{formatar_moeda(impacto_renegociar_15dias)}) e ofereça 2% de desconto para clientes que pagarem em 15 dias.",
-            "resultado_esperado": f"Reduzir ciclo de {ciclo} para ~40 dias e liberar capital de giro"
+            "resultado_esperado": f"Reduzir ciclo de {ciclo} para ~40 dias e liberar capital de giro",
+            "tempo_estimado": "2-3h",
+            "dificuldade": "Médio",
+            "faz_sozinho": True
         }))
     
     # Dívida em zona de atenção (30-50%)
@@ -654,7 +696,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Reduzir endividamento de {peso_div:.0f}% para abaixo de 30%",
             "prioridade": "Média",
             "descricao": f"Dívidas de {formatar_moeda(dividas)} = {peso_div:.0f}% da receita anual. Destine {amortizacao}/mês para amortização, priorizando as dívidas com juros mais altos.",
-            "resultado_esperado": f"Reduzir dívidas de {formatar_moeda(dividas)} para {formatar_moeda(dividas * 0.7)} em 60 dias"
+            "resultado_esperado": f"Reduzir dívidas de {formatar_moeda(dividas)} para {formatar_moeda(dividas * 0.7)} em 60 dias",
+            "tempo_estimado": "2-4h",
+            "dificuldade": "Avançado",
+            "faz_sozinho": False
         }))
     
     # Resultado positivo mas baixo
@@ -665,7 +710,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Aumentar resultado de {pct:.0f}% para 10% da receita",
             "prioridade": "Média",
             "descricao": f"Seu lucro de {formatar_moeda(resultado)} = apenas {pct:.0f}% da receita. Meta saudável: 10% ({formatar_moeda(meta_resultado)}). Faltam {formatar_moeda(meta_resultado - resultado)}/mês. Combine redução de custos + melhoria de margem.",
-            "resultado_esperado": f"Alcançar resultado de {formatar_moeda(meta_resultado)}/mês"
+            "resultado_esperado": f"Alcançar resultado de {formatar_moeda(meta_resultado)}/mês",
+            "tempo_estimado": "1-2h",
+            "dificuldade": "Médio",
+            "faz_sozinho": True
         }))
     
     # Receita/funcionário abaixo do benchmark do setor
@@ -674,7 +722,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Aumentar produtividade de {formatar_moeda(receita_func)} por funcionário",
             "prioridade": "Média",
             "descricao": f"No setor de {setor_nome}, o benchmark é {formatar_moeda(benchmark_receita_func)}/funcionário. Seus {funcionarios} funcionários geram {formatar_moeda(receita_func)} cada. Automatize processos manuais (cobranças, notas, relatórios) e avalie se a equipe está dimensionada.",
-            "resultado_esperado": f"Elevar para {formatar_moeda(benchmark_receita_func)}/funcionário (benchmark do setor)"
+            "resultado_esperado": f"Elevar para {formatar_moeda(benchmark_receita_func)}/funcionário (benchmark do setor)",
+            "tempo_estimado": "2-4h",
+            "dificuldade": "Avançado",
+            "faz_sozinho": False
         }))
     
     # Fallbacks 60
@@ -682,7 +733,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
         "titulo": f"Criar reserva de emergência de {formatar_moeda(90 * despesa_diaria)}",
         "prioridade": "Média",
         "descricao": f"Abra conta separada exclusiva. Com despesas de {formatar_moeda(despesas)}/mês, o ideal é ter {formatar_moeda(90 * despesa_diaria)} guardados (90 dias). Configure transferência automática mensal.",
-        "resultado_esperado": f"Reserva de emergência de 90 dias ({formatar_moeda(90 * despesa_diaria)})"
+        "resultado_esperado": f"Reserva de emergência de 90 dias ({formatar_moeda(90 * despesa_diaria)})",
+        "tempo_estimado": "30 min",
+        "dificuldade": "Fácil",
+        "faz_sozinho": True
     }))
     
     if receber > 0:
@@ -690,7 +744,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": "Automatizar cobrança de clientes",
             "prioridade": "Média",
             "descricao": f"Com {formatar_moeda(receber)} a receber mensalmente, uma régua automática (lembrete antes, cobrança no dia, follow-up em 3/7/15 dias) reduz inadimplência sem esforço manual.",
-            "resultado_esperado": "Reduzir inadimplência em 30% e liberar tempo operacional"
+            "resultado_esperado": "Reduzir inadimplência em 30% e liberar tempo operacional",
+            "tempo_estimado": "2-3h",
+            "dificuldade": "Médio",
+            "faz_sozinho": False
         }))
     
     # ==========================================
@@ -704,7 +761,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": "Investir em crescimento — empresa saudável",
             "prioridade": "Média",
             "descricao": f"Com score {score:.0f}/100, margem de {margem:.0f}% e fôlego de {folego} dias, você tem base sólida. Avalie: novos canais de venda, expansão geográfica, produtos complementares. Destine até {investimento}/mês para testes.",
-            "resultado_esperado": "Plano de crescimento para aumentar receita em 20% no próximo semestre"
+            "resultado_esperado": "Plano de crescimento para aumentar receita em 20% no próximo semestre",
+            "tempo_estimado": "3-4h",
+            "dificuldade": "Avançado",
+            "faz_sozinho": False
         }))
     
     # Score atenção — consolidar
@@ -713,7 +773,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Elevar score de {score:.0f} para acima de 70",
             "prioridade": "Alta",
             "descricao": f"Score de {score:.0f}/100 mostra pontos a melhorar. Foque nos indicadores vermelhos e amarelos antes de pensar em expansão. Faça nova análise no Leme para medir evolução.",
-            "resultado_esperado": "Score acima de 70 em 90 dias — empresa pronta para crescer"
+            "resultado_esperado": "Score acima de 70 em 90 dias — empresa pronta para crescer",
+            "tempo_estimado": "1h",
+            "dificuldade": "Fácil",
+            "faz_sozinho": True
         }))
     
     # Score crítico — sobrevivência
@@ -729,7 +792,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Sair da zona crítica — score {score:.0f}/100",
             "prioridade": "Alta",
             "descricao": f"Foco total em estabilizar: {lista_problemas}. Nenhum investimento novo até resolver os pontos críticos. Refaça a análise mensalmente para acompanhar evolução.",
-            "resultado_esperado": f"Elevar score de {score:.0f} para acima de 50 — sair da zona de risco"
+            "resultado_esperado": f"Elevar score de {score:.0f} para acima de 50 — sair da zona de risco",
+            "tempo_estimado": "1h",
+            "dificuldade": "Médio",
+            "faz_sozinho": True
         }))
     
     # Margem boa — reinvestir
@@ -738,7 +804,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Reinvestir parte do lucro de {formatar_moeda(resultado)}/mês",
             "prioridade": "Média",
             "descricao": f"Com margem saudável de {margem:.0f}% (acima dos {benchmark_margem}% do setor) e lucro de {formatar_moeda(resultado)}/mês, destine 20-30% ({formatar_moeda(resultado * 0.25)}/mês) para marketing, vendas ou melhoria de produto.",
-            "resultado_esperado": "Aumentar receita em 15-20% mantendo margem saudável"
+            "resultado_esperado": "Aumentar receita em 15-20% mantendo margem saudável",
+            "tempo_estimado": "2-3h",
+            "dificuldade": "Médio",
+            "faz_sozinho": True
         }))
     
     # Tendência de queda
@@ -747,7 +816,10 @@ def gerar_plano_acao(analise: Analise) -> dict:
             "titulo": f"Diversificar receita — queda de {abs(tendencia):.0f}%",
             "prioridade": "Alta",
             "descricao": f"Receita caindo {abs(tendencia):.0f}% nos últimos meses. Não dependa de poucos clientes. Identifique 2 novas fontes de receita (online, parcerias, novos segmentos) e teste com investimento mínimo.",
-            "resultado_esperado": "Pelo menos 20% da receita vindo de novas fontes em 90 dias"
+            "resultado_esperado": "Pelo menos 20% da receita vindo de novas fontes em 90 dias",
+            "tempo_estimado": "3-4h",
+            "dificuldade": "Avançado",
+            "faz_sozinho": False
         }))
     
     # Fallbacks 90
@@ -755,21 +827,30 @@ def gerar_plano_acao(analise: Analise) -> dict:
         "titulo": "Acompanhar indicadores mensalmente no Leme",
         "prioridade": "Média",
         "descricao": f"Faça nova análise todo mês. Seus números de referência: Margem {margem:.0f}%, Fôlego {folego} dias, Resultado {formatar_moeda(resultado)}, Score {score:.0f}/100. Meta: melhorar cada indicador 5-10%/mês.",
-        "resultado_esperado": "Histórico de evolução e decisões baseadas em dados reais"
+        "resultado_esperado": "Histórico de evolução e decisões baseadas em dados reais",
+        "tempo_estimado": "15 min",
+        "dificuldade": "Fácil",
+        "faz_sozinho": True
     }))
     
     acoes_90.append((10, {
         "titulo": f"Revisar precificação com base na margem de {margem:.0f}%",
         "prioridade": "Média",
         "descricao": f"Analise custo real de cada produto/serviço. Sua margem média é {margem:.0f}%, mas pode variar entre itens. No setor de {setor_nome}, a meta é {benchmark_margem}%. Elimine ou reajuste os que estão abaixo. Cada ponto extra = +{formatar_moeda(receita * 0.01)}/mês.",
-        "resultado_esperado": f"Garantir margem mínima de {int(benchmark_margem * 0.75)}% em todos os itens"
+        "resultado_esperado": f"Garantir margem mínima de {int(benchmark_margem * 0.75)}% em todos os itens",
+        "tempo_estimado": "2-3h",
+        "dificuldade": "Médio",
+        "faz_sozinho": True
     }))
     
     acoes_90.append((5, {
         "titulo": "Definir metas financeiras para o próximo trimestre",
         "prioridade": "Média",
         "descricao": f"Com base nos indicadores atuais, defina metas claras: receita alvo, margem mínima ({benchmark_margem}%), resultado desejado, fôlego de caixa (60+ dias). Revise mensalmente.",
-        "resultado_esperado": "Planejamento financeiro estruturado com metas mensuráveis"
+        "resultado_esperado": "Planejamento financeiro estruturado com metas mensuráveis",
+        "tempo_estimado": "1h",
+        "dificuldade": "Fácil",
+        "faz_sozinho": True
     }))
     
     # ========== ORDENAR POR PRIORIDADE E SELECIONAR TOP 4 ==========
@@ -783,15 +864,18 @@ def gerar_plano_acao(analise: Analise) -> dict:
     
     return {
         "plano_30_dias": {
-            "subtitulo": "Ações Imediatas — Resolver o que é Urgente",
+            "subtitulo": "Essa semana",
+            "badge": "Rápido",
             "acoes": plano_30
         },
         "plano_60_dias": {
-            "subtitulo": "Consolidação — Estruturar para Melhorar",
+            "subtitulo": "Este mês",
+            "badge": "Impacto médio",
             "acoes": plano_60
         },
         "plano_90_dias": {
-            "subtitulo": "Estratégia — Crescer com Segurança",
+            "subtitulo": "Próximos 90 dias",
+            "badge": "Estrutural",
             "acoes": plano_90
         }
     }

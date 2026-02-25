@@ -122,6 +122,7 @@ class Analise(Base):
     # ========== METADADOS ==========
     metodo_entrada = Column(String(20), default="manual")  # manual, dre, balanco
     alertas_coerencia = Column(JSON, default=list)
+    ref_parceiro = Column(String(50), nullable=True, index=True)  # Rastreamento de parceiro (ex: "rbr")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

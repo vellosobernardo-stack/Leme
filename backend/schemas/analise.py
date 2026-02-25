@@ -54,6 +54,7 @@ class DadosAnaliseInput(BaseModel):
     Dados de entrada para criar uma nova análise.
     Corresponde ao formulário de 15-19 perguntas.
     """
+    ref_parceiro: str | None = None
     
     # ========== ETAPA 1: IDENTIFICAÇÃO ==========
     nome_empresa: str = Field(

@@ -113,7 +113,10 @@ async def criar_analise(
         plano_90_dias=diagnostico["plano_90_dias"],
         
         # Alertas
-        alertas_coerencia=dados.get_alertas()
+        alertas_coerencia=dados.get_alertas(),
+        
+        # Rastreamento de parceiro
+        ref_parceiro=dados.ref_parceiro,
     )
     
     db.add(analise)
