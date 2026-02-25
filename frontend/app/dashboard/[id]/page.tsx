@@ -263,18 +263,22 @@ export default function DashboardPage({ params }: DashboardPageProps) {
       return ind ? Number(ind.valor) : undefined;
     };
 
-    // Tenta acessar saldo de estresse — pode ter nomes diferentes dependendo do backend
-    const simEstresse = data.simulador?.saldo_estresse 
-      ?? data.simulador?.saldo_stress 
-      ?? data.simulador?.resultado_estresse;
-    
+    // Calcula se sobrevive a queda de 30% nas vendas
+    const simEstresse = (() => {
+      if (!data.simulador) return undefined;
+      const { receita_mensal, custo_vendas, despesas_fixas } = data.simulador;
+      const receitaEstresse = receita_mensal * 0.7;
+      const custoEstresse = custo_vendas * 0.7;
+      return (receitaEstresse - custoEstresse - despesas_fixas) >= 0;
+    })();
+
     return calcularFraseImpacto({
       empresaNome: data.empresa.nome,
       scoreValor: data.score.valor,
       margemBruta: buscar('margem'),
       resultadoMes: buscar('resultado'),
       folegoEmDias: buscar('fôlego') ?? buscar('folego'),
-      simuladorEstressePositivo: simEstresse != null ? simEstresse >= 0 : undefined,
+      simuladorEstressePositivo: simEstresse,
     });
   })();
 
