@@ -45,14 +45,6 @@ export default function RootLayout({
             fbq('track', 'PageView');
           `}
         </Script>
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=2873893652816788&ev=PageView&noscript=1"
-          />
-        </noscript>
 
         {/* Hotjar / Contentsquare */}
         <Script
