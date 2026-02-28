@@ -18,6 +18,12 @@ export default function Etapa1Identificacao({
 }: Etapa1Props) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Dispara evento Lead no Meta Pixel
+    if (typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "Lead");
+    }
+
     await avancar();
   };
 
