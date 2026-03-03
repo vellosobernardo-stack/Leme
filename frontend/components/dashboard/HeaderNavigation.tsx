@@ -12,37 +12,75 @@ import {
   BarChart3, 
   Stethoscope, 
   Lightbulb, 
-  History 
+  History,
+  Lock
 } from 'lucide-react';
 
-const anchors = [
-  { id: 'resumo', label: 'Resumo', icon: LayoutDashboard },
-  { id: 'indicadores', label: 'Indicadores', icon: BarChart3 },
-  { id: 'diagnostico', label: 'Diagnóstico', icon: Stethoscope },
-  { id: 'plano', label: 'O que fazer', icon: Lightbulb },
-  { id: 'historico', label: 'Histórico', icon: History },
+// Botões visíveis na navegação
+const navItems = [
+  { id: 'resumo', label: 'Saúde', icon: LayoutDashboard, pago: false },
+  { id: 'diagnostico', label: 'Diagnóstico', icon: Stethoscope, pago: true },
+  { id: 'plano', label: 'O que fazer', icon: Lightbulb, pago: true },
+  { id: 'indicadores', label: 'Indicadores', icon: BarChart3, pago: false },
+  { id: 'historico', label: 'Histórico', icon: History, pago: true },
 ];
 
-export default function HeaderNavigation() {
+
+export default function HeaderNavigation({ pago = false }: { pago?: boolean }) {
   const [activeSection, setActiveSection] = useState('resumo');
 
-  // Detecta qual seção está visível
+  // Detecta qual seção está visível via IntersectionObserver
   useEffect(() => {
-    const handleScroll = () => {
-      const sections = anchors.map(a => document.getElementById(a.id));
-      const scrollPosition = window.scrollY + 200;
-
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const section = sections[i];
-        if (section && section.offsetTop <= scrollPosition) {
-          setActiveSection(anchors[i].id);
-          break;
-        }
-      }
+    // IDs de todas as seções na página, na ordem real
+    const sectionIds = ['resumo', 'simulador', 'diagnostico', 'plano', 'indicadores', 'valuation', 'historico'];
+    
+    // Mapeia seção da página → botão da nav
+    const sectionToNav: Record<string, string> = {
+      resumo: 'resumo',
+      simulador: 'resumo',
+      diagnostico: 'diagnostico',
+      plano: 'plano',
+      indicadores: 'indicadores',
+      valuation: 'indicadores',
+      historico: 'historico',
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    // Guarda qual seção está mais visível
+    const visibleSections = new Map<string, number>();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            visibleSections.set(entry.target.id, entry.intersectionRatio);
+          } else {
+            visibleSections.delete(entry.target.id);
+          }
+        });
+
+        // Pega a seção visível que aparece primeiro na ordem da página
+        for (const id of sectionIds) {
+          if (visibleSections.has(id)) {
+            const navId = sectionToNav[id];
+            if (navId) {
+              setActiveSection(navId);
+            }
+            break;
+          }
+        }
+      },
+      {
+        rootMargin: '-140px 0px -40% 0px',
+        threshold: 0,
+      }
+    );
+
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   // Scroll suave para a seção
@@ -82,25 +120,34 @@ export default function HeaderNavigation() {
 
         {/* Linha 2: Navegação */}
         <div className="flex items-center justify-center gap-1 pb-3 overflow-x-auto">
-          {anchors.map((anchor) => {
-            const Icon = anchor.icon;
-            const isActive = activeSection === anchor.id;
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeSection === item.id;
+            const isLocked = item.pago && !pago;
             
             return (
               <button
-                key={anchor.id}
-                onClick={() => scrollToSection(anchor.id)}
+                key={item.id}
+                onClick={() => scrollToSection(item.id)}
                 className={`
                   flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium
                   whitespace-nowrap transition-all duration-300
                   ${isActive 
-                    ? 'bg-primary text-white shadow-md' 
-                    : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'
+                    ? isLocked
+                      ? 'bg-amber-100 text-amber-700 shadow-sm'
+                      : 'bg-primary text-white shadow-md'
+                    : isLocked
+                      ? 'text-amber-600/60 hover:bg-amber-50 hover:text-amber-700'
+                      : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'
                   }
                 `}
               >
-                <Icon className="w-4 h-4" />
-                <span className="hidden sm:inline">{anchor.label}</span>
+                {isLocked ? (
+                  <Lock className="w-3.5 h-3.5" />
+                ) : (
+                  <Icon className="w-4 h-4" />
+                )}
+                <span className="hidden sm:inline">{item.label}</span>
               </button>
             );
           })}

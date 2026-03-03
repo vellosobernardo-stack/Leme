@@ -295,19 +295,14 @@ export default function DashboardPage({ params }: DashboardPageProps) {
       {/* Conteúdo principal */}
       <main className="max-w-7xl mx-auto px-4 pb-16">
         
-        {/* ========== SEÇÃO: RESUMO (LIBERADO) ========== */}
+        {/* ========== SEÇÃO 1: SCORE (LIBERADO) — Primeiro impacto ========== */}
         <section id="resumo" className="mb-16">
           <div className="text-center mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Resumo Executivo</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Saúde da Empresa</h2>
             <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <ValuationCard valuation={data.valuation} />
-            <PaybackCard payback={data.payback} />
-          </div>
-
-          {/* Score de Saúde Financeira */}
+          {/* Score de Saúde Financeira — primeiro elemento que o usuário vê */}
           <ScoreGauge 
             score={data.score}
             evolucao={data.score_evolucao}
@@ -315,7 +310,81 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           />
         </section>
 
-        {/* ========== SEÇÃO: INDICADORES (LIBERADO) ========== */}
+        {/* ========== SEÇÃO 2: SIMULADOR (LIBERADO) — Choque emocional ========== */}
+        <section id="simulador" className="mb-16">
+          <SimuladorSobrevivencia dados={data.simulador} />
+        </section>
+
+        {/* ========== SEÇÃO 3: DIAGNÓSTICO (TEASER + PAYWALL) — No pico da tensão ========== */}
+        <section id="diagnostico" className="mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Diagnóstico</h2>
+            <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
+          </div>
+          
+          {pago ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <DiagnosticoCard 
+                tipo="fortes" 
+                pontos={data.diagnostico.pontos_fortes} 
+                isPago={true}
+              />
+              <DiagnosticoCard 
+                tipo="atencao" 
+                pontos={data.diagnostico.pontos_atencao} 
+                isPago={true}
+              />
+            </div>
+          ) : (
+            <>
+              {/* Títulos visíveis, descrições travadas — tensão do simulador ainda fresca */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <DiagnosticoCard 
+                  tipo="fortes" 
+                  pontos={data.diagnostico.pontos_fortes} 
+                  isPago={false}
+                />
+                <DiagnosticoCard 
+                  tipo="atencao" 
+                  pontos={data.diagnostico.pontos_atencao} 
+                  isPago={false}
+                />
+              </div>
+
+              <PaywallOverlay 
+                onDesbloquear={() => setModalAberto(true)}
+                empresaNome={data.empresa.nome}
+                fraseImpacto={fraseImpacto}
+                titulo="Entenda o que está por trás desses números"
+                descricao="Veja a explicação completa de cada ponto e o que fazer para melhorar seu cenário"
+                textoBotao="Ver diagnóstico completo"
+              />
+            </>
+          )}
+        </section>
+
+        {/* ========== SEÇÃO 4: PLANO DE AÇÃO (PAYWALL) — CTA conectado à dor ========== */}
+        <section id="plano" className="mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">O Que Fazer</h2>
+            <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
+          </div>
+          
+          {pago ? (
+            <PlanoAcaoSection plano={data.plano_acao} analiseId={id} />
+          ) : (
+            <PaywallOverlay 
+              onDesbloquear={() => setModalAberto(true)}
+              empresaNome={data.empresa.nome}
+              fraseImpacto={fraseImpacto}
+              titulo="Seu plano de ação está pronto"
+              descricao="12 ações práticas divididas em 30, 60 e 90 dias para mudar o rumo do seu negócio"
+              textoBotao="Ver meu plano de ação"
+            />
+          )}
+        </section>
+
+        {/* ========== SEÇÃO 5: INDICADORES (LIBERADO) — Validação técnica ========== */}
         <section id="indicadores" className="mb-16">
           <div className="text-center mb-8">
             <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Indicadores Financeiros</h2>
@@ -343,83 +412,22 @@ export default function DashboardPage({ params }: DashboardPageProps) {
               </button>
             </div>
           )}
-
-          {/* Simulador de Sobrevivência */}
-          <div className="mt-6">
-            <SimuladorSobrevivencia dados={data.simulador} />
-          </div>
         </section>
 
-        {/* ========== SEÇÃO: DIAGNÓSTICO (1+1 ABERTO + PAYWALL) ========== */}
-        <section id="diagnostico" className="mb-16">
+        {/* ========== SEÇÃO 6: VALUATION + PAYBACK (LIBERADO) — Bônus informativo ========== */}
+        <section id="valuation" className="mb-16">
           <div className="text-center mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Diagnóstico</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Valor e Retorno</h2>
             <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
           </div>
-          
-          {pago ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DiagnosticoCard 
-                tipo="fortes" 
-                pontos={data.diagnostico.pontos_fortes} 
-                isPago={true}
-              />
-              <DiagnosticoCard 
-                tipo="atencao" 
-                pontos={data.diagnostico.pontos_atencao} 
-                isPago={true}
-              />
-            </div>
-          ) : (
-            <>
-              {/* Todos os títulos visíveis, descrições travadas */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <DiagnosticoCard 
-                  tipo="fortes" 
-                  pontos={data.diagnostico.pontos_fortes} 
-                  isPago={false}
-                />
-                <DiagnosticoCard 
-                  tipo="atencao" 
-                  pontos={data.diagnostico.pontos_atencao} 
-                  isPago={false}
-                />
-              </div>
 
-              <PaywallOverlay 
-                onDesbloquear={() => setModalAberto(true)}
-                empresaNome={data.empresa.nome}
-                fraseImpacto={fraseImpacto}
-                titulo="Veja o diagnóstico completo"
-                descricao="Entenda todos os pontos fortes e de atenção do seu negócio — com recomendações práticas"
-                textoBotao="Desbloquear diagnóstico"
-              />
-            </>
-          )}
-        </section>
-
-        {/* ========== SEÇÃO: PLANO DE AÇÃO (PAYWALL) ========== */}
-        <section id="plano" className="mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Plano de Ação</h2>
-            <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ValuationCard valuation={data.valuation} />
+            <PaybackCard payback={data.payback} />
           </div>
-          
-          {pago ? (
-            <PlanoAcaoSection plano={data.plano_acao} analiseId={id} />
-          ) : (
-            <PaywallOverlay 
-              onDesbloquear={() => setModalAberto(true)}
-              empresaNome={data.empresa.nome}
-              fraseImpacto={fraseImpacto}
-              titulo="Seu plano de ação está pronto"
-              descricao="12 ações práticas divididas em 30, 60 e 90 dias — personalizadas para o seu negócio"
-              textoBotao="Ver meu plano de ação"
-            />
-          )}
         </section>
 
-        {/* ========== SEÇÃO: HISTÓRICO (PAYWALL) ========== */}
+        {/* ========== SEÇÃO 7: HISTÓRICO (PAYWALL) ========== */}
         <section id="historico" className="mb-16">
           <div className="text-center mb-8">
             <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Histórico de Análises</h2>

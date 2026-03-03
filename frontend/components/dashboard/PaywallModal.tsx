@@ -60,30 +60,30 @@ export default function PaywallModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border/40">
-          <h2 className="text-xl font-bold text-primary">
+      {/* Modal — slide up no mobile, centralizado no desktop */}
+      <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-md w-full mx-0 sm:mx-4 max-h-[90vh] flex flex-col">
+        {/* Header — sticky */}
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border/40 flex-shrink-0">
+          <h2 className="text-lg sm:text-xl font-bold text-primary">
             Finalizar compra
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 -mr-1 hover:bg-gray-100 rounded-full transition-colors"
           >
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
 
-        {/* Conteúdo */}
-        <div className="p-6">
+        {/* Conteúdo — scrollável */}
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           {/* Erro */}
           {erro && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
@@ -93,45 +93,55 @@ export default function PaywallModal({
           )}
 
           {/* Resumo da compra */}
-          <div className="bg-gray-50 rounded-xl p-5 mb-6">
+          <div className="bg-gray-50 rounded-xl p-4 mb-5">
             <p className="text-sm text-muted-foreground mb-1">Você está desbloqueando:</p>
-            <p className="font-semibold text-gray-900 text-lg">{empresaNome}</p>
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <p className="font-semibold text-gray-900">{empresaNome}</p>
+            <div className="mt-3 pt-3 border-t border-gray-200">
               <div className="flex justify-between items-center">
-                <span className="text-muted-foreground">Diagnóstico + Plano de Correção</span>
-                <span className="text-2xl font-bold text-primary">R$ 19,90</span>
+                <span className="text-sm text-muted-foreground">Diagnóstico + Plano de Correção</span>
+                <span className="text-xl font-bold text-primary">R$ 19,90</span>
               </div>
             </div>
           </div>
 
           {/* O que está incluso */}
-          <div className="mb-6">
-            <p className="text-sm font-medium text-gray-700 mb-3">Incluso no desbloqueio:</p>
-            <ul className="text-sm text-muted-foreground space-y-2">
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+          <div className="mb-5">
+            <p className="text-sm font-medium text-gray-700 mb-2">Incluso no desbloqueio:</p>
+            <ul className="text-sm text-muted-foreground space-y-1.5">
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0 mt-1.5"></span>
                 Diagnóstico completo: pontos fortes e de atenção
               </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0 mt-1.5"></span>
                 Ações práticas com tempo estimado e dificuldade
               </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                Todos os indicadores com explicação detalhada
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0 mt-1.5"></span>
+                Indicadores com explicação detalhada
               </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 bg-primary rounded-full flex-shrink-0 mt-1.5"></span>
                 PDF para compartilhar com contador ou sócio
               </li>
             </ul>
           </div>
 
-          {/* Botão de checkout */}
+          {/* Garantia */}
+          <div className="mt-3 pt-3 border-t border-border/40">
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <ShieldCheck className="w-4 h-4 text-green-600" />
+              <span>Se não te ajudar, devolvemos em 7 dias.</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Botão — sticky no fundo do modal */}
+        <div className="p-4 sm:p-6 pt-0 border-t border-border/40 bg-white rounded-b-2xl flex-shrink-0">
           <button
             onClick={irParaCheckout}
             disabled={loading}
-            className="w-full py-4 bg-primary text-white rounded-xl font-semibold text-lg hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-primary text-white rounded-xl font-semibold text-base hover:opacity-90 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -145,24 +155,9 @@ export default function PaywallModal({
               </>
             )}
           </button>
-
-          {/* Formas de pagamento */}
-          <div className="mt-4 text-center">
-            <p className="text-xs text-muted-foreground">
-              Pagamento único. Sem assinatura. Sem surpresas.
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-              PIX ou Cartão de Crédito/Débito
-            </p>
-          </div>
-
-          {/* Garantia */}
-          <div className="mt-4 pt-4 border-t border-border/40">
-            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <ShieldCheck className="w-4 h-4 text-green-600" />
-              <span>Se não te ajudar, devolvemos em 7 dias.</span>
-            </div>
-          </div>
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            Pagamento único · PIX ou Cartão
+          </p>
         </div>
       </div>
     </div>
