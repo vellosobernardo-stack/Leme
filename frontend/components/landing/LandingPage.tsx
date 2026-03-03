@@ -384,7 +384,7 @@ export function HeroPreAbertura() {
 
             <p className="text-lg text-gray-600 mb-8 max-w-md">
               Descubra quanto capital você precisa, compare com referências do setor 
-              e receba um checklist para os primeiros 30 dias.
+              e receba um checklist para os primeiros passos.
             </p>
 
             <div className="space-y-3 mb-8">
@@ -466,7 +466,7 @@ export function HeroPreAbertura() {
                 </div>
 
                 <div className="border-t border-gray-100 pt-4">
-                  <p className="text-sm font-medium text-gray-700 mb-3">Primeiros 30 dias</p>
+                  <p className="text-sm font-medium text-gray-700 mb-3">Primeiros passos</p>
                   <div className="space-y-2">
                     {["Definir estrutura jurídica", "Abrir conta PJ"].map((item, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm text-gray-500">
@@ -494,7 +494,7 @@ export function ValueDelivery() {
   // Hierarquia: Gancho → Ação → Síntese → Prova
   const features = [
     { icon: Zap, title: "Diagnóstico inteligente", description: "Mostra onde você ganha, onde perde e onde pode estar desperdiçando dinheiro" },
-    { icon: Target, title: "Plano de ação 30/60/90", description: "Passos claros para corrigir agora o que pode virar prejuízo depois" },
+    { icon: Target, title: "Plano de ação personalizado", description: "O que fazer hoje, o que ajustar no mês e o que estruturar para o trimestre" },
     { icon: TrendingUp, title: "Score de saúde financeira", description: "Uma nota de 0 a 100 que revela se seu negócio está seguro ou em risco" },
     { icon: BarChart3, title: "Indicadores essenciais", description: "Os números que mostram se sua empresa está estruturada para crescer — ou vulnerável" },
   ];

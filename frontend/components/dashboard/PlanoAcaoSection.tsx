@@ -1,6 +1,6 @@
 // components/dashboard/PlanoAcaoSection.tsx
 // "O que fazer" — Plano de ação com micro-ações
-// v2 — Essa semana / Este mês / Próximos 90 dias + tempo, dificuldade, faz sozinho
+// v3 — Hoje / Próximo mês / Próximo trimestre + tempo, dificuldade, faz sozinho
 
 "use client";
 
@@ -73,7 +73,7 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
   const periodos = [
     {
       key: '30' as const,
-      titulo: 'Essa semana',
+      titulo: 'O que fazer hoje',
       subtitulo: plano.plano_30_dias.subtitulo,
       acoes: plano.plano_30_dias.acoes,
       icon: Zap,
@@ -82,12 +82,12 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
       lightColorChecked: 'bg-blue-100',
       borderColor: 'border-blue-200',
       progressColor: 'bg-blue-500',
-      badge: 'Rápido',
+      badge: 'Ajuste imediato',
       badgeColor: 'bg-blue-100 text-blue-700',
     },
     {
       key: '60' as const,
-      titulo: 'Este mês',
+      titulo: 'O que ajustar no próximo mês',
       subtitulo: plano.plano_60_dias.subtitulo,
       acoes: plano.plano_60_dias.acoes,
       icon: Calendar,
@@ -96,12 +96,12 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
       lightColorChecked: 'bg-purple-100',
       borderColor: 'border-purple-200',
       progressColor: 'bg-purple-500',
-      badge: 'Impacto médio',
+      badge: 'Correção estrutural',
       badgeColor: 'bg-purple-100 text-purple-700',
     },
     {
       key: '90' as const,
-      titulo: 'Próximos 90 dias',
+      titulo: 'O que estruturar para o trimestre',
       subtitulo: plano.plano_90_dias.subtitulo,
       acoes: plano.plano_90_dias.acoes,
       icon: CalendarCheck,
@@ -110,7 +110,7 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
       lightColorChecked: 'bg-orange-100',
       borderColor: 'border-orange-200',
       progressColor: 'bg-orange-500',
-      badge: 'Estrutural',
+      badge: 'Redirecionamento estratégico',
       badgeColor: 'bg-orange-100 text-orange-700',
     },
   ];
