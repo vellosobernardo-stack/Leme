@@ -1,239 +1,269 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://leme-production.up.railway.app";
+import { Eye, EyeOff, ArrowLeft, Mail, User, Lock } from "lucide-react";
 
 export default function CadastroPage() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
+  const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
-  const [carregando, setCarregando] = useState(false);
 
-  async function handleCadastro() {
+  const senhasOk = senha.length >= 6 && senha === confirmar;
+  const isValid = email.length > 0 && senhasOk;
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
     setErro("");
 
-    if (senha !== confirmar) {
-      setErro("As senhas não coincidem.");
-      return;
-    }
-    if (senha.length < 6) {
-      setErro("A senha deve ter pelo menos 6 caracteres.");
+    if (!senhasOk) {
+      setErro("As senhas não conferem ou são muito curtas.");
       return;
     }
 
-    setCarregando(true);
+    setLoading(true);
 
     try {
-      // 1. Cria a conta
-      const resRegister = await fetch(`${API_URL}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nome, email, senha }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ nome: nome || undefined, email, senha }),
+        }
+      );
 
-      if (!resRegister.ok) {
-        const err = await resRegister.json();
-        setErro(err.detail || "Erro ao criar conta.");
-        setCarregando(false);
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErro(data.detail || "Erro ao criar conta.");
         return;
       }
 
-      // 2. Faz login automaticamente após cadastro
-      const resLogin = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, senha }),
-      });
+      // Auto-login após cadastro
+      const loginRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ email, senha }),
+        }
+      );
 
-      if (resLogin.ok) {
-        // Redireciona para a página de assinatura
+      if (loginRes.ok) {
         window.location.href = "/assinar";
       } else {
-        // Conta criada mas login falhou — manda para login manual
         window.location.href = "/login";
       }
     } catch {
       setErro("Erro de conexão. Tente novamente.");
     } finally {
-      setCarregando(false);
+      setLoading(false);
     }
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#f4f4f4",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px 16px",
-        fontFamily: "'Montserrat', sans-serif",
-      }}
-    >
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');`}</style>
+    <div className="min-h-screen bg-[#F8F7F5] flex flex-col">
+      {/* Accent line */}
+      <div className="h-1 w-full bg-gradient-to-r from-[#003054] via-[#E07B2A] to-[#003054]" />
 
-      <div style={{ width: "100%", maxWidth: "420px" }}>
-
+      <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
         {/* Logo */}
-        <div style={{ textAlign: "center", marginBottom: "40px" }}>
-          <Link href="/" style={{ textDecoration: "none" }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "10px" }}>
-              <div style={{
-                width: "40px", height: "40px",
-                backgroundColor: "#112d4e",
-                borderRadius: "10px",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" fill="white"/>
-                </svg>
-              </div>
-              <span style={{ fontSize: "22px", fontWeight: "700", color: "#112d4e" }}>Leme</span>
-            </div>
-          </Link>
-          <p style={{ marginTop: "8px", color: "#666", fontSize: "14px" }}>
-            Crie sua conta e comece hoje
+        <div className="mb-10 flex flex-col items-center gap-3">
+          <Image
+            src="/images/logo.svg"
+            alt="Leme"
+            width={52}
+            height={52}
+            className="select-none"
+          />
+          <p className="text-sm font-medium tracking-[0.18em] uppercase text-[#003054]/50">
+            Criar conta
           </p>
         </div>
 
         {/* Card */}
-        <div style={{
-          backgroundColor: "#ffffff",
-          borderRadius: "16px",
-          padding: "36px 32px",
-          boxShadow: "0 4px 24px rgba(17, 45, 78, 0.08)",
-        }}>
-          <h1 style={{ fontSize: "22px", fontWeight: "700", color: "#112d4e", margin: "0 0 24px 0" }}>
-            Criar conta
-          </h1>
+        <div
+          className="w-full max-w-[420px] bg-white border border-[#E8E5E0] rounded-2xl overflow-hidden"
+          style={{ boxShadow: "0 2px 24px 0 rgba(0,48,84,0.07)" }}
+        >
+          {/* Card header */}
+          <div className="px-8 pt-8 pb-6 border-b border-[#F0EDE8]">
+            <h1
+              className="text-[26px] font-bold text-[#003054] leading-tight"
+              style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+            >
+              Criar conta
+            </h1>
+            <p className="mt-1 text-sm text-[#003054]/50">
+              Comece sua análise financeira hoje
+            </p>
+          </div>
 
-          {erro && (
-            <div style={{
-              backgroundColor: "#fff5f5", border: "1px solid #ffcccc",
-              borderRadius: "8px", padding: "12px 14px",
-              marginBottom: "20px", color: "#c0392b", fontSize: "14px",
-            }}>
-              {erro}
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="px-8 py-7 space-y-5">
+            {/* Nome */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold tracking-wide uppercase text-[#003054]/60">
+                Nome{" "}
+                <span className="normal-case font-normal text-[#003054]/30">
+                  (opcional)
+                </span>
+              </label>
+              <div className="relative">
+                <User
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#003054]/30"
+                />
+                <input
+                  type="text"
+                  placeholder="Seu nome"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  className="w-full pl-9 pr-4 py-3 text-sm bg-[#F8F7F5] border border-[#E8E5E0] rounded-lg text-[#003054] placeholder:text-[#003054]/30 focus:outline-none focus:border-[#003054] focus:ring-1 focus:ring-[#003054]/20 transition-all"
+                />
+              </div>
             </div>
-          )}
 
-          {/* Nome */}
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#112d4e", marginBottom: "6px" }}>
-              Nome <span style={{ color: "#999", fontWeight: "400" }}>(opcional)</span>
-            </label>
-            <input
-              type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              placeholder="Seu nome"
-              style={inputStyle}
-              onFocus={(e) => (e.target.style.borderColor = "#112d4e")}
-              onBlur={(e) => (e.target.style.borderColor = "#e0e0e0")}
-            />
-          </div>
+            {/* Email */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold tracking-wide uppercase text-[#003054]/60">
+                E-mail
+              </label>
+              <div className="relative">
+                <Mail
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#003054]/30"
+                />
+                <input
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full pl-9 pr-4 py-3 text-sm bg-[#F8F7F5] border border-[#E8E5E0] rounded-lg text-[#003054] placeholder:text-[#003054]/30 focus:outline-none focus:border-[#003054] focus:ring-1 focus:ring-[#003054]/20 transition-all"
+                />
+              </div>
+            </div>
 
-          {/* E-mail */}
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#112d4e", marginBottom: "6px" }}>
-              E-mail
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              style={inputStyle}
-              onFocus={(e) => (e.target.style.borderColor = "#112d4e")}
-              onBlur={(e) => (e.target.style.borderColor = "#e0e0e0")}
-            />
-          </div>
+            {/* Senha */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold tracking-wide uppercase text-[#003054]/60">
+                Senha
+              </label>
+              <div className="relative">
+                <Lock
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#003054]/30"
+                />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Mínimo 6 caracteres"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  required
+                  className="w-full pl-9 pr-11 py-3 text-sm bg-[#F8F7F5] border border-[#E8E5E0] rounded-lg text-[#003054] placeholder:text-[#003054]/30 focus:outline-none focus:border-[#003054] focus:ring-1 focus:ring-[#003054]/20 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#003054]/30 hover:text-[#003054]/60 transition-colors"
+                >
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+            </div>
 
-          {/* Senha */}
-          <div style={{ marginBottom: "16px" }}>
-            <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#112d4e", marginBottom: "6px" }}>
-              Senha
-            </label>
-            <input
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              placeholder="Mínimo 6 caracteres"
-              style={inputStyle}
-              onFocus={(e) => (e.target.style.borderColor = "#112d4e")}
-              onBlur={(e) => (e.target.style.borderColor = "#e0e0e0")}
-            />
-          </div>
+            {/* Confirmar senha */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold tracking-wide uppercase text-[#003054]/60">
+                Confirmar senha
+              </label>
+              <div className="relative">
+                <Lock
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#003054]/30"
+                />
+                <input
+                  type={showConfirm ? "text" : "password"}
+                  placeholder="Repita a senha"
+                  value={confirmar}
+                  onChange={(e) => setConfirmar(e.target.value)}
+                  required
+                  className={`w-full pl-9 pr-11 py-3 text-sm bg-[#F8F7F5] border rounded-lg text-[#003054] placeholder:text-[#003054]/30 focus:outline-none transition-all ${
+                    confirmar.length > 0 && !senhasOk
+                      ? "border-red-300 focus:border-red-400 focus:ring-1 focus:ring-red-200"
+                      : confirmar.length > 0 && senhasOk
+                      ? "border-green-300 focus:border-green-400"
+                      : "border-[#E8E5E0] focus:border-[#003054] focus:ring-1 focus:ring-[#003054]/20"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#003054]/30 hover:text-[#003054]/60 transition-colors"
+                >
+                  {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+              {confirmar.length > 0 && !senhasOk && (
+                <p className="text-xs text-red-400">As senhas não conferem</p>
+              )}
+            </div>
 
-          {/* Confirmar senha */}
-          <div style={{ marginBottom: "24px" }}>
-            <label style={{ display: "block", fontSize: "13px", fontWeight: "600", color: "#112d4e", marginBottom: "6px" }}>
-              Confirmar senha
-            </label>
-            <input
-              type="password"
-              value={confirmar}
-              onChange={(e) => setConfirmar(e.target.value)}
-              placeholder="Repita a senha"
-              onKeyDown={(e) => e.key === "Enter" && handleCadastro()}
-              style={inputStyle}
-              onFocus={(e) => (e.target.style.borderColor = "#112d4e")}
-              onBlur={(e) => (e.target.style.borderColor = "#e0e0e0")}
-            />
-          </div>
+            {/* Erro geral */}
+            {erro && (
+              <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+                {erro}
+              </p>
+            )}
 
-          <button
-            onClick={handleCadastro}
-            disabled={carregando || !email || !senha || !confirmar}
-            style={{
-              width: "100%",
-              padding: "14px",
-              backgroundColor: carregando || !email || !senha || !confirmar ? "#ccc" : "#00c894",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              fontSize: "15px",
-              fontWeight: "700",
-              fontFamily: "'Montserrat', sans-serif",
-              cursor: carregando || !email || !senha || !confirmar ? "not-allowed" : "pointer",
-              transition: "background-color 0.2s",
-            }}
-          >
-            {carregando ? "Criando conta..." : "Criar conta grátis"}
-          </button>
+            {/* Botão */}
+            <button
+              type="submit"
+              disabled={!isValid || loading}
+              className="w-full py-3.5 rounded-lg text-sm font-semibold tracking-wide transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background:
+                  isValid && !loading
+                    ? "linear-gradient(135deg, #003054 0%, #004a7c 100%)"
+                    : "#cccccc",
+                color: "white",
+              }}
+            >
+              {loading ? "Criando conta..." : "Criar conta grátis"}
+            </button>
+          </form>
         </div>
 
-        <p style={{ textAlign: "center", marginTop: "20px", fontSize: "14px", color: "#666" }}>
-          Já tem conta?{" "}
-          <Link href="/login" style={{ color: "#f5793b", fontWeight: "600", textDecoration: "none" }}>
-            Entrar
+        {/* Links externos */}
+        <div className="mt-6 flex flex-col items-center gap-3">
+          <p className="text-sm text-[#003054]/50">
+            Já tem conta?{" "}
+            <Link
+              href="/login"
+              className="font-semibold text-[#E07B2A] hover:text-[#c96a1f] transition-colors"
+            >
+              Entrar
+            </Link>
+          </p>
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 text-xs text-[#003054]/40 hover:text-[#003054]/70 transition-colors"
+          >
+            <ArrowLeft size={12} />
+            Voltar ao início
           </Link>
-        </p>
-        <p style={{ textAlign: "center", marginTop: "8px" }}>
-          <Link href="/" style={{ fontSize: "13px", color: "#999", textDecoration: "none" }}>
-            ← Voltar ao início
-          </Link>
-        </p>
+        </div>
       </div>
     </div>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "12px 14px",
-  borderRadius: "8px",
-  border: "1.5px solid #e0e0e0",
-  fontSize: "15px",
-  fontFamily: "'Montserrat', sans-serif",
-  outline: "none",
-  boxSizing: "border-box",
-  transition: "border-color 0.2s",
-  color: "#112d4e",
-};
