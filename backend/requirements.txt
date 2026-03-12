@@ -27,5 +27,4 @@ stripe
 
 # NOVO — Autenticação (Fase 1 Pro)
 python-jose[cryptography]>=3.3.0   # geração e validação de tokens JWT
-passlib[bcrypt]>=1.7.4              # hash seguro de senhas com bcrypt
-bcrypt>=4.0.1                       # dependência direta do passlib
+bcrypt>=4.0.1                       # hash de senha
