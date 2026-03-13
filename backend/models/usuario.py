@@ -1,7 +1,5 @@
 """
 Modelo da tabela 'usuarios' - usuários autenticados da versão Pro
-
-NOVA TABELA — não interfere com analises, sessoes_analise ou analises_pre_abertura.
 """
 
 import uuid
@@ -9,10 +7,10 @@ from datetime import datetime
 from sqlalchemy import (
     Column, String, Boolean, DateTime, TypeDecorator, CHAR
 )
+from sqlalchemy.orm import relationship
 from database import Base
 
 
-# ========== TIPO UUID COMPATÍVEL COM SQLITE E POSTGRESQL ==========
 class GUID(TypeDecorator):
     """Tipo UUID que funciona tanto com SQLite quanto PostgreSQL"""
     impl = CHAR
@@ -49,15 +47,6 @@ class GUID(TypeDecorator):
 class Usuario(Base):
     """
     Tabela de usuários autenticados do Leme Pro.
-
-    Campos de plano:
-    - plano: "free" ou "pro"
-    - pro_ativo: True quando assinatura está ativa no Stripe
-    - pro_validade: data até quando o Pro é válido
-
-    Campos Stripe:
-    - stripe_customer_id: ID do cliente no Stripe
-    - stripe_subscription_id: ID da assinatura ativa
     """
 
     __tablename__ = "usuarios"
@@ -80,6 +69,9 @@ class Usuario(Base):
     # ========== METADADOS ==========
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # ========== RELACIONAMENTOS (Fase 2) ==========
+    analises = relationship("Analise", back_populates="usuario")
 
     def __repr__(self):
         return f"<Usuario {self.email} - {self.plano}>"

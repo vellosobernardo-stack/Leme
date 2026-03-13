@@ -13,7 +13,6 @@ database_url = settings.DATABASE_URL
 
 # Ajusta a URL conforme o banco
 if database_url.startswith("postgresql://"):
-    # PostgreSQL com psycopg3
     database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
     engine = create_engine(
         database_url,
@@ -21,28 +20,24 @@ if database_url.startswith("postgresql://"):
         echo=settings.DEBUG
     )
 elif database_url.startswith("sqlite"):
-    # SQLite - precisa de check_same_thread=False para FastAPI
     engine = create_engine(
         database_url,
         connect_args={"check_same_thread": False},
         echo=settings.DEBUG
     )
 else:
-    # Outros bancos (MySQL, etc)
     engine = create_engine(
         database_url,
         pool_pre_ping=True,
         echo=settings.DEBUG
     )
 
-# Fábrica de sessões
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine
 )
 
-# Base para os modelos
 Base = declarative_base()
 
 
@@ -58,27 +53,49 @@ def get_db():
 def run_migrations():
     """
     Executa migrações simples no startup.
-    Adiciona colunas que podem estar faltando no banco de produção.
+    Adiciona colunas/tabelas que podem estar faltando no banco de produção.
     """
-    migrations = [
-        # Coluna para Stripe (paywall)
+
+    # ── Migrações de colunas simples ──────────────────────────────────────────
+    colunas = [
+        # Fase 1 — Stripe/paywall
         ("analises", "stripe_session_id", "VARCHAR(200)"),
-        # Coluna de pagamento
-        ("analises", "pago", "BOOLEAN DEFAULT FALSE"),
-        ("analises", "pago_em", "TIMESTAMP"),
+        ("analises", "pago",              "BOOLEAN DEFAULT FALSE"),
+        ("analises", "pago_em",           "TIMESTAMP"),
+
+        # Fase 2 — vínculo análise → usuário
+        ("analises", "usuario_id",        "VARCHAR(36)"),
     ]
-    
+
     with engine.connect() as conn:
-        for table, column, col_type in migrations:
+        for table, column, col_type in colunas:
             try:
-                # Tenta adicionar a coluna - se já existir, ignora o erro
                 conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {col_type}"))
                 conn.commit()
                 print(f"[Migration] ✅ Coluna {column} adicionada em {table}")
             except Exception as e:
-                # Coluna já existe ou outro erro - segue em frente
                 conn.rollback()
                 if "already exists" in str(e).lower() or "duplicate column" in str(e).lower():
-                    print(f"[Migration] ⏭️ Coluna {column} já existe em {table}")
+                    print(f"[Migration] ⏭️  Coluna {column} já existe em {table}")
                 else:
-                    print(f"[Migration] ⚠️ Erro ao adicionar {column}: {e}")
+                    print(f"[Migration] ⚠️  Erro ao adicionar {column}: {e}")
+
+        # ── Fase 2 — criar tabela plano_acao_progresso se não existir ─────────
+        try:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS plano_acao_progresso (
+                    id          VARCHAR(36) PRIMARY KEY,
+                    analise_id  VARCHAR(36) NOT NULL REFERENCES analises(id) ON DELETE CASCADE,
+                    usuario_id  VARCHAR(36) NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+                    periodo     VARCHAR(2)  NOT NULL,
+                    indice_acao INTEGER     NOT NULL,
+                    marcado     BOOLEAN     NOT NULL DEFAULT TRUE,
+                    updated_at  TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE (analise_id, usuario_id, periodo, indice_acao)
+                )
+            """))
+            conn.commit()
+            print("[Migration] ✅ Tabela plano_acao_progresso verificada/criada")
+        except Exception as e:
+            conn.rollback()
+            print(f"[Migration] ⚠️  Erro ao criar plano_acao_progresso: {e}")

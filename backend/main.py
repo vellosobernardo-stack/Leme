@@ -1,14 +1,10 @@
 """
 🌱 Leme API - Análise Financeira para Micro e Pequenas Empresas
-
-Ponto de entrada da aplicação.
-Execute com: uvicorn main:app --reload
 """
 
 import sys
 from pathlib import Path
 
-# Adiciona a pasta backend ao caminho do Python (resolve problema no Windows)
 sys.path.insert(0, str(Path(__file__).parent))
 
 from fastapi import FastAPI
@@ -24,18 +20,15 @@ from routers.sessao import router as sessao_router
 from routers.email import router as email_router
 from routers.pagamento import router as pagamento_router
 from routers.auth import router as auth_router
-from routers.stripe_pro import router as stripe_pro_router  # NOVO — Stripe Pro
+from routers.stripe_pro import router as stripe_pro_router
+from routers.historico import router as historico_router   # NOVO — Fase 2
+from routers.progresso import router as progresso_router   # NOVO — Fase 2
 
-# Carrega configurações
 settings = get_settings()
 
-# Cria as tabelas no banco (inclui a nova tabela 'usuarios')
 Base.metadata.create_all(bind=engine)
-
-# Executa migrações simples (adiciona colunas faltando)
 run_migrations()
 
-# Inicializa a aplicação
 app = FastAPI(
     title=settings.API_TITLE,
     version=settings.API_VERSION,
@@ -44,20 +37,19 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configura CORS — permite cookie httpOnly funcionar entre domínios
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://leme.app.br",
         "https://www.leme.app.br",
-        "http://localhost:3000",  # dev local
+        "http://localhost:3000",
     ],
-    allow_credentials=True,  # IMPORTANTE: necessário para cookies funcionarem
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Registra os routers existentes (versão Free — não alterados)
+# Routers Free (não alterados)
 app.include_router(analise_router)
 app.include_router(dashboard_router)
 app.include_router(report_router)
@@ -66,14 +58,17 @@ app.include_router(sessao_router)
 app.include_router(email_router)
 app.include_router(pagamento_router)
 
-# NOVO — Fase 1 Pro
+# Fase 1 Pro
 app.include_router(auth_router)
 app.include_router(stripe_pro_router)
+
+# Fase 2 Pro
+app.include_router(historico_router)
+app.include_router(progresso_router)
 
 
 @app.get("/")
 def root():
-    """Endpoint de status — confirma que a API está rodando."""
     return {
         "status": "online",
         "app": "Leme API",
@@ -84,5 +79,4 @@ def root():
 
 @app.get("/health")
 def health_check():
-    """Health check para monitoramento."""
     return {"status": "healthy"}

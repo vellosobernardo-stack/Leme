@@ -3,7 +3,7 @@ Endpoints da API de Análise Financeira
 """
 
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Request
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -26,52 +26,88 @@ router = APIRouter(
 )
 
 
+def _extrair_usuario_id_do_cookie(request: Request, db: Session) -> str | None:
+    """
+    Tenta extrair o usuario_id do JWT no cookie.
+    Retorna o ID se for Pro ativo, None caso contrário.
+    Nunca lança exceção — análise Free não pode ser bloqueada.
+    """
+    try:
+        from routers.auth import get_usuario_atual
+        from jose import jwt, JWTError
+        from config import get_settings
+
+        settings = get_settings()
+        token = request.cookies.get("leme_token")
+        if not token:
+            return None
+
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        usuario_id = payload.get("sub")
+        if not usuario_id:
+            return None
+
+        from models.usuario import Usuario
+        usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+        if usuario and usuario.pro_ativo:
+            return str(usuario.id)
+
+        return None
+    except Exception:
+        return None
+
+
 @router.post("/nova", response_model=AnaliseResponse, status_code=status.HTTP_201_CREATED)
 async def criar_analise(
     dados: DadosAnaliseInput,
+    request: Request,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
     """
     Cria uma nova análise financeira.
-    
-    Recebe os dados do formulário (15-19 perguntas),
-    calcula todos os indicadores e retorna o resultado completo.
+    Se o usuário estiver logado como Pro, vincula automaticamente.
     """
-    
+
     # 1. Calcular indicadores
     indicadores = calcular_indicadores(dados)
-    
+
     # 2. Gerar diagnóstico e plano de ação
     diagnostico = gerar_diagnostico(dados, indicadores)
-    
-    # 3. Criar registro no banco
+
+    # 3. Detectar usuario_id (Pro logado) — sem bloquear Free
+    usuario_id = _extrair_usuario_id_do_cookie(request, db)
+
+    # 4. Criar registro no banco
     analise = Analise(
         # Identificação
         nome_empresa=dados.nome_empresa,
         email=dados.email,
-        
+
+        # Vínculo Pro (nullable — Free fica None)
+        usuario_id=usuario_id,
+
         # Básico
         setor=dados.setor.value,
         estado=dados.estado,
         mes_referencia=dados.mes_referencia,
         ano_referencia=dados.ano_referencia,
-        
+
         # Receita e Histórico
         receita_3_meses_atras=dados.receita_historico.tres_meses_atras,
         receita_2_meses_atras=dados.receita_historico.dois_meses_atras,
         receita_mes_passado=dados.receita_historico.mes_passado,
         receita_atual=dados.receita_atual,
-        
+
         # Custos e Despesas
         custo_vendas=dados.custo_vendas,
         despesas_fixas=dados.despesas_fixas,
-        
+
         # Caixa e Fluxo
         caixa_bancos=dados.caixa_bancos,
         contas_receber=dados.contas_receber,
         contas_pagar=dados.contas_pagar,
-        
+
         # Condicionais
         tem_estoque=dados.tem_estoque,
         estoque=dados.estoque,
@@ -79,10 +115,10 @@ async def criar_analise(
         dividas_totais=dados.dividas_totais,
         tem_bens=dados.tem_bens,
         bens_equipamentos=dados.bens_equipamentos,
-        
+
         # Equipe
         num_funcionarios=dados.num_funcionarios,
-        
+
         # Indicadores calculados
         margem_bruta=indicadores.margem_bruta,
         resultado_mes=indicadores.resultado_mes,
@@ -92,46 +128,46 @@ async def criar_analise(
         capital_minimo=indicadores.capital_minimo,
         receita_funcionario=indicadores.receita_funcionario,
         peso_divida=indicadores.peso_divida,
-        
+
         # Destaque
         valor_empresa_min=indicadores.valor_empresa_min,
         valor_empresa_max=indicadores.valor_empresa_max,
         retorno_investimento=indicadores.retorno_investimento,
-        
+
         # Tendência
         tendencia_receita=indicadores.tendencia_receita,
         tendencia_status=indicadores.tendencia_status,
-        
+
         # Score
         score_saude=indicadores.score_saude,
-        
+
         # Diagnóstico e Plano de Ação
         pontos_fortes=diagnostico["pontos_fortes"],
         pontos_atencao=diagnostico["pontos_atencao"],
         plano_30_dias=diagnostico["plano_30_dias"],
         plano_60_dias=diagnostico["plano_60_dias"],
         plano_90_dias=diagnostico["plano_90_dias"],
-        
+
         # Alertas
         alertas_coerencia=dados.get_alertas(),
-        
+
         # Rastreamento de parceiro
         ref_parceiro=dados.ref_parceiro,
     )
-    
+
     db.add(analise)
     db.commit()
     db.refresh(analise)
-    
-    # 4. Disparar e-mail pós-conclusão (em background para não travar resposta)
+
+    # 5. Disparar e-mail pós-conclusão em background
     background_tasks.add_task(
         enviar_email_pos_conclusao,
         nome_empresa=analise.nome_empresa,
         email=analise.email,
         analise_id=str(analise.id)
     )
-    
-    # 5. Montar resposta
+
+    # 6. Montar resposta
     return AnaliseResponse(
         id=analise.id,
         nome_empresa=analise.nome_empresa,
@@ -159,18 +195,15 @@ def buscar_analise(
     analise_id: UUID,
     db: Session = Depends(get_db)
 ):
-    """
-    Busca uma análise pelo ID.
-    """
+    """Busca uma análise pelo ID."""
     analise = db.query(Analise).filter(Analise.id == analise_id).first()
-    
+
     if not analise:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Análise não encontrada"
         )
-    
-    # Reconstruir indicadores para resposta
+
     indicadores = IndicadoresCalculados(
         margem_bruta=float(analise.margem_bruta) if analise.margem_bruta else None,
         resultado_mes=float(analise.resultado_mes) if analise.resultado_mes else None,
@@ -187,7 +220,7 @@ def buscar_analise(
         tendencia_status=analise.tendencia_status,
         score_saude=float(analise.score_saude) if analise.score_saude else None
     )
-    
+
     return AnaliseResponse(
         id=analise.id,
         nome_empresa=analise.nome_empresa,
@@ -215,15 +248,13 @@ def listar_por_email(
     email: str,
     db: Session = Depends(get_db)
 ):
-    """
-    Lista todas as análises de um email (histórico do usuário).
-    """
+    """Lista todas as análises de um email."""
     analises = db.query(Analise).filter(
         Analise.email == email
     ).order_by(
         Analise.created_at.desc()
     ).all()
-    
+
     return [
         AnaliseResumo(
             id=a.id,
@@ -241,12 +272,7 @@ def listar_por_email(
 
 @router.post("/validar", response_model=ValidacaoResponse)
 def validar_dados(dados: DadosAnaliseInput):
-    """
-    Valida os dados antes de criar a análise.
-    Retorna alertas de coerência (não bloqueiam) e erros (se houver).
-    
-    Útil para validação em tempo real no frontend.
-    """
+    """Valida os dados antes de criar a análise."""
     return ValidacaoResponse(
         valido=True,
         alertas=dados.get_alertas(),
