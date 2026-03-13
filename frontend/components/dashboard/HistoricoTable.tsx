@@ -146,7 +146,7 @@ export default function HistoricoTable({ historico }: HistoricoTableProps) {
                   </td>
                   <td className="px-6 py-4">
                     <Link 
-                      href={`/dashboard?id=${analise.id}`}
+                      href={`/dashboard/${analise.id}`}
                       className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-muted-foreground hover:text-primary inline-block"
                       title="Ver análise completa"
                     >

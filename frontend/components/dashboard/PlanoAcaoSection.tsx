@@ -1,20 +1,21 @@
 // components/dashboard/PlanoAcaoSection.tsx
-// "O que fazer" — Plano de ação com micro-ações
-// v3 — Hoje / Próximo mês / Próximo trimestre + tempo, dificuldade, faz sozinho
+// Plano de ação com checkboxes
+// Pro: persiste no banco via API | Free: persiste em localStorage
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Zap, Calendar, CalendarCheck, AlertCircle, Circle, Clock, User, Users } from 'lucide-react';
 import { PlanoAcao } from '@/types/dashboard';
+import { salvarProgresso, buscarProgresso } from '@/lib/api';
 
 interface PlanoAcaoSectionProps {
   plano: PlanoAcao;
   analiseId?: string;
+  isPro?: boolean;
 }
 
-export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionProps) {
-  // Estado para controlar itens marcados por período
+export default function PlanoAcaoSection({ plano, analiseId, isPro = false }: PlanoAcaoSectionProps) {
   const [marcados, setMarcados] = useState<{
     '30': Set<number>;
     '60': Set<number>;
@@ -25,49 +26,74 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
     '90': new Set(),
   });
 
-  // Carregar estado do localStorage ao montar
+  // Evita salvar no banco antes de carregar o estado inicial
+  const carregouInicial = useRef(false);
+
+  // Carrega estado inicial — banco (Pro) ou localStorage (Free)
   useEffect(() => {
-    if (analiseId) {
-      const saved = localStorage.getItem(`plano_acao_${analiseId}`);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setMarcados({
-            '30': new Set(parsed['30'] || []),
-            '60': new Set(parsed['60'] || []),
-            '90': new Set(parsed['90'] || []),
-          });
-        } catch (e) {
-          console.error('Erro ao carregar progresso:', e);
+    if (!analiseId) return;
+
+    async function carregar() {
+      if (isPro) {
+        // Pro: busca do banco
+        const itens = await buscarProgresso(analiseId!).catch(() => []);
+        const novo = { '30': new Set<number>(), '60': new Set<number>(), '90': new Set<number>() };
+        for (const item of itens) {
+          if (item.marcado && item.periodo in novo) {
+            novo[item.periodo as '30' | '60' | '90'].add(item.indice_acao);
+          }
+        }
+        setMarcados(novo);
+      } else {
+        // Free: busca do localStorage
+        const saved = localStorage.getItem(`plano_acao_${analiseId}`);
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            setMarcados({
+              '30': new Set(parsed['30'] || []),
+              '60': new Set(parsed['60'] || []),
+              '90': new Set(parsed['90'] || []),
+            });
+          } catch (e) {
+            console.error('Erro ao carregar progresso:', e);
+          }
         }
       }
+      carregouInicial.current = true;
     }
-  }, [analiseId]);
 
-  // Salvar no localStorage quando mudar
+    carregar();
+  }, [analiseId, isPro]);
+
+  // Salva no localStorage quando mudar (Free only)
   useEffect(() => {
-    if (analiseId) {
-      const toSave = {
-        '30': Array.from(marcados['30']),
-        '60': Array.from(marcados['60']),
-        '90': Array.from(marcados['90']),
-      };
-      localStorage.setItem(`plano_acao_${analiseId}`, JSON.stringify(toSave));
-    }
-  }, [marcados, analiseId]);
+    if (!analiseId || isPro || !carregouInicial.current) return;
 
-  const toggleItem = (periodo: '30' | '60' | '90', index: number) => {
-    setMarcados((prev) => {
-      const novo = { ...prev };
-      const novoSet = new Set(prev[periodo]);
-      if (novoSet.has(index)) {
-        novoSet.delete(index);
-      } else {
-        novoSet.add(index);
-      }
-      novo[periodo] = novoSet;
-      return novo;
-    });
+    const toSave = {
+      '30': Array.from(marcados['30']),
+      '60': Array.from(marcados['60']),
+      '90': Array.from(marcados['90']),
+    };
+    localStorage.setItem(`plano_acao_${analiseId}`, JSON.stringify(toSave));
+  }, [marcados, analiseId, isPro]);
+
+  const toggleItem = async (periodo: '30' | '60' | '90', index: number) => {
+    const novoSet = new Set(marcados[periodo]);
+    const novoEstado = !novoSet.has(index);
+
+    if (novoEstado) {
+      novoSet.add(index);
+    } else {
+      novoSet.delete(index);
+    }
+
+    setMarcados((prev) => ({ ...prev, [periodo]: novoSet }));
+
+    // Pro: persiste no banco imediatamente
+    if (isPro && analiseId) {
+      await salvarProgresso(analiseId, periodo, index, novoEstado).catch(() => null);
+    }
   };
 
   const periodos = [
@@ -122,9 +148,9 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
         const totalMarcados = marcados[periodo.key].size;
         const totalItens = periodo.acoes.length;
         const progresso = totalItens > 0 ? (totalMarcados / totalItens) * 100 : 0;
-        
+
         return (
-          <div 
+          <div
             key={periodo.key}
             className={`bg-white rounded-xl shadow-sm border ${periodo.borderColor} p-6 hover:shadow-md transition duration-300`}
           >
@@ -134,24 +160,20 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
                 <Icon className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="text-xl font-bold text-primary">
-                  {periodo.titulo}
-                </h3>
+                <h3 className="text-xl font-bold text-primary">{periodo.titulo}</h3>
               </div>
               <span className="text-sm text-muted-foreground">
                 {totalMarcados}/{totalItens}
               </span>
             </div>
-            
+
             {/* Badge + Subtítulo */}
             <div className="flex items-center gap-2 mb-3">
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${periodo.badgeColor}`}>
                 {periodo.badge}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mb-3">
-              {periodo.subtitulo}
-            </p>
+            <p className="text-sm text-muted-foreground mb-3">{periodo.subtitulo}</p>
 
             {/* Barra de progresso */}
             <div className="h-2 bg-gray-100 rounded-full mb-6 overflow-hidden">
@@ -165,14 +187,14 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
             <div className="space-y-4">
               {periodo.acoes.map((acao, index) => {
                 const isChecked = marcados[periodo.key].has(index);
-                
+
                 return (
                   <button
                     key={index}
                     onClick={() => toggleItem(periodo.key, index)}
                     className={`w-full text-left p-4 rounded-lg transition-all duration-200 ${
-                      isChecked 
-                        ? `${periodo.lightColorChecked} opacity-75` 
+                      isChecked
+                        ? `${periodo.lightColorChecked} opacity-75`
                         : `${periodo.lightColor} hover:shadow-sm`
                     }`}
                   >
@@ -186,18 +208,8 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
                         }`}
                       >
                         {isChecked && (
-                          <svg
-                            className="w-3 h-3 text-white"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={3}
-                              d="M5 13l4 4L19 7"
-                            />
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         )}
                       </div>
@@ -217,14 +229,14 @@ export default function PlanoAcaoSection({ plano, analiseId }: PlanoAcaoSectionP
                           </span>
                         </div>
 
-                        {/* Título da ação */}
+                        {/* Título */}
                         <h4 className={`font-semibold mb-2 transition-all ${
                           isChecked ? 'text-gray-500 line-through' : 'text-gray-900'
                         }`}>
                           {acao.titulo}
                         </h4>
 
-                        {/* Micro-ações: tags de tempo, dificuldade, faz sozinho */}
+                        {/* Tags de tempo, dificuldade, faz sozinho */}
                         {'tempo_estimado' in acao && (acao as any).tempo_estimado && (
                           <div className="flex flex-wrap gap-2 mb-3">
                             {(acao as any).tempo_estimado && (

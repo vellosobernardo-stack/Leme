@@ -4,60 +4,38 @@
 
 import { DadosAnalise } from "@/types/analise";
 
-// URL base da API
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-// ========== SESSÃO (E-mail de abandono) ==========
+// ========== SESSÃO ==========
 
-/**
- * Inicia uma sessão de análise
- * Chamado quando o usuário clica "Começar Análise" na Etapa 1
- */
 export async function iniciarSessao(nomeEmpresa: string, email: string) {
   const response = await fetch(`${API_BASE}/sessao/iniciar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      nome_empresa: nomeEmpresa,
-      email: email,
-    }),
+    body: JSON.stringify({ nome_empresa: nomeEmpresa, email }),
   });
-
   if (!response.ok) {
     const erro = await response.json().catch(() => ({}));
     throw new Error(erro.detail || "Erro ao iniciar sessão");
   }
-
   return response.json();
 }
 
-/**
- * Conclui uma sessão de análise
- * Chamado quando a análise é finalizada com sucesso
- */
 export async function concluirSessao(sessaoId: string, analiseId: string) {
   const response = await fetch(`${API_BASE}/sessao/${sessaoId}/concluir`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      analise_id: analiseId,
-    }),
+    body: JSON.stringify({ analise_id: analiseId }),
   });
-
   if (!response.ok) {
-    // Não bloqueia o fluxo se falhar - apenas loga
     console.error("Erro ao concluir sessão:", await response.text());
     return null;
   }
-
   return response.json();
 }
 
 // ========== ANÁLISE ==========
 
-/**
- * Prepara os dados do formulário para enviar à API
- */
 function prepararDadosParaApi(dados: DadosAnalise, refParceiro?: string | null) {
   return {
     nome_empresa: dados.nome_empresa,
@@ -88,42 +66,27 @@ function prepararDadosParaApi(dados: DadosAnalise, refParceiro?: string | null) 
   };
 }
 
-/**
- * Cria uma nova análise
- */
 export async function criarAnalise(dados: DadosAnalise, refParceiro?: string | null) {
   const dadosFormatados = prepararDadosParaApi(dados, refParceiro);
-
   const response = await fetch(`${API_BASE}/api/v1/analise/nova`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include", // envia cookie JWT automaticamente se existir
     body: JSON.stringify(dadosFormatados),
   });
-
   if (!response.ok) {
     const erro = await response.json().catch(() => ({}));
     throw new Error(erro.detail || "Erro ao criar análise");
   }
-
   return response.json();
 }
 
-/**
- * Busca uma análise pelo ID
- */
 export async function buscarAnalise(id: string) {
   const response = await fetch(`${API_BASE}/api/v1/analise/${id}`);
-
-  if (!response.ok) {
-    throw new Error("Análise não encontrada");
-  }
-
+  if (!response.ok) throw new Error("Análise não encontrada");
   return response.json();
 }
 
-/**
- * Verifica se a API está online
- */
 export async function verificarStatus() {
   const response = await fetch(`${API_BASE}/health`);
   return response.json();
@@ -131,34 +94,95 @@ export async function verificarStatus() {
 
 // ========== DASHBOARD ==========
 
-/**
- * Busca dados do dashboard pelo email
- */
 export async function buscarDashboard(email: string) {
   const response = await fetch(`${API_BASE}/api/v1/dashboard/${encodeURIComponent(email)}`);
-  
   if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error('Nenhuma análise encontrada para este email');
-    }
-    throw new Error('Erro ao buscar dados do dashboard');
+    if (response.status === 404) throw new Error("Nenhuma análise encontrada para este email");
+    throw new Error("Erro ao buscar dados do dashboard");
   }
-  
+  return response.json();
+}
+
+export async function buscarDashboardPorId(id: string) {
+  const response = await fetch(`${API_BASE}/api/v1/dashboard/id/${id}`);
+  if (!response.ok) {
+    if (response.status === 404) throw new Error("Análise não encontrada");
+    throw new Error("Erro ao buscar dados do dashboard");
+  }
+  return response.json();
+}
+
+// ========== HISTÓRICO PRO ==========
+
+/**
+ * Lista todas as análises vinculadas ao usuário logado
+ */
+export async function buscarHistorico() {
+  const response = await fetch(`${API_BASE}/api/v1/historico/`, {
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Erro ao buscar histórico");
   return response.json();
 }
 
 /**
- * Busca dados do dashboard por ID da análise
+ * Busca dados completos de uma análise específica (valida dono)
  */
-export async function buscarDashboardPorId(id: string) {
-  const response = await fetch(`${API_BASE}/api/v1/dashboard/id/${id}`);
-  
+export async function buscarAnaliseCompleta(id: string) {
+  const response = await fetch(`${API_BASE}/api/v1/historico/${id}`, {
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Análise não encontrada ou sem permissão");
+  return response.json();
+}
+
+/**
+ * Vincula uma análise existente ao usuário logado
+ * Usado após completar análise estando logado
+ */
+export async function vincularAnalise(analiseId: string) {
+  const response = await fetch(`${API_BASE}/api/v1/historico/${analiseId}/vincular`, {
+    method: "PATCH",
+    credentials: "include",
+  });
   if (!response.ok) {
-    if (response.status === 404) {
-      throw new Error('Análise não encontrada');
-    }
-    throw new Error('Erro ao buscar dados do dashboard');
+    console.error("Erro ao vincular análise:", await response.text());
+    return null;
   }
-  
+  return response.json();
+}
+
+// ========== PROGRESSO DO PLANO DE AÇÃO ==========
+
+/**
+ * Salva ou atualiza o estado de um checkbox do plano de ação
+ */
+export async function salvarProgresso(
+  analiseId: string,
+  periodo: "30" | "60" | "90",
+  indiceAcao: number,
+  marcado: boolean
+) {
+  const response = await fetch(`${API_BASE}/api/v1/progresso/${analiseId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ periodo, indice_acao: indiceAcao, marcado }),
+  });
+  if (!response.ok) {
+    console.error("Erro ao salvar progresso:", await response.text());
+    return null;
+  }
+  return response.json();
+}
+
+/**
+ * Busca todos os checkboxes marcados de uma análise
+ */
+export async function buscarProgresso(analiseId: string) {
+  const response = await fetch(`${API_BASE}/api/v1/progresso/${analiseId}`, {
+    credentials: "include",
+  });
+  if (!response.ok) return [];
   return response.json();
 }

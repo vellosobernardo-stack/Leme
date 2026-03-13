@@ -19,6 +19,7 @@ import SimuladorSobrevivencia from "@/components/dashboard/SimuladorSobrevivenci
 import PaywallOverlay from "@/components/dashboard/PaywallOverlay";
 import PaywallModal from "@/components/dashboard/PaywallModal";
 import { buscarDashboardPorId } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
 import { calcularFraseImpacto } from "@/lib/fraseImpacto";
 import { DashboardData } from "@/types/dashboard";
 import { AlertTriangle, Download } from "lucide-react";
@@ -40,6 +41,7 @@ interface DashboardPageProps {
 export default function DashboardPage({ params }: DashboardPageProps) {
   const { id } = params;
   const searchParams = useSearchParams();
+  const { isPro } = useAuth();
   
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -371,7 +373,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           </div>
           
           {pago ? (
-            <PlanoAcaoSection plano={data.plano_acao} analiseId={id} />
+            <PlanoAcaoSection plano={data.plano_acao} analiseId={id} isPro={isPro} />
           ) : (
             <PaywallOverlay 
               onDesbloquear={() => setModalAberto(true)}

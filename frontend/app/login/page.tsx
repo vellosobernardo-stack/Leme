@@ -35,7 +35,7 @@ export default function LoginPage() {
         return;
       }
 
-      if (data.pro_ativo) {
+      if (data.usuario?.pro_ativo) {
         window.location.href = "/dashboard/pro";
       } else {
         window.location.href = "/assinar";

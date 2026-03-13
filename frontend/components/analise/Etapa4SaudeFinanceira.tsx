@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { DadosAnalise, ErrosCampo, ReceitaHistorico, MESES } from "@/types/analise";
-import { criarAnalise, concluirSessao } from "@/lib/api";
+import { criarAnalise, concluirSessao, vincularAnalise } from "@/lib/api";
 import { PassoEtapa4, PASSOS_ETAPA4_INFO } from "@/hooks/useAnalise";
 
 interface Etapa4Props {
@@ -13,6 +13,8 @@ interface Etapa4Props {
   carregando: boolean;
   passoEtapa4: PassoEtapa4;
   sessaoId: string | null;
+  refParceiro?: string | null;
+  isPro?: boolean;
   atualizarDados: <K extends keyof DadosAnalise>(campo: K, valor: DadosAnalise[K]) => void;
   atualizarReceitaHistorico: (campo: keyof ReceitaHistorico, valor: number) => void;
   setCarregando: (v: boolean) => void;
@@ -29,6 +31,8 @@ export default function Etapa4SaudeFinanceira({
   carregando,
   passoEtapa4,
   sessaoId,
+  refParceiro,
+  isPro = false,
   atualizarDados,
   atualizarReceitaHistorico,
   setCarregando,
@@ -165,14 +169,20 @@ export default function Etapa4SaudeFinanceira({
   const handleSubmit = async () => {
     setCarregando(true);
     try {
-      const resultado = await criarAnalise(dados);
-      
+      const resultado = await criarAnalise(dados, refParceiro);
+
       if (sessaoId) {
         await concluirSessao(sessaoId, resultado.id);
         limparSessao();
       }
-      
-      router.push(`/dashboard/${resultado.id}`);
+
+      // Pro: vincula análise ao usuário e redireciona para dashboard Pro
+      if (isPro) {
+        await vincularAnalise(resultado.id).catch(() => null);
+        router.push(`/dashboard/pro?analise_id=${resultado.id}`);
+      } else {
+        router.push(`/dashboard/${resultado.id}`);
+      }
     } catch (error) {
       console.error("Erro ao criar análise:", error);
       alert("Erro ao processar análise. Tente novamente.");

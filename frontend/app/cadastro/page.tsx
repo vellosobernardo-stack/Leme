@@ -104,7 +104,7 @@ export default function CadastroPage() {
               Criar conta
             </h1>
             <p className="mt-1 text-sm text-[#003054]/50">
-              Comece sua análise financeira hoje
+              Comece seu diagnóstico financeira hoje
             </p>
           </div>
 
