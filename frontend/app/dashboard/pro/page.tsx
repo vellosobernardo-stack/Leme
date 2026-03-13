@@ -539,7 +539,7 @@ export default function DashboardProPage() {
                       tickLine={false}
                     />
                     <Tooltip
-                      formatter={(v: number) => [`${v} pts`, "Score"]}
+                      formatter={(v) => [`${v ?? 0} pts`, "Score"]}
                       contentStyle={{
                         borderRadius: 10,
                         border: "none",
