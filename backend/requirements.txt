@@ -28,3 +28,5 @@ stripe
 # NOVO — Autenticação (Fase 1 Pro)
 python-jose[cryptography]>=3.3.0   # geração e validação de tokens JWT
 bcrypt>=4.0.1                       # hash de senha
+
+anthropic

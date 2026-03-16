@@ -19,6 +19,7 @@ from schemas.analise import (
 from services.indicadores import calcular_indicadores
 from services.diagnostico import gerar_diagnostico
 from services.email_service import enviar_email_pos_conclusao
+from services.ia_service import gerar_resumo_executivo, gerar_comparativo_setorial
 
 router = APIRouter(
     prefix="/api/v1/analise",
@@ -66,7 +67,8 @@ async def criar_analise(
 ):
     """
     Cria uma nova análise financeira.
-    Se o usuário estiver logado como Pro, vincula automaticamente.
+    Se o usuário estiver logado como Pro, vincula automaticamente
+    e dispara geração de conteúdo via IA (resumo executivo + comparativo setorial).
     """
 
     # 1. Calcular indicadores
@@ -159,7 +161,80 @@ async def criar_analise(
     db.commit()
     db.refresh(analise)
 
-    # 5. Disparar e-mail pós-conclusão em background
+    # 5. Gerar conteúdo via IA — apenas para usuários Pro
+    # Free não dispara nenhuma chamada à Claude API
+    if usuario_id:
+        # Montar dict de indicadores para os prompts
+        indicadores_dict = {
+            "margem_bruta": float(indicadores.margem_bruta) if indicadores.margem_bruta is not None else None,
+            "resultado_mes": float(indicadores.resultado_mes) if indicadores.resultado_mes is not None else None,
+            "folego_caixa": indicadores.folego_caixa,
+            "ciclo_financeiro": indicadores.ciclo_financeiro,
+            "peso_divida": float(indicadores.peso_divida) if indicadores.peso_divida is not None else None,
+            "receita_funcionario": float(indicadores.receita_funcionario) if indicadores.receita_funcionario is not None else None,
+        }
+
+        # Prioridade do mês = primeiro item do plano de 30 dias
+        plano_prioridade = ""
+        if diagnostico["plano_30_dias"]:
+            primeiro = diagnostico["plano_30_dias"][0]
+            # plano_30_dias pode ser lista de strings ou lista de dicts
+            if isinstance(primeiro, dict):
+                plano_prioridade = primeiro.get("titulo", "") or primeiro.get("acao", "")
+            else:
+                plano_prioridade = str(primeiro)
+
+        # 5a. Resumo executivo — buscar score anterior se houver análises passadas
+        try:
+            from models.usuario import Usuario
+            from sqlalchemy import desc
+
+            score_anterior = None
+            analise_anterior = (
+                db.query(Analise)
+                .filter(
+                    Analise.usuario_id == usuario_id,
+                    Analise.id != analise.id
+                )
+                .order_by(desc(Analise.created_at))
+                .first()
+            )
+            if analise_anterior and analise_anterior.score_saude is not None:
+                score_anterior = int(analise_anterior.score_saude)
+
+            resumo = await gerar_resumo_executivo(
+                score=int(indicadores.score_saude),
+                indicadores=indicadores_dict,
+                pontos_atencao=diagnostico["pontos_atencao"],
+                plano_prioridade=plano_prioridade,
+                setor=dados.setor.value,
+                score_anterior=score_anterior,
+            )
+            analise.resumo_executivo = resumo  # None se falhou — frontend usa fallback
+
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error("Erro ao gerar resumo executivo: %s", e)
+            # Não bloquear a criação da análise por falha de IA
+
+        # 5b. Comparativo setorial
+        try:
+            setorial = await gerar_comparativo_setorial(
+                indicadores=indicadores_dict,
+                setor=dados.setor.value,
+            )
+            analise.comparativo_setorial = setorial  # None se falhou — frontend não exibe a seção
+
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error("Erro ao gerar comparativo setorial: %s", e)
+            # Não bloquear a criação da análise por falha de IA
+
+        # Salvar os campos de IA no banco
+        db.commit()
+        db.refresh(analise)
+
+    # 6. Disparar e-mail pós-conclusão em background
     background_tasks.add_task(
         enviar_email_pos_conclusao,
         nome_empresa=analise.nome_empresa,
@@ -167,7 +242,7 @@ async def criar_analise(
         analise_id=str(analise.id)
     )
 
-    # 6. Montar resposta
+    # 7. Montar resposta
     return AnaliseResponse(
         id=analise.id,
         nome_empresa=analise.nome_empresa,

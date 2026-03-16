@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import (
     Column, String, Integer, Numeric, Boolean,
-    DateTime, JSON, ForeignKey, TypeDecorator, CHAR
+    DateTime, JSON, ForeignKey, TypeDecorator, CHAR, Text
 )
 from sqlalchemy.orm import relationship
 from database import Base
@@ -124,6 +124,12 @@ class Analise(Base):
     plano_30_dias = Column(JSON, default=list)
     plano_60_dias = Column(JSON, default=list)
     plano_90_dias = Column(JSON, default=list)
+
+    # ========== IA GERADA (FASE 5) ==========
+    # nullable=True — análises Free e análises antigas ficam sem esses campos
+    # Gerados UMA VEZ na criação da análise Pro e salvos aqui
+    resumo_executivo = Column(Text, nullable=True)
+    comparativo_setorial = Column(Text, nullable=True)  # JSON string
 
     # ========== METADADOS ==========
     metodo_entrada = Column(String(20), default="manual")  # manual, dre, balanco
