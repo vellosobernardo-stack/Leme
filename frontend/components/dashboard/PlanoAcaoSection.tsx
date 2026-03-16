@@ -1,6 +1,7 @@
 // components/dashboard/PlanoAcaoSection.tsx
 // Plano de ação com checkboxes
-// Pro: persiste no banco via API | Free: persiste em localStorage
+// Pro: exibe 3 períodos (30/60/90) com persistência no banco
+// Free: exibe apenas 30 dias com persistência em localStorage
 
 "use client";
 
@@ -26,16 +27,13 @@ export default function PlanoAcaoSection({ plano, analiseId, isPro = false }: Pl
     '90': new Set(),
   });
 
-  // Evita salvar no banco antes de carregar o estado inicial
   const carregouInicial = useRef(false);
 
-  // Carrega estado inicial — banco (Pro) ou localStorage (Free)
   useEffect(() => {
     if (!analiseId) return;
 
     async function carregar() {
       if (isPro) {
-        // Pro: busca do banco
         const itens = await buscarProgresso(analiseId!).catch(() => []);
         const novo = { '30': new Set<number>(), '60': new Set<number>(), '90': new Set<number>() };
         for (const item of itens) {
@@ -45,7 +43,6 @@ export default function PlanoAcaoSection({ plano, analiseId, isPro = false }: Pl
         }
         setMarcados(novo);
       } else {
-        // Free: busca do localStorage
         const saved = localStorage.getItem(`plano_acao_${analiseId}`);
         if (saved) {
           try {
@@ -82,21 +79,17 @@ export default function PlanoAcaoSection({ plano, analiseId, isPro = false }: Pl
     const novoSet = new Set(marcados[periodo]);
     const novoEstado = !novoSet.has(index);
 
-    if (novoEstado) {
-      novoSet.add(index);
-    } else {
-      novoSet.delete(index);
-    }
+    if (novoEstado) novoSet.add(index);
+    else novoSet.delete(index);
 
     setMarcados((prev) => ({ ...prev, [periodo]: novoSet }));
 
-    // Pro: persiste no banco imediatamente
     if (isPro && analiseId) {
       await salvarProgresso(analiseId, periodo, index, novoEstado).catch(() => null);
     }
   };
 
-  const periodos = [
+  const todosPeriodos = [
     {
       key: '30' as const,
       titulo: 'O que fazer hoje',
@@ -140,6 +133,9 @@ export default function PlanoAcaoSection({ plano, analiseId, isPro = false }: Pl
       badgeColor: 'bg-orange-100 text-orange-700',
     },
   ];
+
+  // Free: apenas período 30 dias | Pro: todos os 3 períodos
+  const periodos = isPro ? todosPeriodos : todosPeriodos.slice(0, 1);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -236,7 +232,7 @@ export default function PlanoAcaoSection({ plano, analiseId, isPro = false }: Pl
                           {acao.titulo}
                         </h4>
 
-                        {/* Tags de tempo, dificuldade, faz sozinho */}
+                        {/* Tags */}
                         {'tempo_estimado' in acao && (acao as any).tempo_estimado && (
                           <div className="flex flex-wrap gap-2 mb-3">
                             {(acao as any).tempo_estimado && (

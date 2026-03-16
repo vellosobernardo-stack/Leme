@@ -71,7 +71,7 @@ export async function criarAnalise(dados: DadosAnalise, refParceiro?: string | n
   const response = await fetch(`${API_BASE}/api/v1/analise/nova`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include", // envia cookie JWT automaticamente se existir
+    credentials: "include",
     body: JSON.stringify(dadosFormatados),
   });
   if (!response.ok) {
@@ -138,7 +138,6 @@ export async function buscarAnaliseCompleta(id: string) {
 
 /**
  * Vincula uma análise existente ao usuário logado
- * Usado após completar análise estando logado
  */
 export async function vincularAnalise(analiseId: string) {
   const response = await fetch(`${API_BASE}/api/v1/historico/${analiseId}/vincular`, {
@@ -149,6 +148,30 @@ export async function vincularAnalise(analiseId: string) {
     console.error("Erro ao vincular análise:", await response.text());
     return null;
   }
+  return response.json();
+}
+
+/**
+ * Retorna as duas análises mais recentes lado a lado com variações calculadas.
+ * Se houver só 1 análise, retorna anterior: null e variacoes: null.
+ */
+export async function buscarComparativo() {
+  const response = await fetch(`${API_BASE}/api/v1/historico/comparativo`, {
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Erro ao buscar comparativo");
+  return response.json();
+}
+
+/**
+ * Retorna os fatores positivos e negativos que mais impactaram o score
+ * de uma análise específica. Lógica determinística — sem IA.
+ */
+export async function buscarFatoresScore(analiseId: string) {
+  const response = await fetch(`${API_BASE}/api/v1/historico/${analiseId}/fatores-score`, {
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Erro ao buscar fatores do score");
   return response.json();
 }
 

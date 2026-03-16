@@ -179,7 +179,7 @@ export default function Etapa4SaudeFinanceira({
       // Pro: vincula análise ao usuário e redireciona para dashboard Pro
       if (isPro) {
         await vincularAnalise(resultado.id).catch(() => null);
-        router.push(`/dashboard/pro?analise_id=${resultado.id}`);
+        router.push(`/dashboard/pro/${resultado.id}`);
       } else {
         router.push(`/dashboard/${resultado.id}`);
       }
