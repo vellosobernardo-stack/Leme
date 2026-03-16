@@ -52,7 +52,7 @@ function buildLinhas(dados: DashboardData, analiseAnterior?: ResumoExecutivoProp
   if (sim) {
     const caixaDisponivel = sim.caixa_disponivel ?? 0;
     const despesasFixas = sim.despesas_fixas ?? 0;
-    const saldoMes = (dados.receita_mensal ?? 0) - (dados.custo_vendas ?? 0) - despesasFixas;
+    const saldoMes = (sim.receita_mensal ?? 0) - (sim.custo_vendas ?? 0) - despesasFixas;
 
     let caixaTexto: string;
     if (saldoMes > 0) {
