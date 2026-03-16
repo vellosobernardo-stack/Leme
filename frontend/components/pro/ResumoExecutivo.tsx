@@ -81,7 +81,7 @@ function buildLinhas(dados: DashboardData, analiseAnterior?: ResumoExecutivoProp
   }
 
   // Linha 4 — Prioridade do mês
-  const primeiraAcao = dados.plano?.plano_30_dias?.acoes?.[0];
+  const primeiraAcao = dados.plano_acao?.plano_30_dias?.acoes?.[0];
   if (primeiraAcao?.titulo) {
     linhas.push({
       icone: <Zap className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#003054' }} />,
