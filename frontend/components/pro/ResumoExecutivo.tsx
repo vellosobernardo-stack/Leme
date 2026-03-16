@@ -26,7 +26,7 @@ interface Linha {
 
 function buildLinhas(dados: DashboardData, analiseAnterior?: ResumoExecutivoProps['analiseAnterior']): Linha[] {
   const linhas: Linha[] = [];
-  const score = dados.score ?? 0;
+  const score = dados.score?.valor ?? 0;
 
   // Linha 1 — Estado geral
   let estadoTexto: string;
@@ -163,7 +163,7 @@ export default function ResumoExecutivo({ dados, analiseAnterior }: ResumoExecut
             // Primeira linha recebe cor adaptativa
             let classeTexto = 'resumo-executivo-linha-texto';
             if (idx === 0) {
-              const score = dados.score ?? 0;
+              const score = dados.score?.valor ?? 0;
               if (score >= 70) classeTexto += ' saudavel';
               else if (score >= 40) classeTexto += ' atencao';
               else classeTexto += ' critico';
