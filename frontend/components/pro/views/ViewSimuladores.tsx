@@ -27,7 +27,7 @@ export default function ViewSimuladores({ dashboard }: ViewSimuladoresProps) {
           receita_mensal={dashboard.simulador.receita_mensal}
           custo_vendas={dashboard.simulador.custo_vendas}
           despesas_fixas={dashboard.simulador.despesas_fixas}
-          score_atual={dashboard.score ?? 0}
+          score_atual={dashboard.score.valor ?? 0}
         />
       )}
 
