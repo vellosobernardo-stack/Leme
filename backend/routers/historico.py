@@ -237,7 +237,7 @@ def listar_historico(
     """
     analises = (
         db.query(Analise)
-        .filter(Analise.usuario_id == usuario.id)
+        .filter(Analise.usuario_id == str(usuario.id))
         .order_by(Analise.created_at.desc())
         .all()
     )
@@ -274,7 +274,7 @@ def buscar_comparativo(
     """
     analises = (
         db.query(Analise)
-        .filter(Analise.usuario_id == usuario.id)
+        .filter(Analise.usuario_id == str(usuario.id))
         .order_by(Analise.created_at.desc())
         .limit(2)
         .all()
