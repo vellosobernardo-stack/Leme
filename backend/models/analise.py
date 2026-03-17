@@ -61,7 +61,7 @@ class Analise(Base):
 
     # ========== VÍNCULO COM USUÁRIO PRO (FASE 2) ==========
     # nullable=True — análises Free continuam funcionando sem FK
-    usuario_id = Column(GUID(), ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True, index=True)
+    usuario_id = Column(String(36), ForeignKey("usuarios.id", ondelete="SET NULL"), nullable=True, index=True)
     usuario = relationship("Usuario", back_populates="analises")
 
     # ========== INFORMAÇÕES BÁSICAS ==========
