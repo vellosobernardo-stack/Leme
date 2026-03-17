@@ -177,7 +177,7 @@ def login(dados: LoginRequest, db: Session = Depends(get_db)):
         httponly=True,
         max_age=60 * 60 * 24 * 30,  # 30 dias em segundos
         samesite="lax",
-        secure=False,  # False em dev local (HTTP). Mude para True em produção.
+        secure=True,  # HTTPS em produção (Railway/Vercel)
     )
 
     return response
