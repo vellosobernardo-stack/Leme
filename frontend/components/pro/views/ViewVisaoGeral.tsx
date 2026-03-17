@@ -3,6 +3,7 @@
 // components/pro/views/ViewVisaoGeral.tsx
 // View "Visão Geral" — primeira view que o usuário vê ao entrar no dashboard Pro.
 // Fase 4B: ResumoExecutivo real + ScoreGaugePro + ProLaboreCard
+// Fase 5: resumoIa passado ao ResumoExecutivo
 
 import ScoreGaugePro from '@/components/pro/ScoreGaugePro';
 import ResumoExecutivo from '@/components/pro/ResumoExecutivo';
@@ -17,15 +18,15 @@ interface ViewVisaoGeralProps {
     mes_referencia: number;
     ano_referencia: number;
   } | null;
+  resumoIa?: string | null; // Fase 5 — texto gerado por IA, null = fallback determinístico
 }
 
 export default function ViewVisaoGeral({
   dashboard,
   analiseId,
   analiseAnterior,
+  resumoIa,
 }: ViewVisaoGeralProps) {
-  // analiseAnterior pode ter score null (primeira análise do histórico sem score calculado)
-  // ResumoExecutivo espera score: number — filtramos aqui para não passar null
   const analiseAnteriorResumo =
     analiseAnterior?.score != null
       ? {
@@ -42,6 +43,7 @@ export default function ViewVisaoGeral({
       <ResumoExecutivo
         dados={dashboard}
         analiseAnterior={analiseAnteriorResumo}
+        resumo_ia={resumoIa}
       />
 
       {/* 2. Score */}
@@ -52,9 +54,7 @@ export default function ViewVisaoGeral({
       />
 
       {/* 3. Pró-labore */}
-      <ProLaboreCard
-        
-      />
+      <ProLaboreCard />
 
     </div>
   );

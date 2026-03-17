@@ -1,10 +1,9 @@
 'use client';
 
 // components/pro/ResumoExecutivo.tsx
-// Resumo determinístico da empresa — exibido no topo de ViewVisaoGeral.
-// Fase 4B: lógica local com os dados já disponíveis.
-// Fase 5: será substituído por versão que lê do banco (gerado por IA).
-// A interface de props é intencionalmente mantida compatível para facilitar a substituição.
+// Fase 5: lê resumo_ia gerado por IA quando disponível.
+// Fallback para buildLinhas() quando resumo_ia é null (Free, análises antigas, erro de IA).
+// Interface de props expandida com resumo_ia opcional — retrocompatível.
 
 import { Target, Clock, AlertTriangle, Zap, TrendingUp, TrendingDown } from 'lucide-react';
 import { DashboardData } from '@/types/dashboard';
@@ -16,6 +15,7 @@ interface ResumoExecutivoProps {
     mes_referencia: number;
     ano_referencia: number;
   } | null;
+  resumo_ia?: string | null; // Fase 5 — texto gerado por IA, null = usar fallback
 }
 
 interface Linha {
@@ -23,6 +23,56 @@ interface Linha {
   texto: string;
   cor?: string;
 }
+
+// ========== MAPA DE LABELS PARA ÍCONES (Fase 5) ==========
+// Detecta o label antes dos dois pontos para escolher o ícone correto
+
+function iconeParaLabel(label: string): React.ReactNode {
+  const l = label.toUpperCase();
+  if (l.includes('SITUAÇ') || l.includes('ESTADO'))
+    return <Target className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#003054' }} />;
+  if (l.includes('CAIXA'))
+    return <Clock className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#003054' }} />;
+  if (l.includes('RISCO') || l.includes('ATENÇ'))
+    return <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#003054' }} />;
+  if (l.includes('PRIORIDADE'))
+    return <Zap className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#003054' }} />;
+  if (l.includes('EVOLUÇ') || l.includes('COMPARATIVO') || l.includes('SUBIU') || l.includes('CRESCEU'))
+    return <TrendingUp className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#003054' }} />;
+  if (l.includes('QUEDA') || l.includes('CAIU') || l.includes('REDUÇ'))
+    return <TrendingDown className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#003054' }} />;
+  // Fallback genérico
+  return <Target className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#003054' }} />;
+}
+
+// ========== PARSER DO TEXTO DA IA ==========
+// Converte o texto de 4-5 linhas em array de Linha para renderização
+
+function parseLinhasIA(texto: string, score: number): Linha[] {
+  const linhasTexto = texto.split('\n').filter(l => l.trim());
+
+  return linhasTexto.map((linha, idx) => {
+    const separador = linha.indexOf(':');
+    const label = separador > -1 ? linha.substring(0, separador).trim() : '';
+    const conteudo = separador > -1 ? linha.substring(separador + 1).trim() : linha.trim();
+
+    // Primeira linha recebe cor adaptativa baseada no score
+    let cor: string | undefined;
+    if (idx === 0) {
+      if (score >= 70) cor = 'text-green-700';
+      else if (score >= 40) cor = 'text-yellow-700';
+      else cor = 'text-red-700';
+    }
+
+    return {
+      icone: iconeParaLabel(label),
+      texto: label ? `${label}: ${conteudo}` : conteudo,
+      cor,
+    };
+  });
+}
+
+// ========== FALLBACK DETERMINÍSTICO (mantido intacto da Fase 4B) ==========
 
 function buildLinhas(dados: DashboardData, analiseAnterior?: ResumoExecutivoProps['analiseAnterior']): Linha[] {
   const linhas: Linha[] = [];
@@ -69,10 +119,9 @@ function buildLinhas(dados: DashboardData, analiseAnterior?: ResumoExecutivoProp
     });
   }
 
-  // Linha 3 — Principal risco (omitida se não houver pontos de atenção)
+  // Linha 3 — Principal risco
   const pontosAtencao = dados.diagnostico?.pontos_atencao ?? [];
   if (pontosAtencao.length > 0) {
-    // Pega o ponto de atenção com título mais curto
     const ponto = [...pontosAtencao].sort((a, b) => a.titulo.length - b.titulo.length)[0];
     linhas.push({
       icone: <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: '#003054' }} />,
@@ -89,7 +138,7 @@ function buildLinhas(dados: DashboardData, analiseAnterior?: ResumoExecutivoProp
     });
   }
 
-  // Linha 5 — Comparativo (só exibe se houver análise anterior)
+  // Linha 5 — Comparativo com análise anterior
   if (analiseAnterior && analiseAnterior.score != null) {
     const variacao = Math.round(score) - Math.round(analiseAnterior.score);
     let comparativoTexto: string;
@@ -114,8 +163,17 @@ function buildLinhas(dados: DashboardData, analiseAnterior?: ResumoExecutivoProp
   return linhas;
 }
 
-export default function ResumoExecutivo({ dados, analiseAnterior }: ResumoExecutivoProps) {
-  const linhas = buildLinhas(dados, analiseAnterior);
+// ========== COMPONENTE ==========
+
+export default function ResumoExecutivo({ dados, analiseAnterior, resumo_ia }: ResumoExecutivoProps) {
+  const score = dados.score?.valor ?? 0;
+
+  // Fase 5: usar texto da IA quando disponível e não vazio
+  // Fallback para buildLinhas quando null (Free, análises antigas, erro de IA)
+  const linhas: Linha[] =
+    resumo_ia && resumo_ia.trim()
+      ? parseLinhasIA(resumo_ia, score)
+      : buildLinhas(dados, analiseAnterior);
 
   return (
     <>
@@ -160,14 +218,16 @@ export default function ResumoExecutivo({ dados, analiseAnterior }: ResumoExecut
         <p className="resumo-executivo-titulo">Resumo da sua empresa hoje</p>
         <div className="resumo-executivo-linhas">
           {linhas.map((linha, idx) => {
-            // Primeira linha recebe cor adaptativa
             let classeTexto = 'resumo-executivo-linha-texto';
-            if (idx === 0) {
-              const score = dados.score?.valor ?? 0;
+            // Cor adaptativa na primeira linha (tanto IA quanto fallback)
+            if (idx === 0 && !linha.cor) {
               if (score >= 70) classeTexto += ' saudavel';
               else if (score >= 40) classeTexto += ' atencao';
               else classeTexto += ' critico';
             }
+            // Cor explícita vinda do parser (IA) ou buildLinhas
+            if (linha.cor) classeTexto += ` ${linha.cor}`;
+
             return (
               <div key={idx} className="resumo-executivo-linha">
                 {linha.icone}

@@ -3,6 +3,7 @@
 // app/dashboard/pro/[id]/page.tsx
 // Dashboard Pro — navegação por views com sidebar (desktop) e barra inferior (mobile)
 // Fase 4A — reestruturação completa da navegação
+// Fase 5 — resumo_ia + comparativo_setorial passados às views, ChatConsultor global
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -23,6 +24,7 @@ import ViewIndicadores  from "@/components/pro/views/ViewIndicadores";
 import ViewPlanoAcao    from "@/components/pro/views/ViewPlanoAcao";
 import ViewFinanceiro   from "@/components/pro/views/ViewFinanceiro";
 import ViewHistorico    from "@/components/pro/views/ViewHistorico";
+import ChatConsultor    from "@/components/pro/ChatConsultor";
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -76,6 +78,10 @@ export default function DashboardAnalise() {
   const [carregando,  setCarregando]  = useState(true);
   const [erro,        setErro]        = useState<string | null>(null);
 
+  // Fase 5 — campos de IA vindos do endpoint de histórico
+  const [resumoIa,             setResumoIa]             = useState<string | null>(null);
+  const [comparativoSetorial,  setComparativoSetorial]  = useState<string | null>(null);
+
   // ─── Auth guard ─────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -83,7 +89,6 @@ export default function DashboardAnalise() {
   }, [carregandoAuth, isPro, router]);
 
   // ─── Fetch de dados — feito UMA vez no nível da page ────────────────────────
-  // As views recebem os dados como props — sem fetch duplicado por view.
 
   useEffect(() => {
     if (!isPro || !id) return;
@@ -96,6 +101,13 @@ export default function DashboardAnalise() {
         setDashboard(dash);
         setComparativo(comp);
         setHistorico(hist ?? []);
+
+        // Fase 5 — extrair campos de IA do comparativo (análise atual)
+        // O endpoint /historico/comparativo já retorna os campos da análise atual
+        if (comp?.atual) {
+          setResumoIa(comp.atual.resumo_executivo ?? null);
+          setComparativoSetorial(comp.atual.comparativo_setorial ?? null);
+        }
       })
       .catch(() => setErro("Não foi possível carregar a análise."))
       .finally(() => setCarregando(false));
@@ -179,6 +191,7 @@ export default function DashboardAnalise() {
           <ViewVisaoGeral
             {...viewProps}
             analiseAnterior={analiseAnterior}
+            resumoIa={resumoIa}
           />
         );
       case "simuladores":
@@ -195,6 +208,8 @@ export default function DashboardAnalise() {
           <ViewIndicadores
             {...viewProps}
             indicadoresAnteriores={indicadoresAnteriores}
+            comparativoSetorial={comparativoSetorial}
+            setor={dashboard.empresa.setor}
           />
         );
       case "plano-de-acao":
@@ -208,6 +223,7 @@ export default function DashboardAnalise() {
           <ViewVisaoGeral
             {...viewProps}
             analiseAnterior={analiseAnterior}
+            resumoIa={resumoIa}
           />
         );
     }
@@ -232,14 +248,11 @@ export default function DashboardAnalise() {
           color: #003054;
         }
 
-        /* Área de conteúdo — margem esquerda para não sobrepor a sidebar */
         .pro-content {
           margin-left: 240px;
-          /* Espaço para o header fixo */
           padding-top: 60px;
         }
 
-        /* Scroll da área de conteúdo é independente da sidebar */
         .pro-content-inner {
           max-width: 860px;
           margin: 0 auto;
@@ -247,12 +260,10 @@ export default function DashboardAnalise() {
           animation: fadeUp 0.35s ease both;
         }
 
-        /* Plano de Ação precisa de mais largura para os 3 cards */
         .pro-content-inner.view-larga {
           max-width: 1100px;
         }
 
-        /* Título da view atual */
         .view-titulo {
           font-family: 'Playfair Display', serif;
           font-size: 22px;
@@ -262,13 +273,12 @@ export default function DashboardAnalise() {
           line-height: 1.2;
         }
 
-        /* Mobile — sidebar some, header ocupa largura total, bottom nav aparece */
         @media (max-width: 1023px) {
           .pro-content {
             margin-left: 0;
           }
           .pro-content-inner {
-            padding: 24px 16px 96px; /* 96px = espaço para a barra inferior */
+            padding: 24px 16px 96px;
           }
           .view-titulo {
             font-size: 19px;
@@ -278,17 +288,14 @@ export default function DashboardAnalise() {
 
       <div className="pro-layout">
 
-        {/* Sidebar — desktop only (se esconde sozinha no mobile via CSS) */}
         <ProSidebar analiseId={id} viewAtiva={viewAtiva} />
 
-        {/* Header — fixo, acima do conteúdo */}
         <ProHeader
           nomeEmpresa={dashboard.empresa.nome}
           mesLabel={mesLabel}
           setor={dashboard.empresa.setor}
         />
 
-        {/* Conteúdo principal */}
         <main className="pro-content">
           <div className={`pro-content-inner${viewAtiva === 'plano-de-acao' ? ' view-larga' : ''}`}>
             <h1 className="view-titulo">
@@ -307,8 +314,10 @@ export default function DashboardAnalise() {
           </div>
         </main>
 
-        {/* Barra inferior — mobile only (se esconde sozinha no desktop via CSS) */}
         <ProBottomNav analiseId={id} viewAtiva={viewAtiva} />
+
+        {/* Fase 5 — ChatConsultor global: renderiza em todas as views via createPortal */}
+        <ChatConsultor analiseId={id} />
 
       </div>
     </>

@@ -209,3 +209,42 @@ export async function buscarProgresso(analiseId: string) {
   if (!response.ok) return [];
   return response.json();
 }
+
+// ========== CHAT CONSULTOR PRO — Fase 5 ==========
+
+export interface MensagemHistorico {
+  role: "user" | "assistant";
+  content: string;
+}
+
+/**
+ * Envia uma mensagem ao ChatConsultor e retorna a resposta da IA.
+ * O histórico completo da conversa é enviado a cada chamada —
+ * o backend não armazena o histórico de chat.
+ *
+ * Histórico vazio = primeira abertura → backend gera mensagem contextualizada.
+ */
+export async function enviarMensagemChat(
+  analiseId: string,
+  mensagem: string,
+  historico: MensagemHistorico[] = []
+): Promise<string> {
+  const response = await fetch(`${API_BASE}/api/v1/chat/consultor`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      analise_id: analiseId,
+      mensagem,
+      historico,
+    }),
+  });
+
+  if (!response.ok) {
+    const erro = await response.json().catch(() => ({}));
+    throw new Error(erro.detail || "Erro ao enviar mensagem ao consultor");
+  }
+
+  const data = await response.json();
+  return data.resposta;
+}
