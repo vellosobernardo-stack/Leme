@@ -45,7 +45,7 @@ export default function ViewIndicadores({
       {/* Fase 5: comparativo setorial — não renderiza nada se dadosComparativo for null */}
       <ComparativoSetorial
         dados={dadosComparativo}
-        setor={setor ?? dashboard.setor ?? ''}
+        setor={setor ?? ''}
       />
     </div>
   );
