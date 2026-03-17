@@ -53,7 +53,7 @@ export default function ViewVisaoGeral({
 
       {/* 3. Pró-labore */}
       <ProLaboreCard
-        retirada_atual={dashboard.retirada_pro_labore ?? null}
+        
       />
 
     </div>
