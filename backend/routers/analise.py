@@ -79,6 +79,7 @@ async def criar_analise(
 
     # 3. Detectar usuario_id (Pro logado) — sem bloquear Free
     usuario_id = _extrair_usuario_id_do_cookie(request, db)
+    import logging; logging.getLogger(__name__).warning("DEBUG usuario_id: %s", usuario_id)
 
     # 4. Criar registro no banco
     analise = Analise(

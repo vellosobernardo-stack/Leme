@@ -50,6 +50,9 @@ def _analise_para_dict_resumido(a: Analise) -> dict:
             "peso_divida":         float(a.peso_divida)         if a.peso_divida         is not None else None,
         },
         "pontos_atencao": a.pontos_atencao or [],
+        # Fase 5 — campos de IA (nullable: Free e análises antigas retornam null)
+        "resumo_executivo":      a.resumo_executivo,
+        "comparativo_setorial":  a.comparativo_setorial,
     }
 
 
@@ -358,6 +361,9 @@ def buscar_analise_completa(
         "plano_30_dias": analise.plano_30_dias or [],
         "plano_60_dias": analise.plano_60_dias or [],
         "plano_90_dias": analise.plano_90_dias or [],
+        # Fase 5 — campos de IA
+        "resumo_executivo":     analise.resumo_executivo,
+        "comparativo_setorial": analise.comparativo_setorial,
         # Meta
         "created_at": analise.created_at.isoformat() if analise.created_at else None,
     }

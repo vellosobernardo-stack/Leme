@@ -23,6 +23,7 @@ from routers.auth import router as auth_router
 from routers.stripe_pro import router as stripe_pro_router
 from routers.historico import router as historico_router   # NOVO — Fase 2
 from routers.progresso import router as progresso_router   # NOVO — Fase 2
+from routers.chat import router as chat_router             # NOVO — Fase 5
 
 settings = get_settings()
 
@@ -65,6 +66,9 @@ app.include_router(stripe_pro_router)
 # Fase 2 Pro
 app.include_router(historico_router)
 app.include_router(progresso_router)
+
+# Fase 5 Pro
+app.include_router(chat_router)
 
 
 @app.get("/")
