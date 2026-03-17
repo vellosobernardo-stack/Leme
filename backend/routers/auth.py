@@ -176,7 +176,7 @@ def login(dados: LoginRequest, db: Session = Depends(get_db)):
         value=token,
         httponly=True,
         max_age=60 * 60 * 24 * 30,  # 30 dias em segundos
-        samesite="lax",
+        samesite="none",
         secure=True,  # HTTPS em produção (Railway/Vercel)
     )
 
