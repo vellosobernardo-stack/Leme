@@ -54,7 +54,7 @@ export default function ProBottomNav({ analiseId, viewAtiva }: ProBottomNavProps
   }
 
   // O item "Mais" fica ativo quando a view atual é financeiro ou historico
-  const maisAtivo = viewAtiva === 'financeiro' || viewAtiva === 'historico';
+  const maisAtivo = viewAtiva === 'financeiro';
 
   return (
     <>
