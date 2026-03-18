@@ -82,7 +82,7 @@ export default function ScoreGaugePro({ score, analiseId, analiseAnterior }: Sco
 
           {/* Gauge Visual */}
           <div className="flex flex-col items-center">
-            <div className="relative w-48 h-28">
+            <div className="relative w-48 h-32">
               <svg viewBox="0 0 200 100" className="w-full h-full">
                 <path
                   d="M 10 100 A 90 90 0 0 1 190 100"

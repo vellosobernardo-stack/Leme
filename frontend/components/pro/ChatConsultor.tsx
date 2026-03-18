@@ -281,7 +281,7 @@ export default function ChatConsultor({ analiseId }: ChatConsultorProps) {
         .chat-enviar:disabled { opacity: 0.45; cursor: not-allowed; }
         .chat-botao-flutuante {
           position: fixed;
-          bottom: 24px;
+          bottom: 26px;
           right: 24px;
           z-index: 48;
           width: 56px;
@@ -297,6 +297,11 @@ export default function ChatConsultor({ analiseId }: ChatConsultorProps) {
           box-shadow: 0 4px 20px rgba(0, 48, 84, 0.35);
           transition: background 0.15s, transform 0.15s;
         }
+@media (max-width: 1023px) {
+  .chat-botao-flutuante {
+    bottom: 80px;
+  }
+}
         .chat-botao-flutuante:hover { background: #004a7c; transform: scale(1.06); }
         .chat-badge {
           position: absolute;
