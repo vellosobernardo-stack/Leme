@@ -37,12 +37,6 @@ const MAIS_ITEMS: { slug: ViewSlug; label: string; icon: React.ReactNode; desc: 
     icon: <Gem size={20} />,
     desc: 'Valuation e Payback da sua empresa',
   },
-  {
-    slug: 'historico',
-    label: 'Histórico',
-    icon: <History size={20} />,
-    desc: 'Evolução do score ao longo do tempo',
-  },
 ];
 
 interface ProBottomNavProps {

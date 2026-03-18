@@ -263,7 +263,7 @@ export default function DashboardProPage() {
                   Sua primeira análise está<br />a um passo
                 </h2>
                 <p className="bv-sub">
-                  Responda 15 perguntas sobre sua empresa e receba um diagnóstico financeiro completo — com score, indicadores e plano de ação personalizado.
+                  Em menos de 3 minutos, receba um diagnóstico financeiro completo — com score, indicadores e plano de ação personalizado.
                 </p>
               </div>
 

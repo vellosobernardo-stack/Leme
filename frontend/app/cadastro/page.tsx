@@ -16,7 +16,7 @@ export default function CadastroPage() {
   const [erro, setErro] = useState("");
 
   const senhasOk = senha.length >= 6 && senha === confirmar;
-  const isValid = email.length > 0 && senhasOk;
+  const isValid = nome.trim().length >= 2 && email.length > 0 && senhasOk;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -113,9 +113,8 @@ export default function CadastroPage() {
             {/* Nome */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold tracking-wide uppercase text-[#003054]/60">
-                Nome{" "}
-                <span className="normal-case font-normal text-[#003054]/30">
-                  (opcional)
+                Nome da Empresa <span className="text-red-400">*</span>
+                  
                 </span>
               </label>
               <div className="relative">
@@ -125,7 +124,7 @@ export default function CadastroPage() {
                 />
                 <input
                   type="text"
-                  placeholder="Seu nome"
+                  placeholder="Nome da sua empresa"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
                   className="w-full pl-9 pr-4 py-3 text-sm bg-[#F8F7F5] border border-[#E8E5E0] rounded-lg text-[#003054] placeholder:text-[#003054]/30 focus:outline-none focus:border-[#003054] focus:ring-1 focus:ring-[#003054]/20 transition-all"

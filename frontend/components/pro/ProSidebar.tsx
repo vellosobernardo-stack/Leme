@@ -40,7 +40,7 @@ const NAV_ITEMS: NavItem[] = [
   { slug: 'indicadores',   label: 'Indicadores',   icon: <BarChart2       size={18} /> },
   { slug: 'plano-de-acao', label: 'Plano de Ação', icon: <CheckSquare     size={18} /> },
   { slug: 'financeiro',    label: 'Financeiro',    icon: <Gem             size={18} /> },
-  { slug: 'historico',     label: 'Histórico',     icon: <History         size={18} />, separator: true },
+  
 ];
 
 interface ProSidebarProps {

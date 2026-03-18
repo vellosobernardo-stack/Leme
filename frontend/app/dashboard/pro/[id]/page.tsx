@@ -216,8 +216,7 @@ export default function DashboardAnalise() {
         return <ViewPlanoAcao {...viewProps} />;
       case "financeiro":
         return <ViewFinanceiro {...viewProps} />;
-      case "historico":
-        return <ViewHistorico {...viewProps} historico={historico} />;
+      
       default:
         return (
           <ViewVisaoGeral
@@ -306,7 +305,7 @@ export default function DashboardAnalise() {
                 "indicadores":   "Indicadores Financeiros",
                 "plano-de-acao": "Plano de Ação",
                 "financeiro":    "Financeiro",
-                "historico":     "Histórico",
+                
               }[viewAtiva]}
             </h1>
 

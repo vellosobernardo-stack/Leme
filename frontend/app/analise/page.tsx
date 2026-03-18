@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import ProgressBar from "@/components/ui/ProgressBar";
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { useState, useEffect } from "react";
 
 import Etapa1Identificacao from "@/components/analise/Etapa1Identificacao";
 import Etapa2Basico from "@/components/analise/Etapa2Basico";
@@ -14,7 +15,15 @@ import Etapa4SaudeFinanceira from "@/components/analise/Etapa4SaudeFinanceira";
 export default function AnalisePage() {
   const analise = useAnalise();
   const { etapaAtual, passoEtapa4, progresso } = analise;
-  const { isPro } = useAuth();
+  const { isPro, usuario, carregando: carregandoAuth } = useAuth();
+useEffect(() => {
+  if (carregandoAuth) return;
+  if (isPro && usuario && etapaAtual === 1) {
+    analise.atualizarDados("nome_empresa", usuario.nome ?? "");
+    analise.atualizarDados("email", usuario.email ?? "");
+    analise.avancar();
+  }
+}, [carregandoAuth, isPro, usuario]);
 
   const isEtapa1 = etapaAtual === 1;
 
@@ -116,7 +125,7 @@ export default function AnalisePage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
           <div className="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-center">
             <p className="text-xs sm:text-sm text-blue-700">
-              ⚡ Valores aproximados, 7 perguntas objetivas
+              Pode usar valores aproximados. Serão 7 perguntas objetivas
             </p>
           </div>
         </div>

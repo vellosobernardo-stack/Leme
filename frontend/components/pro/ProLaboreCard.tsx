@@ -178,7 +178,7 @@ export default function ProLaboreCard({ retirada_atual }: ProLaboreCardProps) {
         <Styles />
         <div className="prolabore-card prolabore-fluxo">
           <ProgressoSteps atual={1} total={4} />
-          <p className="prolabore-pergunta-titulo">Qual é o saldo atual na conta da sua empresa?</p>
+          <p className="prolabore-pergunta-titulo">Qual o saldo disponível agora na conta da empresa? (não inclua valores a receber)</p>
           <CampoMoeda
             label="Saldo na conta"
             valor={dados.saldo_atual}
@@ -253,8 +253,8 @@ export default function ProLaboreCard({ retirada_atual }: ProLaboreCardProps) {
         <Styles />
         <div className="prolabore-card prolabore-fluxo">
           <ProgressoSteps atual={3} total={4} />
-          <p className="prolabore-pergunta-titulo">Tem alguma entrada prevista este mês além do faturamento normal?</p>
-          <p className="prolabore-pergunta-sub">Ex: recebimento de dívida, venda de ativo, entrada pontual.</p>
+          <p className="prolabore-pergunta-titulo">Tem algum recebimento extraordinário garantido esta semana?</p>
+          <p className="prolabore-pergunta-sub">Ex: PIX confirmado, venda de ativo, entrada pontual.</p>
           <div className="prolabore-radio-grupo">
             <button
               className={`prolabore-radio-btn ${dados.tem_entrada_extra === true ? 'ativo' : ''}`}
@@ -381,7 +381,7 @@ export default function ProLaboreCard({ retirada_atual }: ProLaboreCardProps) {
 
           {/* Valor principal */}
           <div className="prolabore-resultado-principal">
-            <p className="prolabore-resultado-label">Você pode retirar com segurança até</p>
+            <p className="prolabore-resultado-label">Considerando apenas o que está disponível agora, você pode retirar com segurança até</p>
             {semRetirada ? (
               <p className="prolabore-resultado-zero">
                 Sua empresa não comporta retirada segura este mês. Consulte o plano de ação.
@@ -419,8 +419,9 @@ export default function ProLaboreCard({ retirada_atual }: ProLaboreCardProps) {
           {/* Disclaimer — sempre visível */}
           <div className="prolabore-disclaimer">
             <p>
-              Este valor é calculado com base nos dados informados agora. Variações nas entradas,
-              imprevistos ou compromissos não informados podem alterar esse número.
+              Este cálculo considera apenas o saldo atual e compromissos imediatos. Não inclui receitas que você espera receber ao longo do mês. 
+              Se sua empresa tem receitas previsíveis chegando esta semana, elas podem ser incluídas como recebimento extraordinário garantido.
+              Imprevistos ou compromissos não informados podem alterar esse número.
               Recalcule sempre que sua situação mudar.
             </p>
           </div>
