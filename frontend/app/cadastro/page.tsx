@@ -114,8 +114,7 @@ export default function CadastroPage() {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold tracking-wide uppercase text-[#003054]/60">
                 Nome da Empresa <span className="text-red-400">*</span>
-                  
-                </span>
+
               </label>
               <div className="relative">
                 <User
