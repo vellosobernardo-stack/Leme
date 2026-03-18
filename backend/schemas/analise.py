@@ -52,7 +52,7 @@ class ReceitaHistorico(BaseModel):
 class DadosAnaliseInput(BaseModel):
     """
     Dados de entrada para criar uma nova análise.
-    Corresponde ao formulário de 15-19 perguntas.
+    Corresponde ao formulário de análise financeira.
     """
     ref_parceiro: str | None = None
     

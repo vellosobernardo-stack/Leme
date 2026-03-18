@@ -43,6 +43,7 @@ app.add_middleware(
     allow_origins=[
         "https://leme.app.br",
         "https://www.leme.app.br",
+        "https://api.leme.app.br", 
         "http://localhost:3000",
     ],
     allow_credentials=True,
