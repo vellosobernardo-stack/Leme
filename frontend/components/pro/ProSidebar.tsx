@@ -24,7 +24,6 @@ export type ViewSlug =
   | 'indicadores'
   | 'plano-de-acao'
   | 'financeiro'
-  | 'historico';
 
 interface NavItem {
   slug: ViewSlug;

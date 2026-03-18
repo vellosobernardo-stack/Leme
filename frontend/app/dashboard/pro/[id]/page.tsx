@@ -54,7 +54,6 @@ const VIEWS_VALIDAS: ViewSlug[] = [
   "indicadores",
   "plano-de-acao",
   "financeiro",
-  "historico",
 ];
 
 // ─── Componente ───────────────────────────────────────────────────────────────
