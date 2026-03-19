@@ -13,10 +13,11 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
-
 from database import get_db
 from models.usuario import Usuario
 from services.auth_service import hash_senha, verificar_senha, criar_token, decodificar_token
+from fastapi import BackgroundTasks
+from services.email_service import enviar_email_boas_vindas
 
 router = APIRouter(
     prefix="/auth",
@@ -103,7 +104,7 @@ def get_usuario_pro(usuario: Usuario = Depends(get_usuario_atual)) -> Usuario:
 # ========== ENDPOINTS ==========
 
 @router.post("/register", response_model=UsuarioResponse)
-def register(dados: RegisterRequest, db: Session = Depends(get_db)):
+def register(dados: RegisterRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """
     Cria um novo usuário.
 
@@ -130,6 +131,12 @@ def register(dados: RegisterRequest, db: Session = Depends(get_db)):
     db.add(usuario)
     db.commit()
     db.refresh(usuario)
+    background_tasks.add_task(
+        enviar_email_boas_vindas,
+        nome_empresa=usuario.nome or usuario.email,
+        email=usuario.email,
+        is_pro=usuario.pro_ativo,
+    )
 
     return UsuarioResponse(
         id=str(usuario.id),

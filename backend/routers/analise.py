@@ -18,7 +18,7 @@ from schemas.analise import (
 )
 from services.indicadores import calcular_indicadores
 from services.diagnostico import gerar_diagnostico
-from services.email_service import enviar_email_pos_conclusao
+from services.email_service import enviar_email_pos_conclusao, enviar_email_pos_analise_pro
 from services.ia_service import gerar_resumo_executivo, gerar_comparativo_setorial
 
 router = APIRouter(
@@ -234,6 +234,22 @@ async def criar_analise(
         # Salvar os campos de IA no banco
         db.commit()
         db.refresh(analise)
+
+        # 5c. Disparar e-mail pós-análise Pro em background
+        if analise.resumo_executivo:
+            from models.usuario import Usuario as UsuarioModel
+            usuario_obj = db.query(UsuarioModel).filter(UsuarioModel.id == usuario_id).first()
+            if usuario_obj:
+                background_tasks.add_task(
+                    enviar_email_pos_analise_pro,
+                    nome_empresa=analise.nome_empresa,
+                    email=analise.email,
+                    score=int(analise.score_saude),
+                    mes_referencia=analise.mes_referencia,
+                    ano_referencia=analise.ano_referencia,
+                    resumo_executivo=analise.resumo_executivo,
+                    analise_id=str(analise.id),
+                )
 
     # 6. Disparar e-mail pós-conclusão em background
     background_tasks.add_task(

@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     
     # === E-mail (Brevo) ===
     BREVO_API_KEY: Optional[str] = None
+
+    # === Cron ===
+    CRON_SECRET: Optional[str] = None
     
     # === Admin ===
     ADMIN_EMAIL: str = "bavstecnologia@gmail.com"
