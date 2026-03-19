@@ -235,6 +235,15 @@ async def criar_analise(
         db.commit()
         db.refresh(analise)
 
+        
+        # Atualizar ultima_analise_em no usuário
+        from models.usuario import Usuario as UsuarioModel
+        usuario_obj = db.query(UsuarioModel).filter(UsuarioModel.id == usuario_id).first()
+        if usuario_obj:
+            from datetime import datetime, timezone
+            usuario_obj.ultima_analise_em = datetime.now(timezone.utc)
+            db.commit()
+
         # 5c. Disparar e-mail pós-análise Pro em background
         if analise.resumo_executivo:
             from models.usuario import Usuario as UsuarioModel

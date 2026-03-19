@@ -69,6 +69,7 @@ class Usuario(Base):
     # ========== METADADOS ==========
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    ultima_analise_em = Column(DateTime(timezone=True), nullable=True)
 
     # ========== RELACIONAMENTOS (Fase 2) ==========
     analises = relationship("Analise", back_populates="usuario")
