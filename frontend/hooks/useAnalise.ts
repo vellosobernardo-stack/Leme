@@ -94,7 +94,7 @@ export function useAnalise() {
       novosErros.nome_empresa = "Nome da empresa é obrigatório";
     }
 
-    if (!dados.email || !/^[\w.-]+@[\w.-]+\.\w+$/.test(dados.email)) {
+    if (!dados.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email)) {
       novosErros.email = "Email inválido";
     }
 

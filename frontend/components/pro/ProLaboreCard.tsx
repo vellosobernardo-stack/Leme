@@ -157,9 +157,9 @@ export default function ProLaboreCard({ retirada_atual }: ProLaboreCardProps) {
             <DollarSign size={22} color="#003054" />
           </div>
           <div className="prolabore-idle-texto">
-            <p className="prolabore-idle-titulo">Quanto posso retirar este mês?</p>
+            <p className="prolabore-idle-titulo">O que sobrou para você este mês?</p>
             <p className="prolabore-idle-sub">
-              Calcule agora o valor de pró-labore seguro com base na situação atual do caixa da sua empresa.
+              Veja quanto está disponível no caixa da sua empresa hoje — sem contar receitas futuras ou obrigações contábeis.
             </p>
           </div>
           <button className="prolabore-btn-primario" onClick={() => setEstado('pergunta-1')}>
@@ -384,7 +384,7 @@ export default function ProLaboreCard({ retirada_atual }: ProLaboreCardProps) {
             <p className="prolabore-resultado-label">Considerando apenas o que está disponível agora, você pode retirar com segurança até</p>
             {semRetirada ? (
               <p className="prolabore-resultado-zero">
-                Sua empresa não comporta retirada segura este mês. Consulte o plano de ação.
+                O caixa atual não comporta retirada este mês. Consulte o plano de ação.
               </p>
             ) : (
               <p className="prolabore-resultado-valor">
@@ -421,7 +421,7 @@ export default function ProLaboreCard({ retirada_atual }: ProLaboreCardProps) {
             <p>
               Este cálculo considera apenas o saldo atual e compromissos imediatos. Não inclui receitas que você espera receber ao longo do mês. 
               Se sua empresa tem receitas previsíveis chegando esta semana, elas podem ser incluídas como recebimento extraordinário garantido.
-              Imprevistos ou compromissos não informados podem alterar esse número.
+              Para definir sua retirada oficial, consulte seu contador.
               Recalcule sempre que sua situação mudar.
             </p>
           </div>

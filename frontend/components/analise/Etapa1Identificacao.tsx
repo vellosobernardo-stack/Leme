@@ -60,6 +60,7 @@ export default function Etapa1Identificacao({
             id="nome_empresa"
             value={dados.nome_empresa}
             onChange={(e) => atualizarDados("nome_empresa", e.target.value)}
+            onBlur={() => { if (erros.nome_empresa) atualizarDados("nome_empresa", dados.nome_empresa); }}
             placeholder="Digite o nome da sua empresa"
             enterKeyHint="next"
             onKeyDown={(e) => {
@@ -86,6 +87,7 @@ export default function Etapa1Identificacao({
             id="email"
             value={dados.email}
             onChange={(e) => atualizarDados("email", e.target.value)}
+            onBlur={() => { if (erros.email) atualizarDados("email", dados.email); }}
             placeholder="seu@email.com"
             enterKeyHint="go"
             className={`input py-3 sm:py-2 ${erros.email ? "input-error" : ""}`}
