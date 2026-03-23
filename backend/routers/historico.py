@@ -237,7 +237,7 @@ def listar_historico(
     """
     analises = (
         db.query(Analise)
-        .filter(Analise.usuario_id == str(usuario.id))
+        .filter(Analise.usuario_id == str(usuario.id), Analise.arquivada != True)
         .order_by(Analise.created_at.desc())
         .all()
     )
@@ -420,3 +420,27 @@ def vincular_analise(
     db.commit()
 
     return {"ok": True, "mensagem": "Análise vinculada com sucesso"}
+
+# ── PATCH /api/v1/historico/{id}/arquivar ─────────────────────────────────────
+
+@router.patch("/{analise_id}/arquivar")
+def arquivar_analise(
+    analise_id: UUID,
+    usuario=Depends(get_usuario_pro),
+    db: Session = Depends(get_db)
+):
+    """
+    Arquiva uma análise — remove do histórico visível mas mantém os dados.
+    """
+    analise = db.query(Analise).filter(Analise.id == analise_id).first()
+
+    if not analise:
+        raise HTTPException(status_code=404, detail="Análise não encontrada")
+
+    if str(analise.usuario_id) != str(usuario.id):
+        raise HTTPException(status_code=403, detail="Acesso negado")
+
+    analise.arquivada = True
+    db.commit()
+
+    return {"ok": True}
