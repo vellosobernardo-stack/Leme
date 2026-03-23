@@ -49,7 +49,7 @@ def _extrair_usuario_id_do_cookie(request: Request, db: Session) -> str | None:
             return None
 
         from models.usuario import Usuario
-        usuario = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+        usuario = db.query(Usuario).filter(Usuario.email == usuario_id).first()
         if usuario and usuario.pro_ativo:
             return str(usuario.id)
 
