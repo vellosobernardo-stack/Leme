@@ -136,6 +136,7 @@ class Analise(Base):
     alertas_coerencia = Column(JSON, default=list)
     ref_parceiro = Column(String(50), nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    arquivada = Column(Boolean, default=False, nullable=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # ========== CONTROLE DE E-MAILS ==========
