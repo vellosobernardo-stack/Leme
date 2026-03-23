@@ -27,36 +27,6 @@ router = APIRouter(
 )
 
 
-def _extrair_usuario_id_do_cookie(request: Request, db: Session) -> str | None:
-    """
-    Tenta extrair o usuario_id do JWT no cookie.
-    Retorna o ID se for Pro ativo, None caso contrário.
-    Nunca lança exceção — análise Free não pode ser bloqueada.
-    """
-    try:
-        from routers.auth import get_usuario_atual
-        from jose import jwt, JWTError
-        from services.auth_service import decodificar_token
-        payload = decodificar_token(token)
-        token = request.cookies.get("leme_token")
-        if not token:
-            return None
-
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        usuario_id = payload.get("sub")
-        if not usuario_id:
-            return None
-
-        from models.usuario import Usuario
-        usuario = db.query(Usuario).filter(Usuario.email == usuario_id).first()
-        if usuario and usuario.pro_ativo:
-            return str(usuario.id)
-
-        return None
-    except Exception:
-        return None
-
-
 @router.post("/nova", response_model=AnaliseResponse, status_code=status.HTTP_201_CREATED)
 async def criar_analise(
     dados: DadosAnaliseInput,
@@ -67,7 +37,7 @@ async def criar_analise(
     """
     Cria uma nova análise financeira.
     Se o usuário estiver logado como Pro, vincula automaticamente
-    e dispara geração de conteúdo via IA (resumo executivo + comparativo setorial).
+    e dispara geração de conteúdo via IA (resumo executivo).
     """
 
     # 1. Calcular indicadores
@@ -76,9 +46,13 @@ async def criar_analise(
     # 2. Gerar diagnóstico e plano de ação
     diagnostico = gerar_diagnostico(dados, indicadores)
 
-    # 3. Detectar usuario_id (Pro logado) — sem bloquear Free
-    usuario_id = _extrair_usuario_id_do_cookie(request, db)
-    import logging; logging.getLogger(__name__).warning("DEBUG usuario_id: %s", usuario_id)
+    # 3. Detectar usuario_id (Pro logado) — lido do body, validado no banco
+    usuario_id = dados.usuario_id or None
+    if usuario_id:
+        from models.usuario import Usuario
+        usuario_obj = db.query(Usuario).filter(Usuario.id == usuario_id).first()
+        if not usuario_obj or not usuario_obj.pro_ativo:
+            usuario_id = None
 
     # 4. Criar registro no banco
     analise = Analise(
@@ -178,7 +152,6 @@ async def criar_analise(
         plano_prioridade = ""
         if diagnostico["plano_30_dias"]:
             primeiro = diagnostico["plano_30_dias"][0]
-            # plano_30_dias pode ser lista de strings ou lista de dicts
             if isinstance(primeiro, dict):
                 plano_prioridade = primeiro.get("titulo", "") or primeiro.get("acao", "")
             else:
@@ -186,7 +159,6 @@ async def criar_analise(
 
         # 5a. Resumo executivo — buscar score anterior se houver análises passadas
         try:
-            from models.usuario import Usuario
             from sqlalchemy import desc
 
             score_anterior = None
@@ -210,31 +182,16 @@ async def criar_analise(
                 setor=dados.setor.value,
                 score_anterior=score_anterior,
             )
-            analise.resumo_executivo = resumo  # None se falhou — frontend usa fallback
+            analise.resumo_executivo = resumo
 
         except Exception as e:
             import logging
             logging.getLogger(__name__).error("Erro ao gerar resumo executivo: %s", e)
-            # Não bloquear a criação da análise por falha de IA
 
-        # 5b. Comparativo setorial
-        try:
-            setorial = await gerar_comparativo_setorial(
-                indicadores=indicadores_dict,
-                setor=dados.setor.value,
-            )
-            analise.comparativo_setorial = setorial  # None se falhou — frontend não exibe a seção
-
-        except Exception as e:
-            import logging
-            logging.getLogger(__name__).error("Erro ao gerar comparativo setorial: %s", e)
-            # Não bloquear a criação da análise por falha de IA
-
-        # Salvar os campos de IA no banco
+        # Salvar resumo_executivo no banco
         db.commit()
         db.refresh(analise)
 
-        
         # Atualizar ultima_analise_em no usuário
         from models.usuario import Usuario as UsuarioModel
         usuario_obj = db.query(UsuarioModel).filter(UsuarioModel.id == usuario_id).first()
@@ -243,7 +200,7 @@ async def criar_analise(
             usuario_obj.ultima_analise_em = datetime.now(timezone.utc)
             db.commit()
 
-        # 5c. Disparar e-mail pós-análise Pro em background
+        # 5b. Disparar e-mail pós-análise Pro em background
         if analise.resumo_executivo:
             from models.usuario import Usuario as UsuarioModel
             usuario_obj = db.query(UsuarioModel).filter(UsuarioModel.id == usuario_id).first()

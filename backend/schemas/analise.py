@@ -55,6 +55,7 @@ class DadosAnaliseInput(BaseModel):
     Corresponde ao formulário de análise financeira.
     """
     ref_parceiro: str | None = None
+    usuario_id: str | None = None
     
     # ========== ETAPA 1: IDENTIFICAÇÃO ==========
     nome_empresa: str = Field(
