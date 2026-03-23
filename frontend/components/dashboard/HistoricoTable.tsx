@@ -1,15 +1,17 @@
 // components/dashboard/HistoricoTable.tsx
 // Tabela de histórico de análises
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { History, ExternalLink, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { History, ExternalLink, TrendingUp, TrendingDown, Minus, Trash2 } from 'lucide-react';
 import { AnaliseHistorico } from '@/types/dashboard';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 interface HistoricoTableProps {
   historico: AnaliseHistorico[];
 }
 
-// Formata data para exibição
 function formatarData(dataString: string): string {
   const data = new Date(dataString);
   return data.toLocaleDateString('pt-BR', {
@@ -19,33 +21,55 @@ function formatarData(dataString: string): string {
   });
 }
 
-export default function HistoricoTable({ historico }: HistoricoTableProps) {
-  // Calcula variação entre análises
+function getMesAno(analise: AnaliseHistorico): string {
+  const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const mes = meses[(analise.mes_referencia ?? 1) - 1] ?? '';
+  return `${mes}/${analise.ano_referencia ?? ''}`;
+}
+
+export default function HistoricoTable({ historico: historicoInicial }: HistoricoTableProps) {
+  const [historico, setHistorico] = useState(historicoInicial);
+  const [confirmandoId, setConfirmandoId] = useState<string | null>(null);
+  const [arquivandoId, setArquivandoId] = useState<string | null>(null);
+
   const getVariacao = (index: number): number | null => {
     if (index >= historico.length - 1) return null;
     return historico[index].score - historico[index + 1].score;
   };
 
-  // Cor do status
   const getStatusStyles = (status: string) => {
     switch (status) {
-      case 'saudavel':
-        return 'bg-green-100 text-green-700';
-      case 'atencao':
-        return 'bg-yellow-100 text-yellow-700';
-      case 'critico':
-        return 'bg-red-100 text-red-700';
-      default:
-        return 'bg-gray-100 text-gray-700';
+      case 'saudavel': return 'bg-green-100 text-green-700';
+      case 'atencao':  return 'bg-yellow-100 text-yellow-700';
+      case 'critico':  return 'bg-red-100 text-red-700';
+      default:         return 'bg-gray-100 text-gray-700';
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
       case 'saudavel': return 'Saudável';
-      case 'atencao': return 'Atenção';
-      case 'critico': return 'Crítico';
-      default: return status;
+      case 'atencao':  return 'Atenção';
+      case 'critico':  return 'Crítico';
+      default:         return status;
+    }
+  };
+
+  const handleArquivar = async (id: string) => {
+    setArquivandoId(id);
+    try {
+      const response = await fetch(`${API_BASE}/api/v1/historico/${id}/arquivar`, {
+        method: 'PATCH',
+        credentials: 'include',
+      });
+      if (response.ok) {
+        setHistorico((prev) => prev.filter((a) => a.id !== id));
+      }
+    } catch (err) {
+      console.error('Erro ao arquivar análise:', err);
+    } finally {
+      setArquivandoId(null);
+      setConfirmandoId(null);
     }
   };
 
@@ -78,45 +102,26 @@ export default function HistoricoTable({ historico }: HistoricoTableProps) {
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 text-left">
-              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Data
-              </th>
-              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Referência
-              </th>
-              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Score
-              </th>
-              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Variação
-              </th>
-              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                
-              </th>
+              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Data</th>
+              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Referência</th>
+              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Score</th>
+              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Variação</th>
+              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border/40">
             {historico.map((analise, index) => {
               const variacao = getVariacao(index);
-              
+              const confirmando = confirmandoId === analise.id;
+              const arquivando = arquivandoId === analise.id;
+
               return (
-                <tr 
-                  key={analise.id}
-                  className="hover:bg-gray-50 transition-colors"
-                >
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {formatarData(analise.data)}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {analise.mes_referencia}
-                  </td>
+                <tr key={analise.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-sm text-gray-900">{formatarData(analise.data)}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{analise.mes_referencia}</td>
                   <td className="px-6 py-4">
-                    <span className="text-lg font-bold text-primary">
-                      {analise.score}
-                    </span>
+                    <span className="text-lg font-bold text-primary">{analise.score}</span>
                   </td>
                   <td className="px-6 py-4">
                     {variacao !== null ? (
@@ -129,8 +134,7 @@ export default function HistoricoTable({ historico }: HistoricoTableProps) {
                           <Minus className="w-4 h-4 text-gray-400" />
                         )}
                         <span className={`text-sm font-medium ${
-                          variacao > 0 ? 'text-green-600' : 
-                          variacao < 0 ? 'text-red-600' : 'text-gray-500'
+                          variacao > 0 ? 'text-green-600' : variacao < 0 ? 'text-red-600' : 'text-gray-500'
                         }`}>
                           {variacao > 0 ? '+' : ''}{variacao} pts
                         </span>
@@ -145,13 +149,44 @@ export default function HistoricoTable({ historico }: HistoricoTableProps) {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <Link 
-                      href={`/dashboard/${analise.id}`}
-                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-muted-foreground hover:text-primary inline-block"
-                      title="Ver análise completa"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </Link>
+                    {confirmando ? (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-gray-500 whitespace-nowrap">
+                          Remover análise de {getMesAno(analise)}?{' '}
+                          <span className="text-xs text-gray-400">Os dados ficam salvos.</span>
+                        </span>
+                        <button
+                          onClick={() => setConfirmandoId(null)}
+                          className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 rounded"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => handleArquivar(analise.id)}
+                          disabled={arquivando}
+                          className="px-2 py-1 text-xs text-white bg-red-500 hover:bg-red-600 rounded disabled:opacity-50"
+                        >
+                          {arquivando ? '...' : 'Remover'}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1">
+                        <Link
+                          href={`/dashboard/${analise.id}`}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-muted-foreground hover:text-primary inline-block"
+                          title="Ver análise completa"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </Link>
+                        <button
+                          onClick={() => setConfirmandoId(analise.id)}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-muted-foreground hover:text-red-500"
+                          title="Remover do histórico"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               );
