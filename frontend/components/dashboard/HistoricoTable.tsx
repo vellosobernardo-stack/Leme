@@ -23,7 +23,7 @@ function formatarData(dataString: string): string {
 
 function getMesAno(analise: AnaliseHistorico): string {
   const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-  const mes = meses[(analise.mes_referencia ?? 1) - 1] ?? '';
+  const mes = meses[(Number(analise.mes_referencia) || 1) - 1] ?? '';
   return `${mes}/${analise.ano_referencia ?? ''}`;
 }
 
