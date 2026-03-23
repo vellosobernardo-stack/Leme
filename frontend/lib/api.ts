@@ -63,6 +63,7 @@ function prepararDadosParaApi(dados: DadosAnalise, refParceiro?: string | null) 
     bens_equipamentos: dados.tem_bens ? dados.bens_equipamentos : null,
     num_funcionarios: dados.num_funcionarios,
     ref_parceiro: refParceiro || null,
+    usuario_id: dados.usuario_id || null,
   };
 }
 

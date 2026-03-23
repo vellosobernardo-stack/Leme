@@ -21,6 +21,7 @@ useEffect(() => {
   if (isPro && usuario && etapaAtual === 1) {
     analise.atualizarDados("nome_empresa", usuario.nome ?? "");
     analise.atualizarDados("email", usuario.email ?? "");
+    analise.atualizarDados("usuario_id", usuario.id ?? "");
     analise.avancar();
   }
 }, [carregandoAuth, isPro, usuario]);

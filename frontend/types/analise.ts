@@ -99,6 +99,7 @@ export interface DadosAnalise {
   // Etapa 1: Identificação
   nome_empresa: string;
   email: string;
+  usuario_id?: string;
 
   // Etapa 2: Básico
   setor: SetorType | "";
