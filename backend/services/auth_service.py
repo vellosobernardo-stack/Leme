@@ -18,7 +18,7 @@ from fastapi import HTTPException, status
 
 # ========== CONFIGURAÇÕES ==========
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "leme-dev-secret-troque-em-producao")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_DAYS = 30
 

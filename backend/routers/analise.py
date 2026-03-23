@@ -36,9 +36,8 @@ def _extrair_usuario_id_do_cookie(request: Request, db: Session) -> str | None:
     try:
         from routers.auth import get_usuario_atual
         from jose import jwt, JWTError
-        from config import get_settings
-
-        settings = get_settings()
+        from services.auth_service import decodificar_token
+        payload = decodificar_token(token)
         token = request.cookies.get("leme_token")
         if not token:
             return None
