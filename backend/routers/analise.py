@@ -177,7 +177,10 @@ async def criar_analise(
             resumo = await gerar_resumo_executivo(
                 score=int(indicadores.score_saude),
                 indicadores=indicadores_dict,
-                pontos_atencao=diagnostico["pontos_atencao"],
+                pontos_atencao=[
+                    p.get("titulo", "") if isinstance(p, dict) else str(p)
+                    for p in diagnostico["pontos_atencao"]
+                ],
                 plano_prioridade=plano_prioridade,
                 setor=dados.setor.value,
                 score_anterior=score_anterior,
