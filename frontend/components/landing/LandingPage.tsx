@@ -62,7 +62,7 @@ export function Header() {
         <div className="flex items-center gap-4">
           <Link
             href="/login"
-            className={`text-sm font-medium transition-colors hidden sm:block ${
+            className={`text-sm font-medium transition-colors block ${
               scrolled ? "text-[#112d4e]/60 hover:text-[#112d4e]" : "text-white/60 hover:text-white"
             }`}
           >
