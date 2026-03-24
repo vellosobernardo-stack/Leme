@@ -221,10 +221,11 @@ export function useAnalise() {
   }, [passoEtapa4]);
 
   // Criar sessão no backend (chamado ao sair da Etapa 1)
-  const criarSessao = useCallback(async (): Promise<boolean> => {
+  const criarSessao = useCallback(async (nomeOverride?: string, emailOverride?: string): Promise<boolean> => {
     try {
-      const resultado = await iniciarSessao(dados.nome_empresa, dados.email);
-      const novoSessaoId = resultado.sessao_id;
+      const nome = nomeOverride ?? dados.nome_empresa;
+      const email = emailOverride ?? dados.email;
+      const resultado = await iniciarSessao(nome, email);
       
       // Salva no state e localStorage
       setSessaoId(novoSessaoId);
@@ -263,7 +264,7 @@ export function useAnalise() {
     if (validacao.valido && etapaAtual < 4) {
       // Se saindo da Etapa 1, cria sessão no backend
       if (etapaAtual === 1) {
-        await criarSessao();
+        await criarSessao(overrides?.nome_empresa, overrides?.email);
       }
       
       // Se saindo da Etapa 2, pula para Etapa 4 (método manual é default)
