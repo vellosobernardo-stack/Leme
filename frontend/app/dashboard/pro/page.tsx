@@ -14,7 +14,7 @@ import {
 } from "recharts";
 import {
   PlusCircle, TrendingUp, ExternalLink, Calendar,
-  BarChart2, CheckSquare, Stethoscope, ArrowRight,
+  BarChart2, CheckSquare, Stethoscope, ArrowRight, Trash2,
 } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -65,9 +65,13 @@ export default function DashboardProPage() {
   const { usuario, carregando: carregandoAuth, isPro } = useAuth();
   const router = useRouter();
 
-  const [historico,  setHistorico]  = useState<AnaliseResumo[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro,       setErro]       = useState<string | null>(null);
+  const [historico,     setHistorico]     = useState<AnaliseResumo[]>([]);
+  const [carregando,    setCarregando]    = useState(true);
+  const [erro,          setErro]          = useState<string | null>(null);
+  const [confirmandoId, setConfirmandoId] = useState<string | null>(null);
+  const [arquivandoId,  setArquivandoId]  = useState<string | null>(null);
+  const [confirmandoId, setConfirmandoId] = useState<string | null>(null);
+  const [arquivandoId,  setArquivandoId]  = useState<string | null>(null);
 
   useEffect(() => {
     if (!carregandoAuth && !isPro) router.replace("/");
@@ -92,6 +96,25 @@ export default function DashboardProPage() {
 
   const ultimoScore  = historico[0] ? Math.round(historico[0].score_saude ?? 0) : null;
   const ultimoStatus = ultimoScore !== null ? scoreStatus(ultimoScore) : null;
+
+  const handleArquivar = async (id: string) => {
+    setArquivandoId(id);
+    try {
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const response = await fetch(`${API_BASE}/api/v1/historico/${id}/arquivar`, {
+        method: "PATCH",
+        credentials: "include",
+      });
+      if (response.ok) {
+        setHistorico((prev) => prev.filter((a) => a.id !== id));
+      }
+    } catch (err) {
+      console.error("Erro ao arquivar:", err);
+    } finally {
+      setArquivandoId(null);
+      setConfirmandoId(null);
+    }
+  };
 
   // Loading
   if (carregandoAuth || carregando) {
@@ -166,7 +189,7 @@ export default function DashboardProPage() {
         /* TABELA */
         .tabela-outer { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .tabela-wrap { display:flex; flex-direction:column; min-width: 480px; }
-        .tabela-head-row, .tabela-row { display:grid; grid-template-columns:110px 100px 70px 90px 90px 40px; align-items:center; padding:0 24px; gap:8px; }
+        .tabela-head-row, .tabela-row { display:grid; grid-template-columns:110px 100px 70px 90px 90px 80px; align-items:center; padding:0 24px; gap:8px; }
         .tabela-head-row { padding-top:12px; padding-bottom:12px; background:#fafaf9; border-bottom:1px solid #f0eeea; }
         .tabela-head-row > span { font-size:11px; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; color:#bbb; }
         .tabela-row { padding-top:14px; padding-bottom:14px; border-bottom:1px solid #f0eeea; cursor:pointer; transition:background 0.15s; }
@@ -383,7 +406,31 @@ export default function DashboardProPage() {
                       <span className="tabela-score">{score}</span>
                       <span className={isPos ? "variacao-pos" : isNeg ? "variacao-neg" : "variacao-neu"}>{vari ?? "—"}</span>
                       <span><span className="status-pill" style={{ background:st.bg, color:st.cor }}>{st.label}</span></span>
-                      <span><div className="link-icon"><ExternalLink size={15} /></div></span>
+                      <span style={{ display:"flex", alignItems:"center", gap:4 }}>
+                        {confirmandoId === a.id ? (
+                          <>
+                            <button onClick={(e) => { e.stopPropagation(); handleArquivar(a.id); }}
+                              disabled={arquivandoId === a.id}
+                              style={{ fontSize:11, padding:"4px 8px", background:"#e74c3c", color:"#fff", border:"none", borderRadius:6, cursor:"pointer", opacity: arquivandoId === a.id ? 0.5 : 1 }}>
+                              {arquivandoId === a.id ? "..." : "Remover"}
+                            </button>
+                            <button onClick={(e) => { e.stopPropagation(); setConfirmandoId(null); }}
+                              style={{ fontSize:11, padding:"4px 8px", background:"#f0eeea", color:"#555", border:"none", borderRadius:6, cursor:"pointer" }}>
+                              Cancelar
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <div className="link-icon"><ExternalLink size={15} /></div>
+                            <button onClick={(e) => { e.stopPropagation(); setConfirmandoId(a.id); }}
+                              style={{ background:"none", border:"none", cursor:"pointer", padding:4, color:"#9ca3af", display:"flex", alignItems:"center", borderRadius:6, transition:"color 0.15s" }}
+                              onMouseEnter={(e) => (e.currentTarget.style.color = "#e74c3c")}
+                              onMouseLeave={(e) => (e.currentTarget.style.color = "#9ca3af")}>
+                              <Trash2 size={15} />
+                            </button>
+                          </>
+                        )}
+                      </span>
                     </div>
                   );
                 })}
