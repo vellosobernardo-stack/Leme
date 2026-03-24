@@ -70,8 +70,6 @@ export default function DashboardProPage() {
   const [erro,          setErro]          = useState<string | null>(null);
   const [confirmandoId, setConfirmandoId] = useState<string | null>(null);
   const [arquivandoId,  setArquivandoId]  = useState<string | null>(null);
-  const [confirmandoId, setConfirmandoId] = useState<string | null>(null);
-  const [arquivandoId,  setArquivandoId]  = useState<string | null>(null);
 
   useEffect(() => {
     if (!carregandoAuth && !isPro) router.replace("/");
