@@ -226,7 +226,8 @@ export function useAnalise() {
       const nome = nomeOverride ?? dados.nome_empresa;
       const email = emailOverride ?? dados.email;
       const resultado = await iniciarSessao(nome, email);
-      
+      const novoSessaoId = resultado.sessao_id;
+
       // Salva no state e localStorage
       setSessaoId(novoSessaoId);
       if (typeof window !== "undefined") {
