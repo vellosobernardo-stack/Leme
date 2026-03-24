@@ -31,6 +31,7 @@ async def criar_checkout_assinatura(usuario_id: str, email: str) -> dict:
         customer_email=email,
         line_items=[{"price": STRIPE_PRO_PRICE_ID, "quantity": 1}],
         metadata={"usuario_id": usuario_id},
+        allow_promotion_codes=True,
         success_url=f"{FRONTEND_URL}/dashboard/pro?assinatura=sucesso",
         cancel_url=f"{FRONTEND_URL}/assinar?cancelado=true",
     )
