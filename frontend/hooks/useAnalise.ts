@@ -87,19 +87,21 @@ export function useAnalise() {
   );
 
   // Validar Etapa 1
-  const validarEtapa1 = useCallback((): ResultadoValidacao => {
+  const validarEtapa1 = useCallback((overrides?: { nome_empresa?: string; email?: string }): ResultadoValidacao => {
     const novosErros: ErrosCampo = {};
+    const nome = overrides?.nome_empresa ?? dados.nome_empresa;
+    const email = overrides?.email ?? dados.email;
 
-    if (!dados.nome_empresa || dados.nome_empresa.trim().length < 2) {
-      novosErros.nome_empresa = "Nome da empresa é obrigatório";
-    }
+    if (!nome || nome.trim().length < 2) {
+    novosErros.nome_empresa = "Nome da empresa é obrigatório";
+  }
 
-    if (!dados.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email)) {
-      novosErros.email = "Email inválido";
-    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    novosErros.email = "Email inválido";
+  }
 
     return { valido: Object.keys(novosErros).length === 0, erros: novosErros, alertas: [] };
-  }, [dados]);
+}, [dados]);
 
   // Validar Etapa 2
   const validarEtapa2 = useCallback((): ResultadoValidacao => {
@@ -248,10 +250,10 @@ export function useAnalise() {
 
   // Avançar etapa principal
   // Etapa 3 removida — de Etapa 2 vai direto para Etapa 4
-  const avancar = useCallback(async () => {
+  const avancar = useCallback(async (overrides?: { nome_empresa?: string; email?: string }) => {
     let validacao: ResultadoValidacao = { valido: true, erros: {}, alertas: [] };
 
-    if (etapaAtual === 1) validacao = validarEtapa1();
+    if (etapaAtual === 1) validacao = validarEtapa1(overrides);
     else if (etapaAtual === 2) validacao = validarEtapa2();
     else if (etapaAtual === 4) validacao = validarEtapa4();
 

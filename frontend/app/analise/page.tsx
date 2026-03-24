@@ -19,10 +19,12 @@ export default function AnalisePage() {
 useEffect(() => {
   if (carregandoAuth) return;
   if (isPro && usuario && etapaAtual === 1) {
-    analise.atualizarDados("nome_empresa", usuario.nome ?? "");
-    analise.atualizarDados("email", usuario.email ?? "");
+    const nome = usuario.nome ?? "";
+    const email = usuario.email ?? "";
+    analise.atualizarDados("nome_empresa", nome);
+    analise.atualizarDados("email", email);
     analise.atualizarDados("usuario_id", usuario.id ?? "");
-    analise.avancar();
+    analise.avancar({ nome_empresa: nome, email });
   }
 }, [carregandoAuth, isPro, usuario]);
 
