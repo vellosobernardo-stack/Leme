@@ -3,7 +3,7 @@ export {
   Hero, 
   SocialProof,
   TrustBar,
-  // HeroPreAbertura,  // Removido temporariamente
+  FreePro,
   PainSection,
   ValueDelivery, 
   HowItWorks, 

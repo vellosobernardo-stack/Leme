@@ -1,28 +1,21 @@
 // app/dashboard/[id]/page.tsx
-// Página do Dashboard com ID dinâmico na URL e Paywall
+// Dashboard Free — modelo freemium
+// Exibe: Score + Simulador + Diagnóstico (títulos) + 3 indicadores + Plano (hoje, títulos+tags) + ProUpgradeCard
 
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import HeaderNavigation from "@/components/dashboard/HeaderNavigation";
-import ValuationCard from "@/components/dashboard/ValuationCard";
-import PaybackCard from "@/components/dashboard/PaybackCard";
 import ScoreGauge from "@/components/dashboard/ScoreGauge";
-import BlocoIndicadores from "@/components/dashboard/BlocoIndicadores";
+import IndicadorCard from "@/components/dashboard/IndicadorCard";
 import DiagnosticoCard from "@/components/dashboard/DiagnosticoCard";
 import PlanoAcaoSection from "@/components/dashboard/PlanoAcaoSection";
-import HistoricoTable from "@/components/dashboard/HistoricoTable";
 import SimuladorSobrevivencia from "@/components/dashboard/SimuladorSobrevivencia";
-import PaywallOverlay from "@/components/dashboard/PaywallOverlay";
-import PaywallModal from "@/components/dashboard/PaywallModal";
+import ProUpgradeCard from "@/components/dashboard/ProUpgradeCard";
 import { buscarDashboardPorId } from "@/lib/api";
-import { useAuth } from "@/hooks/useAuth";
-import { calcularFraseImpacto } from "@/lib/fraseImpacto";
 import { DashboardData } from "@/types/dashboard";
-import { AlertTriangle, Download } from "lucide-react";
 
 // Declaração do gtag para TypeScript
 declare global {
@@ -31,8 +24,8 @@ declare global {
   }
 }
 
-// E-mail admin que tem acesso liberado sem pagar (para testes)
-const ADMIN_EMAIL = "bavstecnologia@gmail.com";
+// IDs dos 3 indicadores exibidos no Free
+const INDICADORES_FREE = ["margem_bruta", "resultado_mes", "folego_caixa"];
 
 interface DashboardPageProps {
   params: { id: string };
@@ -40,19 +33,10 @@ interface DashboardPageProps {
 
 export default function DashboardPage({ params }: DashboardPageProps) {
   const { id } = params;
-  const searchParams = useSearchParams();
-  const { isPro } = useAuth();
-  
+
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [exportando, setExportando] = useState(false);
-  
-  // Estado do paywall
-  const [pago, setPago] = useState(false);
-  const [modalAberto, setModalAberto] = useState(false);
-
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     async function carregarDados() {
@@ -67,19 +51,11 @@ export default function DashboardPage({ params }: DashboardPageProps) {
         setError(null);
         const resultado = await buscarDashboardPorId(id);
         setData(resultado);
-        
-        // Verifica se é admin (libera sem pagar)
-        if (resultado.empresa.email === ADMIN_EMAIL) {
-          setPago(true);
-        } else {
-          // Verifica status de pagamento
-          await verificarStatusPagamento();
-        }
-        
-        // Dispara evento de conversão do Google Ads quando carrega com sucesso
+
+        // Evento de conversão Google Ads
         if (typeof window !== "undefined" && window.gtag) {
-          window.gtag('event', 'conversion', {
-            'send_to': 'AW-17804678209/RR2JCNi84dEbEMGo96lC'
+          window.gtag("event", "conversion", {
+            send_to: "AW-17804678209/RR2JCNi84dEbEMGo96lC",
           });
         }
       } catch (err) {
@@ -93,137 +69,6 @@ export default function DashboardPage({ params }: DashboardPageProps) {
     carregarDados();
   }, [id]);
 
-  // Verificar se a análise já foi paga
-  const verificarStatusPagamento = async () => {
-    try {
-      // Primeiro verifica no backend se já está marcado como pago
-      const response = await fetch(`${API_URL}/pagamento/status/${id}`);
-      if (response.ok) {
-        const statusData = await response.json();
-        if (statusData.pago === true) {
-          setPago(true);
-          return;
-        }
-      }
-
-      // Se voltou do Stripe com ?pago=true, confirma o pagamento
-      const pagoParam = searchParams.get('pago');
-      if (pagoParam === 'true') {
-        await confirmarPagamentoStripe();
-      }
-    } catch (err) {
-      console.error("Erro ao verificar pagamento:", err);
-    }
-  };
-
-  // Confirma pagamento após retorno do Stripe
-  const confirmarPagamentoStripe = async () => {
-    try {
-      // Chama endpoint para verificar e liberar a análise
-      const response = await fetch(`${API_URL}/pagamento/confirmar-retorno`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ analise_id: id })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.confirmado) {
-          setPago(true);
-          
-          // Remove ?pago=true da URL sem recarregar
-          const url = new URL(window.location.href);
-          url.searchParams.delete('pago');
-          window.history.replaceState({}, '', url.toString());
-        }
-      }
-    } catch (err) {
-      console.error("Erro ao confirmar pagamento:", err);
-    }
-  };
-
-  // Callback quando pagamento é confirmado (via modal)
-  const handlePagamentoConfirmado = () => {
-    setPago(true);
-    setModalAberto(false);
-  };
-
-  // Função para exportar PDF via backend
-  const handleExportarPDF = async () => {
-    if (!data) return;
-    
-    setExportando(true);
-    
-    try {
-      // Formata o tempo do payback
-      const formatarPayback = () => {
-        const anos = data.payback.anos || 0;
-        const meses = data.payback.meses || 0;
-        if (anos === 0 && meses === 0) return 'Imediato';
-        if (anos === 0) return `${meses} ${meses === 1 ? 'mês' : 'meses'}`;
-        if (meses === 0) return `${anos} ${anos === 1 ? 'ano' : 'anos'}`;
-        return `${anos} ${anos === 1 ? 'ano' : 'anos'} e ${meses} ${meses === 1 ? 'mês' : 'meses'}`;
-      };
-
-      const payload = {
-        empresa_nome: data.empresa.nome,
-        setor: data.empresa.setor,
-        estado: data.empresa.estado || null,
-        mes_referencia: `${data.empresa.mes_referencia}/${data.empresa.ano_referencia}`,
-        score: data.score.valor,
-        score_label: data.score.status === 'saudavel' ? 'Saudável' : data.score.status === 'atencao' ? 'Atenção' : 'Crítico',
-        valuation_min: `R$ ${data.valuation.valor_minimo.toLocaleString('pt-BR')}`,
-        valuation_max: `R$ ${data.valuation.valor_maximo.toLocaleString('pt-BR')}`,
-        multiplo: data.valuation.multiplo_usado,
-        payback_texto: formatarPayback(),
-        indicadores: data.blocos_indicadores.flatMap(bloco => 
-          bloco.indicadores.map(ind => ({
-            nome: ind.nome,
-            valor: ind.unidade.startsWith('R$')
-              ? `R$ ${Number(ind.valor).toLocaleString('pt-BR')}${ind.unidade.replace('R$', '')}`
-              : ind.unidade === '%'
-                ? `${ind.valor}%`
-                : `${ind.valor} ${ind.unidade}`,
-            descricao: ind.explicacao
-          }))
-        ),
-        diagnostico: {
-          pontos_fortes: data.diagnostico.pontos_fortes.map(p => p.titulo),
-          pontos_atencao: data.diagnostico.pontos_atencao.map(p => p.titulo)
-        },
-        acoes: [
-          ...data.plano_acao.plano_30_dias.acoes.slice(0, 3).map(a => ({ periodo: "30" as const, titulo: a.titulo })),
-          ...data.plano_acao.plano_60_dias.acoes.slice(0, 3).map(a => ({ periodo: "60" as const, titulo: a.titulo })),
-          ...data.plano_acao.plano_90_dias.acoes.slice(0, 3).map(a => ({ periodo: "90" as const, titulo: a.titulo }))
-        ]
-      };
-
-      const response = await fetch(`${API_URL}/report`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao gerar PDF');
-      }
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Leme_${data.empresa.nome.replace(/\s+/g, '_')}.pdf`;
-      a.click();
-      URL.revokeObjectURL(url);
-      
-    } catch (error) {
-      console.error('Erro ao exportar PDF:', error);
-      alert('Erro ao gerar PDF. Tente novamente.');
-    } finally {
-      setExportando(false);
-    }
-  };
-
   // Loading
   if (loading) {
     return (
@@ -236,7 +81,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
     );
   }
 
-  // Erro ou não encontrado
+  // Erro
   if (error || !data) {
     return (
       <div className="min-h-screen bg-[#F7FAFD] flex items-center justify-center">
@@ -244,7 +89,7 @@ export default function DashboardPage({ params }: DashboardPageProps) {
           <p className="text-muted-foreground mb-4">
             {error || "Análise não encontrada"}
           </p>
-          <Link 
+          <Link
             href="/analise"
             className="px-6 py-3 bg-primary text-white rounded-xl font-medium hover:opacity-90 transition-all"
           >
@@ -255,260 +100,122 @@ export default function DashboardPage({ params }: DashboardPageProps) {
     );
   }
 
-  // Calcula frase de impacto personalizada para o paywall
-  const fraseImpacto = (() => {
-    const todosIndicadores = data.blocos_indicadores.flatMap(b => b.indicadores);
-    const buscar = (nome: string) => {
-      const ind = todosIndicadores.find(i => 
-        i.nome.toLowerCase().includes(nome.toLowerCase())
-      );
-      return ind ? Number(ind.valor) : undefined;
-    };
-
-    // Calcula se sobrevive a queda de 30% nas vendas
-    const simEstresse = (() => {
-      if (!data.simulador) return undefined;
-      const { receita_mensal, custo_vendas, despesas_fixas } = data.simulador;
-      const receitaEstresse = receita_mensal * 0.7;
-      const custoEstresse = custo_vendas * 0.7;
-      return (receitaEstresse - custoEstresse - despesas_fixas) >= 0;
-    })();
-
-    return calcularFraseImpacto({
-      empresaNome: data.empresa.nome,
-      scoreValor: data.score.valor,
-      margemBruta: buscar('margem'),
-      resultadoMes: buscar('resultado'),
-      folegoEmDias: buscar('fôlego') ?? buscar('folego'),
-      simuladorEstressePositivo: simEstresse,
-    });
-  })();
+  // Filtra apenas os 3 indicadores do Free
+  // Percorre os blocos e mantém só os indicadores com id na lista INDICADORES_FREE
+  const blocosFiltered = data.blocos_indicadores
+    .map((bloco) => ({
+      ...bloco,
+      indicadores: bloco.indicadores.filter((ind) =>
+        INDICADORES_FREE.includes(ind.id)
+      ),
+    }))
+    .filter((bloco) => bloco.indicadores.length > 0);
 
   return (
     <div className="min-h-screen bg-[#F7FAFD]">
-      {/* Header integrado com navegação */}
       <HeaderNavigation />
 
-      {/* Header com info da empresa */}
       <div className="max-w-7xl mx-auto px-4 pt-28">
         <DashboardHeader empresa={data.empresa} />
       </div>
 
-      {/* Conteúdo principal */}
       <main className="max-w-7xl mx-auto px-4 pb-16">
-        
-        {/* ========== SEÇÃO 1: SCORE (LIBERADO) — Primeiro impacto ========== */}
+
+        {/* ========== SEÇÃO 1: SCORE ========== */}
         <section id="resumo" className="mb-16">
           <div className="text-center mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Saúde da Empresa</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">
+              Saúde da Empresa
+            </h2>
             <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
           </div>
 
-          {/* Score de Saúde Financeira — primeiro elemento que o usuário vê */}
-          <ScoreGauge 
-            score={data.score}
-            evolucao={data.score_evolucao}
-            influenciadores={data.influenciadores}
-          />
+          <ScoreGauge score={data.score} />
         </section>
 
-        {/* ========== SEÇÃO 2: SIMULADOR (LIBERADO) — Choque emocional ========== */}
+        {/* ========== SEÇÃO 2: SIMULADOR ========== */}
         <section id="simulador" className="mb-16">
           <SimuladorSobrevivencia dados={data.simulador} />
         </section>
 
-        {/* ========== SEÇÃO 3: DIAGNÓSTICO (TEASER + PAYWALL) — No pico da tensão ========== */}
+        {/* ========== SEÇÃO 3: DIAGNÓSTICO — títulos visíveis, descrições com blur ========== */}
         <section id="diagnostico" className="mb-16">
           <div className="text-center mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Diagnóstico</h2>
-            <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
-          </div>
-          
-          {pago ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <DiagnosticoCard 
-                tipo="fortes" 
-                pontos={data.diagnostico.pontos_fortes} 
-                isPago={true}
-              />
-              <DiagnosticoCard 
-                tipo="atencao" 
-                pontos={data.diagnostico.pontos_atencao} 
-                isPago={true}
-              />
-            </div>
-          ) : (
-            <>
-              {/* Títulos visíveis, descrições travadas — tensão do simulador ainda fresca */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <DiagnosticoCard 
-                  tipo="fortes" 
-                  pontos={data.diagnostico.pontos_fortes} 
-                  isPago={false}
-                />
-                <DiagnosticoCard 
-                  tipo="atencao" 
-                  pontos={data.diagnostico.pontos_atencao} 
-                  isPago={false}
-                />
-              </div>
-
-              <PaywallOverlay 
-                onDesbloquear={() => setModalAberto(true)}
-                empresaNome={data.empresa.nome}
-                fraseImpacto={fraseImpacto}
-                titulo="Entenda o que está por trás desses números"
-                descricao="Veja a explicação completa de cada ponto e o que fazer para melhorar seu cenário"
-                textoBotao="Ver diagnóstico completo"
-              />
-            </>
-          )}
-        </section>
-
-        {/* ========== SEÇÃO 4: PLANO DE AÇÃO (PAYWALL) — CTA conectado à dor ========== */}
-        <section id="plano" className="mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">O Que Fazer</h2>
-            <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
-          </div>
-          
-          {pago ? (
-            <PlanoAcaoSection plano={data.plano_acao} analiseId={id} isPro={isPro} />
-          ) : (
-            <PaywallOverlay 
-              onDesbloquear={() => setModalAberto(true)}
-              empresaNome={data.empresa.nome}
-              fraseImpacto={fraseImpacto}
-              titulo="Seu plano de ação está pronto"
-              descricao="12 ações práticas divididas em 30, 60 e 90 dias para mudar o rumo do seu negócio"
-              textoBotao="Ver meu plano de ação"
-            />
-          )}
-        </section>
-
-        {/* ========== SEÇÃO 5: INDICADORES (LIBERADO) — Validação técnica ========== */}
-        <section id="indicadores" className="mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Indicadores Financeiros</h2>
-            <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
-          </div>
-          
-          {/* Blocos de Indicadores (sem "Caixa e Operação" — coberto pelo Simulador) */}
-          <div className="space-y-6">
-            {data.blocos_indicadores
-              .filter((bloco) => bloco.id !== 'caixa')
-              .map((bloco) => (
-                <BlocoIndicadores key={bloco.id} bloco={bloco} isPago={pago} />
-              ))}
-          </div>
-
-          {/* CTA para desbloquear explicações (só no grátis) */}
-          {!pago && (
-            <div className="mt-4 text-center">
-              <button
-                onClick={() => setModalAberto(true)}
-                className="inline-flex items-center gap-2 text-sm text-primary/70 hover:text-primary transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                Desbloqueie para ver o que cada indicador significa na prática
-              </button>
-            </div>
-          )}
-        </section>
-
-        {/* ========== SEÇÃO 6: VALUATION + PAYBACK (LIBERADO) — Bônus informativo ========== */}
-        <section id="valuation" className="mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Valor e Retorno</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">
+              Diagnóstico
+            </h2>
             <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ValuationCard valuation={data.valuation} />
-            <PaybackCard payback={data.payback} />
+            <DiagnosticoCard
+              tipo="fortes"
+              pontos={data.diagnostico.pontos_fortes}
+              isPago={false}
+            />
+            <DiagnosticoCard
+              tipo="atencao"
+              pontos={data.diagnostico.pontos_atencao}
+              isPago={false}
+            />
           </div>
         </section>
 
-        {/* ========== SEÇÃO 7: HISTÓRICO (PAYWALL) ========== */}
-        <section id="historico" className="mb-16">
+        {/* ========== SEÇÃO 4: 3 INDICADORES — todos na mesma linha ========== */}
+        <section id="indicadores" className="mb-16">
           <div className="text-center mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">Histórico de Análises</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">
+              Indicadores Financeiros
+            </h2>
             <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
           </div>
-          
-          {pago ? (
-            <HistoricoTable historico={data.historico} />
-          ) : (
-            <PaywallOverlay 
-              onDesbloquear={() => setModalAberto(true)}
-              empresaNome={data.empresa.nome}
-              fraseImpacto={fraseImpacto}
-              titulo="Acompanhe sua evolução"
-              descricao="Compare seus resultados mês a mês e veja se sua empresa está melhorando"
-              textoBotao="Ver histórico completo"
-            />
-          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {blocosFiltered.flatMap((bloco) =>
+              bloco.indicadores.map((indicador) => (
+                <IndicadorCard
+                  key={indicador.id}
+                  indicador={indicador}
+                  isPago={false}
+                />
+              ))
+            )}
+          </div>
         </section>
 
-        {/* ========== AVISO PÓS-PAGAMENTO ========== */}
-        {pago && (
-          <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-medium text-amber-800">Importante: Baixe seu PDF antes de sair</p>
-              <p className="text-sm text-amber-700 mt-1">
-                Esta página não ficará disponível após você sair. Recomendamos baixar o relatório em PDF para consultar depois.
-              </p>
-            </div>
+        {/* ========== SEÇÃO 5: PLANO DE AÇÃO — largura total, sem colunas vazias ========== */}
+        <section id="plano" className="mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl lg:text-4xl font-bold text-primary mb-2">
+              O Que Fazer
+            </h2>
+            <div className="w-24 h-1 bg-primary/20 mx-auto rounded-full"></div>
           </div>
-        )}
 
-        {/* ========== AÇÕES FINAIS ========== */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
-          <Link 
+          <PlanoAcaoSection
+            plano={data.plano_acao}
+            analiseId={id}
+            isPro={false}
+            isFree={true}
+          />
+        </section>
+
+        {/* ========== SEÇÃO 6: PRO UPGRADE CARD ========== */}
+        <section id="pro" className="mb-16">
+          <ProUpgradeCard />
+        </section>
+
+        {/* ========== AÇÃO FINAL ========== */}
+        <div className="flex justify-center pt-4">
+          <Link
             href="/analise"
-            className="px-8 py-4 bg-primary text-white rounded-xl font-medium hover:opacity-90 transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+            className="px-8 py-4 bg-primary text-white rounded-xl font-medium hover:opacity-90 transition-all duration-300 shadow-sm hover:shadow-md"
           >
             Nova Análise
           </Link>
-          
-          {pago ? (
-            <button 
-              onClick={handleExportarPDF}
-              disabled={exportando}
-              className="px-8 py-4 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {exportando ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Gerando PDF...
-                </>
-              ) : (
-                <>
-                  <Download className="w-5 h-5" />
-                  Baixar PDF
-                </>
-              )}
-            </button>
-          ) : (
-            <button 
-              onClick={() => setModalAberto(true)}
-              className="px-8 py-4 bg-white text-primary border border-border/40 rounded-xl font-medium hover:bg-gray-50 transition-all duration-300 shadow-sm hover:shadow-md flex items-center justify-center gap-2"
-            >
-              Desbloquear Plano Completo - R$ 19,90
-            </button>
-          )}
         </div>
-      </main>
 
-      {/* Modal de Pagamento */}
-      <PaywallModal
-        isOpen={modalAberto}
-        onClose={() => setModalAberto(false)}
-        analiseId={id}
-        empresaNome={data.empresa.nome}
-        onPagamentoConfirmado={handlePagamentoConfirmado}
-      />
+      </main>
     </div>
   );
 }

@@ -58,17 +58,27 @@ export function Header() {
           </span>
         </Link>
 
-        {/* CTA principal */}
-        <Link
-          href="/analise"
-          className={`px-5 py-2 rounded-full font-medium text-sm transition-all ${
-            scrolled 
-              ? "bg-[#112d4e] text-white hover:bg-[#1a4578]" 
-              : "bg-white text-[#112d4e] hover:bg-gray-100"
-          }`}
-        >
-          Começar
-        </Link>
+        {/* Ações do header */}
+        <div className="flex items-center gap-4">
+          <Link
+            href="/login"
+            className={`text-sm font-medium transition-colors hidden sm:block ${
+              scrolled ? "text-[#112d4e]/60 hover:text-[#112d4e]" : "text-white/60 hover:text-white"
+            }`}
+          >
+            Entrar
+          </Link>
+          <Link
+            href="/analise"
+            className={`px-5 py-2 rounded-full font-medium text-sm transition-all ${
+              scrolled 
+                ? "bg-[#112d4e] text-white hover:bg-[#1a4578]" 
+                : "bg-white text-[#112d4e] hover:bg-gray-100"
+            }`}
+          >
+            Análise gratuita
+          </Link>
+        </div>
       </div>
     </header>
   );
@@ -143,10 +153,10 @@ export function Hero() {
                 href="/analise"
                 className="group inline-flex items-center gap-3 bg-[#F5793B] hover:bg-[#e86a2e] text-white px-8 py-4 text-lg font-semibold rounded-full transition-all hover:-translate-y-0.5 shadow-lg shadow-[#F5793B]/20"
               >
-                Fazer meu diagnóstico
+                Fazer análise gratuita
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <p className="text-white/40 text-sm mt-3 ml-1">Resultado na hora — você vê seu risco real em segundos.</p>
+              <p className="text-white/40 text-sm mt-3 ml-1">Sem cadastro. Resultado em minutos.</p>
             </div>
           </div>
 
@@ -281,6 +291,105 @@ export function TrustBar() {
             <span className="text-sm text-white/70">{item.text}</span>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// FREE VS PRO
+// ============================================
+export function FreePro() {
+  const freeFeatures = [
+    "Score de saúde financeira (0–100)",
+    "Simulador de sobrevivência de caixa",
+    "Diagnóstico com pontos fortes e de atenção",
+    "3 indicadores financeiros principais",
+    "Plano de ação para hoje",
+  ];
+
+  const proFeatures = [
+    "Resumo executivo",
+    "8 indicadores financeiros completos",
+    "Plano de ação para hoje, mês e trimestre",
+    "Histórico e evolução mês a mês",
+    "Simulador de cenários (queda de vendas, custos)",
+    "Valuation e payback estimados",
+    "Chat com consultor IA 24h",
+  ];
+
+  return (
+    <section id="planos" className="py-16 lg:py-24 bg-white">
+      <div className="max-w-5xl mx-auto px-6">
+        {/* Header */}
+        <div className="text-center mb-10 lg:mb-14">
+          <p className="text-[#F5793B] font-semibold mb-3 uppercase tracking-wide text-sm">Planos</p>
+          <h2 className="text-2xl lg:text-3xl font-bold text-[#112d4e]">
+            Comece de graça. Evolua quando quiser.
+          </h2>
+        </div>
+
+        {/* Cards — empilhados no mobile, lado a lado no desktop */}
+        <div className="flex flex-col sm:flex-row gap-4 lg:gap-6">
+
+          {/* Card Free */}
+          <div className="flex-1 rounded-2xl border border-gray-200 p-6 lg:p-8 flex flex-col">
+            <div className="mb-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Gratuito</p>
+              <p className="text-3xl font-bold text-[#112d4e]">R$ 0</p>
+              <p className="text-sm text-gray-400 mt-1">Sem cartão. Sem cadastro.</p>
+            </div>
+
+            <ul className="space-y-3 flex-1 mb-8">
+              {freeFeatures.map((item, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-[#F5793B] flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-gray-600">{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            <Link
+              href="/analise"
+              className="block text-center py-3 px-6 rounded-full border-2 border-[#112d4e] text-[#112d4e] font-semibold text-sm hover:bg-[#112d4e] hover:text-white transition-all active:scale-95"
+            >
+              Começar grátis
+            </Link>
+          </div>
+
+          {/* Card Pro — destaque */}
+          <div className="flex-1 rounded-2xl bg-[#112d4e] p-6 lg:p-8 flex flex-col relative overflow-hidden">
+            {/* Elemento decorativo */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-[#F5793B]/10 rounded-full blur-2xl" />
+
+            <div className="relative mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#F5793B]">Leme Pro</p>
+                <span className="text-[10px] bg-[#F5793B]/20 text-[#F5793B] px-2 py-0.5 rounded-full font-medium">Mais popular</span>
+              </div>
+              <p className="text-3xl font-bold text-white">R$ 97<span className="text-base font-normal text-white/50">/mês</span></p>
+              <p className="text-sm text-white/40 mt-1">Cancele quando quiser.</p>
+            </div>
+
+            <p className="relative text-xs text-white/50 mb-4 font-medium uppercase tracking-wide">Tudo do gratuito, mais:</p>
+
+            <ul className="relative space-y-3 flex-1 mb-8">
+              {proFeatures.map((item, i) => (
+                <li key={i} className="flex items-start gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-[#F5793B] flex-shrink-0 mt-0.5" />
+                  <span className="text-sm text-white/80">{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            <Link
+              href="/assinar"
+              className="relative block text-center py-3 px-6 rounded-full bg-[#F5793B] hover:bg-[#e86a2e] text-white font-semibold text-sm transition-all active:scale-95"
+            >
+              Assinar o Pro
+            </Link>
+          </div>
+        </div>
       </div>
     </section>
   );

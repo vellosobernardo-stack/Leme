@@ -1,15 +1,14 @@
 // components/dashboard/DiagnosticoCard.tsx
 // Card de diagnóstico (pontos fortes ou de atenção)
-// v3 — Pro: sem blur, badges Novo/Persistente | Free: blur mantido
+// v4 — Free: descrições visíveis, sem blur | Pro: badges Novo/Persistente
 
-import { CheckCircle2, AlertTriangle, Lock } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, ThumbsUp } from 'lucide-react';
 import { PontoDiagnostico } from '@/types/dashboard';
 
 interface DiagnosticoCardProps {
   tipo: 'fortes' | 'atencao';
   pontos: PontoDiagnostico[];
   isPago?: boolean;
-  // Pro only: títulos dos pontos da análise anterior para comparar
   pontosAnteriores?: string[];
 }
 
@@ -20,8 +19,6 @@ export default function DiagnosticoCard({
   pontosAnteriores,
 }: DiagnosticoCardProps) {
   const isFortes = tipo === 'fortes';
-
-  // Badge só aparece no Pro quando há análise anterior para comparar
   const exibirBadge = isPago && pontosAnteriores !== undefined;
 
   function getBadge(titulo: string) {
@@ -58,52 +55,50 @@ export default function DiagnosticoCard({
           <h3 className="text-lg font-bold text-primary">
             {isFortes ? 'Pontos Fortes' : 'Pontos de Atenção'}
           </h3>
-          {!isPago && (
-            <p className="text-xs text-muted-foreground">
-              {pontos.length} {pontos.length === 1 ? 'ponto identificado' : 'pontos identificados'}
-            </p>
-          )}
+          <p className="text-xs text-muted-foreground">
+            {pontos.length} {pontos.length === 1 ? 'ponto identificado' : 'pontos identificados'}
+          </p>
         </div>
       </div>
 
       {/* Lista de pontos */}
-      <div className="space-y-4">
-        {pontos.map((ponto, index) => (
-          <div
-            key={index}
-            className={`p-4 rounded-lg ${isFortes ? 'bg-green-50' : 'bg-yellow-50'}`}
-          >
-            {/* Título + badge no canto superior direito */}
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <h4 className="font-semibold text-gray-900">
-                {ponto.titulo}
-              </h4>
-              {getBadge(ponto.titulo)}
-            </div>
-
-            {/* Descrição — Pro: sempre visível | Free: blur */}
-            {isPago ? (
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {ponto.descricao}
-              </p>
-            ) : (
-              <div className="relative mt-2">
-                <p className="text-sm text-muted-foreground leading-relaxed blur-[6px] select-none pointer-events-none" aria-hidden="true">
-                  Detalhes sobre este ponto e como ele impacta diretamente a saúde financeira do seu negócio no curto e médio prazo.
-                </p>
-                {index === 0 && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/70">
-                      <Lock className="w-3 h-3" />
-                      <span>Disponível na versão completa</span>
-                    </div>
-                  </div>
-                )}
+      {pontos.length > 0 ? (
+        <div className="space-y-4">
+          {pontos.map((ponto, index) => (
+            <div
+              key={index}
+              className={`p-4 rounded-lg ${isFortes ? 'bg-green-50' : 'bg-yellow-50'}`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <h4 className="font-semibold text-gray-900">{ponto.titulo}</h4>
+                {getBadge(ponto.titulo)}
               </div>
-            )}
+              {isPago && (
+                <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                  {ponto.descricao}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Card vazio — especialmente útil quando não há pontos de atenção */
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <div className={`p-3 rounded-full mb-3 ${isFortes ? 'bg-green-50' : 'bg-yellow-50'}`}>
+            <ThumbsUp className={`w-6 h-6 ${isFortes ? 'text-green-400' : 'text-yellow-400'}`} />
           </div>
-        ))}
-      </div>
+          <p className="text-sm font-medium text-gray-600">
+            {isFortes
+              ? 'Nenhum ponto forte identificado ainda.'
+              : 'Nenhum ponto de atenção crítico identificado.'}
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {isFortes
+              ? 'Continue monitorando seus resultados.'
+              : 'Sua empresa está dentro dos parâmetros esperados.'}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

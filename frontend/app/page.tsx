@@ -3,6 +3,7 @@ import {
   Hero, 
   SocialProof,
   TrustBar,
+  FreePro,
   // HeroPreAbertura, // Temporariamente removido - foco na proposta central
   PainSection,
   ValueDelivery, 
@@ -22,7 +23,7 @@ export default function Home() {
         <Hero />
         <SocialProof /> 
         <TrustBar />
-        {/* HeroPreAbertura removido temporariamente - código preservado em components/landing/HeroPreAbertura.tsx */}
+        <FreePro />
         <PainSection />
         <ValueDelivery />
         <HowItWorks />
