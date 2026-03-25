@@ -20,6 +20,9 @@ import {
   MessageCircle,
   Mail,
   MapPin,
+  AlertTriangle,
+  TrendingDown,
+  ChevronDown,
   // Lightbulb // Usado apenas no HeroPreAbertura (temporariamente desativado)
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -316,6 +319,7 @@ export function FreePro() {
     "Simulador de cenários (queda de vendas, custos)",
     "Valuation e payback estimados",
     "Chat com consultor IA 24h",
+    "Cálculo de quanto você pode retirar com segurança este mês",
   ];
 
   return (
@@ -419,7 +423,7 @@ export function PainSection() {
   ];
 
   return (
-    <section className="py-16 lg:py-20 bg-white">
+    <section className="py-16 lg:py-20 bg-[#f8fafc]">
       <div className="max-w-5xl mx-auto px-6">
         {/* Header */}
         <div className="text-center mb-10 lg:mb-14">
@@ -609,7 +613,7 @@ export function ValueDelivery() {
   ];
 
   return (
-    <section id="o-que-voce-recebe" className="py-20 lg:py-28 bg-[#f8fafc] relative overflow-hidden">
+    <section id="o-que-voce-recebe" className="py-20 lg:py-28 bg-white relative overflow-hidden">
       {/* Elementos decorativos */}
       <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#F5793B]/5 rounded-full blur-3xl" />
       <div className="absolute bottom-0 left-0 w-[250px] h-[250px] bg-[#112d4e]/5 rounded-full blur-3xl" />
@@ -789,7 +793,7 @@ export function HowItWorks() {
 // ============================================
 export function Authority() {
   return (
-    <section id="metodologia" className="py-20 lg:py-28 bg-[#f8fafc] relative overflow-hidden">
+    <section id="metodologia" className="py-20 lg:py-28 bg-white relative overflow-hidden">
       {/* Elemento decorativo */}
       <div className="absolute top-1/2 -translate-y-1/2 left-0 w-px h-[60%] bg-gradient-to-b from-transparent via-[#F5793B]/20 to-transparent hidden lg:block" />
       
@@ -937,6 +941,224 @@ export function CTAFinal() {
         <div className="flex items-center justify-center gap-2 mt-4 text-white/30">
           <Lock className="w-3.5 h-3.5" />
           <span className="text-sm">Seus dados permanecem privados</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// SITUAÇÕES REAIS
+// ============================================
+export function SituacoesReais() {
+  const situacoes = [
+    {
+      icon: AlertTriangle,
+      titulo: "Faturamento bom, caixa sempre apertado",
+      texto: "Você vende, o dinheiro entra — mas nunca sobra. O caixa fica apertado mesmo com faturamento alto.",
+      revela: "Onde o dinheiro está ficando preso no seu ciclo financeiro.",
+      muda: "Você entende quanto tempo o dinheiro demora para voltar — e como encurtar esse ciclo.",
+    },
+    {
+      icon: Shield,
+      titulo: "Não sei se aguento um mês ruim",
+      texto: "Se as vendas caírem, você não sabe quanto tempo a empresa sobrevive.",
+      revela: "Quantos dias seu caixa aguenta sem faturar. Sem estimativa — número real.",
+      muda: "Você sabe exatamente o que fazer se as vendas caírem amanhã.",
+    },
+    {
+      icon: TrendingDown,
+      titulo: "Vendo bastante, mas não sei quanto fica no bolso",
+      texto: "Você fatura bem, mas não sabe quanto realmente vira lucro.",
+      revela: "Sua margem real — depois de custos, impostos e estrutura.",
+      muda: "Você sabe se pode crescer, contratar ou se precisa ajustar antes.",
+    },
+  ];
+
+  return (
+    <section className="py-16 lg:py-24 bg-white">
+      <div className="max-w-6xl mx-auto px-6">
+        {/* Header */}
+        <div className="text-center mb-10 lg:mb-14">
+          <p className="text-[#F5793B] font-semibold mb-3 uppercase tracking-wide text-sm">Para quem é o Leme</p>
+          <h2 className="text-2xl lg:text-3xl font-bold text-[#112d4e] mb-3">
+            Você se reconhece em alguma dessas situações?
+          </h2>
+          <p className="text-gray-500 max-w-lg mx-auto">
+            O Leme foi construído para quem toca o negócio no dia a dia — sem tempo para planilha, sem contador na sala ao lado.
+          </p>
+        </div>
+
+        {/* Cards */}
+        <div className="grid sm:grid-cols-3 gap-4 lg:gap-6 mb-10">
+          {situacoes.map((s, i) => (
+            <div
+              key={i}
+              className="group bg-white p-6 rounded-xl border border-gray-100 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:border-gray-200"
+            >
+              <s.icon className="w-6 h-6 text-[#F5793B] mb-4" />
+              <h3 className="text-base font-bold text-[#112d4e] mb-2">{s.titulo}</h3>
+              <p className="text-sm text-gray-500 leading-relaxed mb-4">{s.texto}</p>
+
+              <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">O Leme mostra:</p>
+              <p className="text-sm text-gray-600 leading-relaxed mb-4">{s.revela}</p>
+
+              <p className="text-xs text-emerald-600 uppercase tracking-wide mb-1 font-medium">Resultado:</p>
+              <p className="text-sm text-emerald-700 leading-relaxed">{s.muda}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div className="text-center">
+          <p className="text-gray-500 mb-4">Qualquer uma dessas situações é resolvível. O primeiro passo é enxergar.</p>
+          <Link
+            href="/analise"
+            className="inline-flex items-center gap-2 text-[#F5793B] font-semibold hover:gap-3 transition-all"
+          >
+            Fazer minha análise gratuita
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// DEPOIMENTOS
+// ============================================
+export function Depoimentos() {
+  const depoimentos = [
+    {
+      inicial: "G",
+      nome: "Guilherme Veiga",
+      label: "Empresário",
+      texto: "Eu sempre achei que o problema era vender mais. Mas quando fiz a análise, vi que o dinheiro estava ficando no caminho — vendia, mas o caixa continuava apertado. Foi a primeira vez que entendi isso de forma clara.",
+      cor: "bg-[#112d4e]",
+    },
+    {
+      inicial: "F",
+      nome: "Francisco Souto",
+      label: "Empresário",
+      texto: "No dia a dia a gente não para pra olhar isso com calma. Eu já sabia que tinha alguma coisa errada, mas não conseguia identificar o quê. Em poucos minutos, a análise já deixou bem claro onde estava o problema.",
+      cor: "bg-[#1a4578]",
+    },
+    {
+      inicial: "L",
+      nome: "Lucas Andrade",
+      label: "Varejo",
+      texto: "Eu tomava decisão muito no feeling. Depois da análise, comecei a enxergar melhor mês a mês e isso mudou bastante minha forma de decidir. Hoje tenho mais segurança pra saber quando crescer e quando segurar.",
+      cor: "bg-[#F5793B]",
+    },
+  ];
+
+  return (
+    <section className="py-16 lg:py-24 bg-[#f8fafc]">
+      <div className="max-w-6xl mx-auto px-6">
+        {/* Header */}
+        <div className="text-center mb-10 lg:mb-14">
+          <p className="text-[#F5793B] font-semibold mb-3 uppercase tracking-wide text-sm">Quem já usou</p>
+          <h2 className="text-2xl lg:text-3xl font-bold text-[#112d4e]">
+            O que dizem quem já fez a análise
+          </h2>
+        </div>
+
+        {/* Cards */}
+        <div className="grid sm:grid-cols-3 gap-4 lg:gap-6">
+          {depoimentos.map((d, i) => (
+            <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col relative">
+              {/* Aspas decorativas */}
+              <span className="absolute top-4 left-5 text-6xl leading-none text-[#F5793B]/15 font-serif select-none">"</span>
+
+              <p className="text-gray-700 text-base leading-relaxed flex-1 pt-6">{d.texto}</p>
+
+              {/* Rodapé */}
+              <div className="flex items-center gap-3 mt-6 pt-4 border-t border-gray-50">
+                <div className={`w-9 h-9 rounded-full ${d.cor} flex items-center justify-center flex-shrink-0`}>
+                  <span className="text-white text-sm font-bold">{d.inicial}</span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[#112d4e]">{d.nome}</p>
+                  <p className="text-xs text-gray-400">{d.label}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// FAQ
+// ============================================
+export function FAQ() {
+  const [aberto, setAberto] = useState<number | null>(null);
+
+  const perguntas = [
+    {
+      q: "Preciso de CNPJ ou contador para usar?",
+      r: "Não. O Leme foi feito para ser usado por qualquer dono de negócio, com ou sem CNPJ formal, com ou sem contador. Você não precisa saber nada de contabilidade — só responder perguntas sobre os números do seu negócio.",
+    },
+    {
+      q: "Meus dados ficam seguros? Vão aparecer em algum lugar?",
+      r: "Seus dados são seus. O Leme não vende, não compartilha e não usa suas informações para nada além de gerar sua análise. Não temos parceiros de crédito, não temos corretoras e não fazemos prospecção. O que você coloca aqui fica aqui.",
+    },
+    {
+      q: "Qual a diferença entre o Leme e um contador?",
+      r: "O contador cuida da parte legal, fiscal e tributária da sua empresa — é indispensável. O Leme cuida da gestão financeira do dia a dia: quanto você está lucrando de verdade, se seu caixa aguenta um mês difícil, onde você pode estar perdendo dinheiro sem perceber. São complementares, não concorrentes.",
+    },
+    {
+      q: "Preciso ter os números exatos na cabeça?",
+      r: "Estimativas já funcionam bem. O diagnóstico é útil mesmo com valores aproximados — e ao longo do tempo, conforme você atualiza os dados com mais precisão, o resultado fica mais afinado.",
+    },
+    {
+      q: "O que é o cálculo de quanto posso retirar esse mês?",
+      r: "É uma das funcionalidades do Leme Pro. Com base no seu saldo atual, nas suas contas a pagar e nas entradas previstas, o Leme calcula quanto você pode retirar com segurança — sem comprometer a operação. É um número baseado nos seus dados de hoje, não uma estimativa genérica.",
+    },
+    {
+      q: "Posso cancelar o Pro a qualquer hora?",
+      r: "Sim. Sem multa, sem burocracia. Você cancela quando quiser diretamente pelo painel, e o acesso continua até o fim do período já pago.",
+    },
+  ];
+
+  return (
+    <section className="py-16 lg:py-24 bg-[#f8fafc]">
+      <div className="max-w-3xl mx-auto px-6">
+        {/* Header */}
+        <div className="text-center mb-10 lg:mb-14">
+          <p className="text-[#F5793B] font-semibold mb-3 uppercase tracking-wide text-sm">Dúvidas frequentes</p>
+          <h2 className="text-2xl lg:text-3xl font-bold text-[#112d4e]">
+            Perguntas que todo empresário faz antes de começar
+          </h2>
+        </div>
+
+        {/* Acordeão */}
+        <div className="divide-y divide-gray-100">
+          {perguntas.map((item, i) => (
+            <div key={i}>
+              <button
+                onClick={() => setAberto(aberto === i ? null : i)}
+                className="w-full flex items-center justify-between gap-4 py-5 text-left"
+              >
+                <span className="text-base font-semibold text-[#112d4e]">{item.q}</span>
+                <ChevronDown
+                  className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform duration-300 ${
+                    aberto === i ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+              <div
+                className={`overflow-hidden transition-all duration-300 ${
+                  aberto === i ? "max-h-96 pb-5" : "max-h-0"
+                }`}
+              >
+                <p className="text-gray-600 leading-relaxed">{item.r}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

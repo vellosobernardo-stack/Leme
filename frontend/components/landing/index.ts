@@ -5,8 +5,11 @@ export {
   TrustBar,
   FreePro,
   PainSection,
-  ValueDelivery, 
-  HowItWorks, 
+  ValueDelivery,
+  SituacoesReais,
+  Depoimentos, 
+  HowItWorks,
+  FAQ, 
   Authority, 
   CTAFinal, 
   Footer 

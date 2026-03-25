@@ -6,8 +6,11 @@ import {
   FreePro,
   // HeroPreAbertura, // Temporariamente removido - foco na proposta central
   PainSection,
-  ValueDelivery, 
-  HowItWorks, 
+  ValueDelivery,
+  SituacoesReais,
+  Depoimentos, 
+  HowItWorks,
+  FAQ, 
   Authority, 
   CTAFinal, 
   Footer 
@@ -26,8 +29,11 @@ export default function Home() {
         <FreePro />
         <PainSection />
         <ValueDelivery />
+        <SituacoesReais />  
+        <Depoimentos />      
         <HowItWorks />
-        <Authority />
+        <FAQ />             
+        <Authority />        
         <CTAFinal />
       </main>
       <Footer />
