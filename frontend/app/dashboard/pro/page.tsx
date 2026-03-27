@@ -15,6 +15,7 @@ import {
 import {
   PlusCircle, TrendingUp, ExternalLink, Calendar,
   BarChart2, CheckSquare, Stethoscope, ArrowRight, Trash2,
+  Mail, MessageCircle, XCircle,
 } from "lucide-react";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -65,11 +66,14 @@ export default function DashboardProPage() {
   const { usuario, carregando: carregandoAuth, isPro } = useAuth();
   const router = useRouter();
 
-  const [historico,     setHistorico]     = useState<AnaliseResumo[]>([]);
-  const [carregando,    setCarregando]    = useState(true);
-  const [erro,          setErro]          = useState<string | null>(null);
-  const [confirmandoId, setConfirmandoId] = useState<string | null>(null);
-  const [arquivandoId,  setArquivandoId]  = useState<string | null>(null);
+  const [historico,      setHistorico]     = useState<AnaliseResumo[]>([]);
+  const [carregando,     setCarregando]    = useState(true);
+  const [erro,           setErro]          = useState<string | null>(null);
+  const [confirmandoId,  setConfirmandoId] = useState<string | null>(null);
+  const [arquivandoId,   setArquivandoId]  = useState<string | null>(null);
+  const [cancelando,     setCancelando]    = useState(false);
+  const [modalCancelar,  setModalCancelar] = useState(false);
+  const [cancelouSucesso,setCancelou]      = useState(false);
 
   useEffect(() => {
     if (!carregandoAuth && !isPro) router.replace("/");
@@ -114,6 +118,26 @@ export default function DashboardProPage() {
     }
   };
 
+  const handleCancelarAssinatura = async () => {
+    setCancelando(true);
+    try {
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${API_BASE}/stripe-pro/cancelar`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.ok) {
+        setCancelou(true);
+        setModalCancelar(false);
+        setTimeout(() => router.replace("/"), 3000);
+      }
+    } catch (err) {
+      console.error("Erro ao cancelar:", err);
+    } finally {
+      setCancelando(false);
+    }
+  };
+
   // Loading
   if (carregandoAuth || carregando) {
     return (
@@ -145,7 +169,7 @@ export default function DashboardProPage() {
         .pro-badge { display:inline-flex; align-items:center; padding:4px 12px; border:1.5px solid #4ECBA4; border-radius:100px; color:#4ECBA4; font-size:11px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; background:rgba(78,203,164,0.08); }
 
         /* BODY */
-        .pro-body { max-width:960px; margin:0 auto; padding:40px 24px 80px; display:flex; flex-direction:column; gap:28px; animation:fadeUp 0.4s ease both; }
+        .pro-body { max-width:960px; margin:0 auto; padding:40px 24px 0; display:flex; flex-direction:column; gap:28px; animation:fadeUp 0.4s ease both; }
 
         /* TOPO */
         .topo-row { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; }
@@ -219,6 +243,30 @@ export default function DashboardProPage() {
         /* ERRO */
         .erro-box { padding:20px 28px; background:#fdf2f2; border-radius:10px; color:#c0392b; font-size:14px; text-align:center; }
 
+        /* FOOTER */
+        .pro-footer { max-width:960px; margin:0 auto; border-top:1px solid #ece9e4; margin-top:12px; padding:32px 24px 48px; display:flex; flex-direction:column; align-items:center; gap:16px; }
+        .footer-links { display:flex; align-items:center; gap:24px; flex-wrap:wrap; justify-content:center; }
+        .footer-link { display:flex; align-items:center; gap:7px; font-size:13px; color:#9ca3af; text-decoration:none; transition:color 0.15s; }
+        .footer-link:hover { color:#003054; }
+        .footer-copy { font-size:11px; color:#c9c5be; }
+        .footer-cancel { background:none; border:none; cursor:pointer; display:flex; align-items:center; gap:7px; font-size:13px; color:#9ca3af; transition:color 0.15s; font-family:'DM Sans',sans-serif; padding:0; }
+        .footer-cancel:hover { color:#e74c3c; }
+
+        /* MODAL */
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:100; display:flex; align-items:center; justify-content:center; padding:24px; }
+        .modal-box { background:#fff; border-radius:16px; padding:32px; max-width:400px; width:100%; box-shadow:0 8px 40px rgba(0,0,0,0.18); }
+        .modal-titulo { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:#003054; margin-bottom:8px; }
+        .modal-texto { font-size:14px; color:#6b7280; line-height:1.6; margin-bottom:24px; }
+        .modal-btns { display:flex; gap:10px; }
+        .modal-btn-confirmar { flex:1; padding:12px; background:#e74c3c; color:#fff; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:background 0.15s; }
+        .modal-btn-confirmar:hover { background:#c0392b; }
+        .modal-btn-confirmar:disabled { opacity:0.6; cursor:not-allowed; }
+        .modal-btn-voltar { flex:1; padding:12px; background:#f0eeea; color:#003054; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:background 0.15s; }
+        .modal-btn-voltar:hover { background:#e5e2dc; }
+
+        /* BANNER SUCESSO */
+        .banner-sucesso { background:rgba(0,200,148,0.08); border:1px solid rgba(0,200,148,0.25); border-radius:12px; padding:14px 18px; font-size:14px; color:#00a87a; text-align:center; width:100%; }
+
         /* RESPONSIVE */
         @media (max-width: 640px) {
           .topo-titulo { font-size:22px; }
@@ -229,6 +277,7 @@ export default function DashboardProPage() {
           .bv-titulo { font-size:20px; }
           .btn-ver-ultima { width:100%; justify-content:center; }
           .card-ultima { flex-direction:column; align-items:flex-start; }
+          .footer-links { gap:16px; }
         }
       `}</style>
 
@@ -438,7 +487,56 @@ export default function DashboardProPage() {
           )}
 
         </div>
+
+        {/* Footer */}
+        <div className="pro-footer">
+          {cancelouSucesso && (
+            <div className="banner-sucesso">
+              Assinatura cancelada. Você será redirecionado em instantes.
+            </div>
+          )}
+          <div className="footer-links">
+            <a href="mailto:contato@leme.app.br" className="footer-link">
+              <Mail size={14} />
+              contato@leme.app.br
+            </a>
+            <a href="https://wa.me/5521975191866" target="_blank" rel="noopener noreferrer" className="footer-link">
+              <MessageCircle size={14} />
+              WhatsApp
+            </a>
+            <button className="footer-cancel" onClick={() => setModalCancelar(true)}>
+              <XCircle size={14} />
+              Cancelar assinatura
+            </button>
+          </div>
+          <span className="footer-copy">© {new Date().getFullYear()} Leme · Todos os direitos reservados</span>
+        </div>
+
       </div>
+
+      {/* Modal confirmação cancelamento */}
+      {modalCancelar && (
+        <div className="modal-overlay" onClick={() => setModalCancelar(false)}>
+          <div className="modal-box" onClick={(e) => e.stopPropagation()}>
+            <p className="modal-titulo">Cancelar assinatura?</p>
+            <p className="modal-texto">
+              Você perderá acesso ao Leme Pro imediatamente. Seu histórico de análises ficará salvo, mas os recursos avançados serão desativados.
+            </p>
+            <div className="modal-btns">
+              <button className="modal-btn-voltar" onClick={() => setModalCancelar(false)}>
+                Voltar
+              </button>
+              <button
+                className="modal-btn-confirmar"
+                onClick={handleCancelarAssinatura}
+                disabled={cancelando}
+              >
+                {cancelando ? "Cancelando..." : "Confirmar cancelamento"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
