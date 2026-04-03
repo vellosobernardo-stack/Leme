@@ -1,16 +1,14 @@
 export { 
   Header, 
   Hero, 
-  SocialProof,
-  TrustBar,
-  FreePro,
-  PainSection,
-  ValueDelivery,
-  SituacoesReais,
-  Depoimentos, 
-  HowItWorks,
+  ComoFunciona,
+  SpotlightChat,
+  FreeValue,
+  ProFeatures,
+  ParaQuem,
+  Preco,
   FAQ, 
-  Authority, 
   CTAFinal, 
+  StickyCTA,
   Footer 
 } from "./LandingPage";

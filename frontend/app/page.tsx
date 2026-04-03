@@ -1,18 +1,15 @@
 import { 
   Header, 
   Hero, 
-  SocialProof,
-  TrustBar,
-  FreePro,
-  // HeroPreAbertura, // Temporariamente removido - foco na proposta central
-  PainSection,
-  ValueDelivery,
-  SituacoesReais,
-  Depoimentos, 
-  HowItWorks,
+  ComoFunciona,
+  SpotlightChat,
+  FreeValue,
+  ProFeatures,
+  ParaQuem,
+  Preco,
   FAQ, 
-  Authority, 
   CTAFinal, 
+  StickyCTA,
   Footer 
 } from "@/components/landing";
 import RefCapture from "@/components/landing/RefCapture";
@@ -24,19 +21,17 @@ export default function Home() {
       <Header />
       <main>
         <Hero />
-        <SocialProof /> 
-        <TrustBar />
-        <FreePro />
-        <PainSection />
-        <ValueDelivery />
-        <SituacoesReais />  
-        <Depoimentos />      
-        <HowItWorks />
-        <FAQ />             
-        <Authority />        
+        <ComoFunciona />
+        <SpotlightChat />
+        <FreeValue />
+        <ProFeatures />
+        <ParaQuem />
+        <Preco />
+        <FAQ />
         <CTAFinal />
       </main>
       <Footer />
+      <StickyCTA />
     </>
   );
 }
