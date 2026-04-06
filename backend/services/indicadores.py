@@ -108,10 +108,19 @@ def calcular_indicadores(dados: DadosAnaliseInput) -> IndicadoresCalculados:
     resultado_mes = receita - custo - despesas
     
     # ========== 3. FÔLEGO DE CAIXA ==========
-    despesa_diaria = despesas / 30 if despesas > 0 else 1
+    # Se despesas fixas = 0, usa custo de vendas como proxy
+    # (empresa tem custos operacionais, só não declarou fixos)
+    if despesas > 0:
+        despesa_diaria = despesas / 30
+    elif custo > 0:
+        despesa_diaria = custo / 30
+    else:
+        despesa_diaria = 1
+
     folego_caixa = int(caixa / despesa_diaria) if despesa_diaria > 0 else 0
-    # Fôlego não pode ser negativo (se caixa = 0, fôlego = 0)
     folego_caixa = max(folego_caixa, 0)
+    # Cap máximo: 365 dias — evita valores absurdos
+    folego_caixa = min(folego_caixa, 365)
     
     # ========== 4. PONTO DE EQUILÍBRIO ==========
     # Se margem bruta <= 0, o negócio não cobre nem os custos diretos
