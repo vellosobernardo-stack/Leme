@@ -71,6 +71,12 @@ class Usuario(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     ultima_analise_em = Column(DateTime(timezone=True), nullable=True)
 
+    # ========== CONTROLE DE E-MAILS (Fase 6) ==========
+    # Guarda a data do último envio do Lembrete Mensal Pro.
+    # Usado para idempotência: garante que não enviamos o mesmo lembrete
+    # mais de uma vez no mesmo mês para o mesmo usuário.
+    ultimo_lembrete_mensal_em = Column(DateTime, nullable=True)
+
     # ========== RELACIONAMENTOS (Fase 2) ==========
     analises = relationship("Analise", back_populates="usuario")
 

@@ -698,8 +698,13 @@ async def enviar_email_lembrete_mensal(
     mes_ultima_analise: str,
 ) -> bool:
     """
-    E3 — Lembrete mensal para usuários Pro que não fizeram análise em 28+ dias.
+    E3 — Lembrete mensal para usuários Pro no aniversário mensal da 1ª análise.
     Disparado pelo cron job diário em /api/v1/cron/lembrete-mensal.
+
+    Paleta corrigida pra ID Visual oficial:
+      Azul Petróleo: #112d4e
+      Laranja:       #f5793b
+      Cinza Claro:   #f4f4f4
     """
 
     assunto = f"Como está {nome_empresa} este mês?"
@@ -711,7 +716,7 @@ async def enviar_email_lembrete_mensal(
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
-    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #F8F7F5;">
+    <body style="margin: 0; padding: 0; font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f4f4f4;">
 
         <!-- Preheader invisível -->
         <div style="display: none; max-height: 0; overflow: hidden;">
@@ -721,17 +726,17 @@ async def enviar_email_lembrete_mensal(
         <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
 
             <!-- Faixa de topo -->
-            <div style="height: 4px; background: linear-gradient(to right, #003054, #E07B2A, #003054); border-radius: 4px 4px 0 0;"></div>
+            <div style="height: 4px; background: linear-gradient(to right, #112d4e, #f5793b, #112d4e); border-radius: 4px 4px 0 0;"></div>
 
             <div style="background-color: #ffffff; border-radius: 0 0 12px 12px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
 
                 <!-- Header -->
                 <div style="text-align: center; margin-bottom: 32px;">
                     <img src="{LOGO_URL}" alt="Leme" width="40" height="40" style="display: inline-block; vertical-align: middle; margin-right: 10px;">
-                    <span style="font-size: 24px; font-weight: bold; color: #003054; vertical-align: middle;">Leme</span>
+                    <span style="font-size: 24px; font-weight: bold; color: #112d4e; vertical-align: middle;">Leme</span>
                 </div>
 
-                <p style="color: #003054; font-size: 18px; font-weight: 600; margin-bottom: 8px;">
+                <p style="color: #112d4e; font-size: 18px; font-weight: 600; margin-bottom: 8px;">
                     Olá, {nome_empresa}
                 </p>
 
@@ -741,14 +746,14 @@ async def enviar_email_lembrete_mensal(
                 </p>
 
                 <!-- Destaque da última análise -->
-                <div style="background-color: #F8F7F5; border-left: 4px solid #003054; padding: 16px 20px; margin-bottom: 32px; border-radius: 0 8px 8px 0;">
-                    <p style="color: #003054; font-size: 13px; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+                <div style="background-color: #f4f4f4; border-left: 4px solid #112d4e; padding: 16px 20px; margin-bottom: 32px; border-radius: 0 8px 8px 0;">
+                    <p style="color: #112d4e; font-size: 13px; margin: 0 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
                         Na última análise ({mes_ultima_analise})
                     </p>
                     <p style="color: #4a5568; font-size: 15px; margin: 0;">
-                        Score <strong style="color: #003054;">{score_anterior}/100</strong>
+                        Score <strong style="color: #112d4e;">{score_anterior}/100</strong>
                         &nbsp;·&nbsp;
-                        Fôlego de <strong style="color: #003054;">{folego_anterior} dias</strong>
+                        Fôlego de <strong style="color: #112d4e;">{folego_anterior} dias</strong>
                         &nbsp;— o que mudou?
                     </p>
                 </div>
@@ -756,7 +761,7 @@ async def enviar_email_lembrete_mensal(
                 <!-- CTA -->
                 <div style="text-align: center; margin-bottom: 16px;">
                     <a href="https://leme.app.br/analise"
-                       style="display: inline-block; background-color: #003054; color: #ffffff; text-decoration: none; padding: 16px 36px; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                       style="display: inline-block; background-color: #f5793b; color: #ffffff; text-decoration: none; padding: 16px 36px; border-radius: 8px; font-weight: 600; font-size: 16px;">
                         Atualizar minha análise →
                     </a>
                 </div>
