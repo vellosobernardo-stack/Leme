@@ -77,6 +77,12 @@ class Usuario(Base):
     # mais de uma vez no mesmo mês para o mesmo usuário.
     ultimo_lembrete_mensal_em = Column(DateTime, nullable=True)
 
+    # Guarda a data do envio do email de Boas-vindas Pro.
+    # Disparado uma única vez no momento em que o usuário ativa o Pro
+    # (via webhook do Stripe). Idempotência: webhooks podem ser entregues
+    # várias vezes (retries, renovações), mas o email só sai uma.
+    email_boas_vindas_pro_enviado_em = Column(DateTime, nullable=True)
+
     # ========== RELACIONAMENTOS (Fase 2) ==========
     analises = relationship("Analise", back_populates="usuario")
 

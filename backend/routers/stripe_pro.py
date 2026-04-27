@@ -17,6 +17,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from services.stripe_pro_service import criar_checkout_assinatura, cancelar_assinatura
+from services.email_service import enviar_email_boas_vindas_pro
 from database import get_db
 from models.usuario import Usuario
 from routers.auth import get_usuario_atual
@@ -105,13 +106,9 @@ async def webhook_stripe_pro(
     Recebe eventos do Stripe e atualiza o status Pro do usuário.
 
     Eventos tratados:
-    - checkout.session.completed   → ativa pro_ativo = True
+    - checkout.session.completed   → ativa pro_ativo = True + envia email de boas-vindas
     - customer.subscription.deleted → desativa pro_ativo = False
     - invoice.payment_failed        → log (por enquanto não desativa)
-
-    Configure no Stripe Dashboard:
-    URL: https://sua-api.railway.app/stripe-pro/webhook
-    Eventos: checkout.session.completed, customer.subscription.deleted, invoice.payment_failed
     """
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
@@ -164,6 +161,30 @@ async def webhook_stripe_pro(
                 usuario.updated_at = datetime.utcnow()
                 db.commit()
                 print(f"[Stripe Pro Webhook] ✅ Pro ativado para {usuario.email}")
+
+                # ── EMAIL DE BOAS-VINDAS PRO ─────────────────────────────────
+                # Envia uma única vez por usuário. Se o webhook chegar de novo
+                # (retry, renovação, qualquer motivo), o IF abaixo é falso e
+                # nenhum email duplicado é enviado.
+                if usuario.email_boas_vindas_pro_enviado_em is None:
+                    nome_empresa = usuario.nome or "Empresário(a)"
+                    try:
+                        sucesso = await enviar_email_boas_vindas_pro(
+                            nome_empresa=nome_empresa,
+                            email=usuario.email,
+                        )
+                        if sucesso:
+                            usuario.email_boas_vindas_pro_enviado_em = datetime.utcnow()
+                            db.commit()
+                            print(f"[Stripe Pro Webhook] 📧 Email de boas-vindas Pro enviado para {usuario.email}")
+                        else:
+                            print(f"[Stripe Pro Webhook] ⚠️ Falha ao enviar email de boas-vindas Pro para {usuario.email}")
+                    except Exception as e:
+                        # Erro no email não derruba o webhook — Pro já foi ativado.
+                        # O Stripe não precisa fazer retry por isso.
+                        print(f"[Stripe Pro Webhook] ⚠️ Exceção ao enviar email de boas-vindas Pro: {e}")
+                else:
+                    print(f"[Stripe Pro Webhook] Email de boas-vindas Pro já foi enviado anteriormente para {usuario.email}")
             else:
                 print(f"[Stripe Pro Webhook] ⚠️ Usuário não encontrado: {usuario_id}")
 
