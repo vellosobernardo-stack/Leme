@@ -14,7 +14,7 @@ Executado pelo mesmo cron job que processa abandonos.
 
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, cast, String
 
 from models.analise import Analise
 from models.usuario import Usuario
@@ -40,7 +40,7 @@ async def processar_reengajamento_30_dias(db: Session) -> dict:
         "email_30d_enviados": 0,
         "email_30d_falhas": 0,
         "email_30d_ignorados": 0,
-        "email_30d_pulados_pro": 0,  # contador novo
+        "email_30d_pulados_pro": 0,
     }
 
     # Busca análises criadas entre 29 e 31 dias atrás
@@ -51,9 +51,13 @@ async def processar_reengajamento_30_dias(db: Session) -> dict:
     # LEFT JOIN com usuarios para checar pro_ativo.
     # Filtra fora quem é Pro: só vai email pra análise sem usuário (Free puro)
     # ou com usuário Free.
+    #
+    # NOTA TÉCNICA: usuarios.id é UUID nativo, analises.usuario_id é String(36).
+    # PostgreSQL exige cast explícito para comparar UUID com string.
+    # Em SQLite (local) isso passaria sem cast, mas Railway/PostgreSQL é rigoroso.
     analises = (
         db.query(Analise)
-        .outerjoin(Usuario, Analise.usuario_id == Usuario.id)
+        .outerjoin(Usuario, Analise.usuario_id == cast(Usuario.id, String))
         .filter(
             and_(
                 Analise.created_at >= limite_minimo,
@@ -81,7 +85,9 @@ async def processar_reengajamento_30_dias(db: Session) -> dict:
         # Camada extra de segurança: dupla checagem se o usuário virou Pro
         # entre a query e este momento (corrida improvável mas possível).
         if analise.usuario_id:
-            usuario = db.query(Usuario).filter(Usuario.id == analise.usuario_id).first()
+            usuario = db.query(Usuario).filter(
+                cast(Usuario.id, String) == analise.usuario_id
+            ).first()
             if usuario and usuario.pro_ativo:
                 stats["email_30d_pulados_pro"] += 1
                 continue
