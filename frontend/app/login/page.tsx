@@ -113,7 +113,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Senha */}
+{/* Senha */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold tracking-wide uppercase text-[#003054]/60">
                 Senha
@@ -138,6 +138,14 @@ export default function LoginPage() {
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
+              </div>
+              <div className="flex justify-end pt-1">
+                <Link
+                  href="/esqueci-senha"
+                  className="text-xs text-[#003054]/50 hover:text-[#E07B2A] transition-colors"
+                >
+                  Esqueci minha senha
+                </Link>
               </div>
             </div>
 
