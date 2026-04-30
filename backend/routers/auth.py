@@ -2,9 +2,12 @@
 Router de autenticação — endpoints públicos e protegidos
 
 Endpoints:
-- POST /auth/register  — cria novo usuário
-- POST /auth/login     — autentica e retorna JWT
-- GET  /auth/me        — retorna dados do usuário logado (requer token)
+- POST /auth/register          — cria novo usuário
+- POST /auth/login             — autentica e retorna JWT
+- POST /auth/logout            — remove cookie de autenticação
+- GET  /auth/me                — retorna dados do usuário logado (requer token)
+- POST /auth/esqueci-senha     — gera token de reset e envia email
+- POST /auth/redefinir-senha   — valida token e troca senha
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, Cookie
@@ -15,9 +18,16 @@ from typing import Optional
 from datetime import datetime
 from database import get_db
 from models.usuario import Usuario
-from services.auth_service import hash_senha, verificar_senha, criar_token, decodificar_token
+from services.auth_service import (
+    hash_senha,
+    verificar_senha,
+    criar_token,
+    decodificar_token,
+    gerar_token_reset,
+    verificar_token_reset,
+)
 from fastapi import BackgroundTasks
-from services.email_service import enviar_email_boas_vindas
+from services.email_service import enviar_email_boas_vindas, enviar_email_reset_senha
 
 router = APIRouter(
     prefix="/auth",
@@ -48,6 +58,15 @@ class UsuarioResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class EsqueciSenhaRequest(BaseModel):
+    email: EmailStr
+
+
+class RedefinirSenhaRequest(BaseModel):
+    token: str
+    nova_senha: str
 
 
 # ========== DEPENDÊNCIA: USUÁRIO AUTENTICADO ==========
@@ -214,3 +233,117 @@ def me(usuario: Usuario = Depends(get_usuario_atual)):
         pro_ativo=usuario.pro_ativo,
         created_at=usuario.created_at,
     )
+
+
+# ========== RESET DE SENHA ==========
+
+@router.post("/esqueci-senha")
+def esqueci_senha(
+    dados: EsqueciSenhaRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    """
+    Inicia o fluxo de reset de senha.
+
+    Comportamento de segurança:
+    - SEMPRE retorna a mesma mensagem genérica, exista o email ou não.
+      Isso impede que alguém descubra quais emails estão cadastrados
+      no Leme tentando vários no formulário.
+    - Se o email existir, gera um token de reset, salva o hash no banco,
+      e envia o email com o link em background (não bloqueia a resposta).
+    - Se já houver um token ativo, sobrescreve. Não vejo razão pra impedir
+      o usuário de pedir um novo link se ele perdeu o anterior.
+    """
+    usuario = db.query(Usuario).filter(Usuario.email == dados.email.lower().strip()).first()
+
+    # Email não existe: retorna sucesso genérico mesmo assim (proteção contra enumeração).
+    # Não fazemos nada no banco, não enviamos nada.
+    if not usuario:
+        return {
+            "mensagem": "Se este email existe na nossa base, você vai receber um link em alguns minutos."
+        }
+
+    # Email existe: gera token, salva hash + expiração, envia email em background.
+    token_puro, token_hash, expira_em = gerar_token_reset()
+
+    usuario.reset_token_hash = token_hash
+    usuario.reset_token_expira_em = expira_em
+    usuario.updated_at = datetime.utcnow()
+    db.commit()
+
+    background_tasks.add_task(
+        enviar_email_reset_senha,
+        nome_empresa=usuario.nome or "Empresário(a)",
+        email=usuario.email,
+        token_reset=token_puro,
+    )
+
+    return {
+        "mensagem": "Se este email existe na nossa base, você vai receber um link em alguns minutos."
+    }
+
+
+@router.post("/redefinir-senha")
+def redefinir_senha(
+    dados: RedefinirSenhaRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Conclui o fluxo de reset de senha.
+
+    Recebe o token (vindo da URL clicada pelo usuário) e a nova senha.
+    Valida o token contra o hash salvo no banco e a data de expiração.
+    Se válido: troca a senha, invalida o token (uso único).
+
+    Mensagens de erro são genéricas para não dar pistas a atacantes:
+    - "Link inválido ou expirado" cobre TODOS os casos de falha
+      (token errado, token expirado, token já usado, etc.).
+    """
+    import hashlib
+
+    # Valida que a nova senha tem tamanho mínimo razoável.
+    # 8 caracteres é o padrão básico — você pode endurecer depois se quiser.
+    if len(dados.nova_senha) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A nova senha precisa ter pelo menos 8 caracteres."
+        )
+
+    # Calcula o hash do token recebido para procurar no banco.
+    # Lembrando: o banco guarda o hash, não o token puro.
+    # Então a única forma de achar o usuário é hashear o que o cliente mandou
+    # e comparar com o hash salvo.
+    token_hash_recebido = hashlib.sha256(dados.token.encode("utf-8")).hexdigest()
+
+    usuario = db.query(Usuario).filter(
+        Usuario.reset_token_hash == token_hash_recebido
+    ).first()
+
+    if not usuario:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Link inválido ou expirado. Peça uma nova redefinição."
+        )
+
+    # Validação adicional: confirma que o token bate E não expirou.
+    # (Como já filtramos pelo hash, o "token bate" sempre será True aqui,
+    # mas a função também checa expiração — é o motivo dela existir.)
+    if not verificar_token_reset(
+        token_puro=dados.token,
+        token_hash_salvo=usuario.reset_token_hash,
+        expira_em=usuario.reset_token_expira_em,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Link inválido ou expirado. Peça uma nova redefinição."
+        )
+
+    # Tudo válido: troca a senha e invalida o token (uso único).
+    usuario.senha_hash = hash_senha(dados.nova_senha)
+    usuario.reset_token_hash = None
+    usuario.reset_token_expira_em = None
+    usuario.updated_at = datetime.utcnow()
+    db.commit()
+
+    return {"mensagem": "Senha redefinida com sucesso. Faça login com a nova senha."}

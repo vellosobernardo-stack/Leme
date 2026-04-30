@@ -83,6 +83,16 @@ class Usuario(Base):
     # várias vezes (retries, renovações), mas o email só sai uma.
     email_boas_vindas_pro_enviado_em = Column(DateTime, nullable=True)
 
+    # ========== RESET DE SENHA ==========
+    # Hash do token de reset de senha. Guardamos o HASH e não o token em si
+    # pelo mesmo motivo da senha: se o banco vazar, o atacante não consegue
+    # usar tokens roubados. O token original só existe no email enviado ao usuário.
+    reset_token_hash = Column(String(255), nullable=True)
+
+    # Quando o token expira. Definido como "agora + 1 hora" no momento da geração.
+    # Após esse momento, o token não funciona mais e o usuário precisa pedir um novo.
+    reset_token_expira_em = Column(DateTime, nullable=True)
+
     # ========== RELACIONAMENTOS (Fase 2) ==========
     analises = relationship("Analise", back_populates="usuario")
 

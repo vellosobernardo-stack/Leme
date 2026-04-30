@@ -922,3 +922,145 @@ async def enviar_email_boas_vindas_pro(
         assunto=assunto,
         html_content=html_content,
     )
+
+# =============================================================================
+# RESET DE SENHA — Email com link para redefinição
+# =============================================================================
+
+
+async def enviar_email_reset_senha(
+    nome_empresa: str,
+    email: str,
+    token_reset: str,
+) -> bool:
+    """
+    Email de reset de senha — disparado quando o usuário pede "Esqueci minha senha".
+
+    Recebe o token PURO (não o hash) para montar o link clicável.
+    O link tem validade de 1 hora a partir do envio.
+
+    Tom: direto, instrucional, sem floreio. É um email transacional —
+    o usuário pediu, o usuário recebe.
+
+    Paleta da ID Visual oficial:
+      Azul Petróleo: #112d4e
+      Laranja:       #f5793b
+      Cinza Claro:   #f4f4f4
+    """
+
+    assunto = "Redefinição de senha — Leme"
+    link_reset = f"https://leme.app.br/redefinir-senha?token={token_reset}"
+
+    html_content = f"""<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <title>Redefinição de senha</title>
+  <style type="text/css">
+    body, table, td, a {{ -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }}
+    table, td {{ mso-table-lspace: 0pt; mso-table-rspace: 0pt; }}
+    img {{ -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }}
+    body {{ margin: 0 !important; padding: 0 !important; width: 100% !important; }}
+    @media screen and (max-width: 600px) {{
+      .container {{ width: 100% !important; }}
+      .px-mobile {{ padding-left: 24px !important; padding-right: 24px !important; }}
+      .cta-mobile {{ width: 100% !important; box-sizing: border-box !important; }}
+    }}
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Montserrat', Helvetica, Arial, sans-serif;">
+
+  <div style="display: none; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #f4f4f4;">
+    Você pediu para redefinir sua senha do Leme. O link vale por 1 hora.
+  </div>
+
+  <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4;">
+    <tr>
+      <td align="center" style="padding: 32px 16px;">
+
+        <table role="presentation" class="container" width="600" border="0" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+
+          <tr>
+            <td style="background-color: #112d4e; padding: 28px 40px;" class="px-mobile">
+              <span style="color: #ffffff; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">Leme</span>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding: 40px;" class="px-mobile">
+
+              <h1 style="margin: 0 0 20px 0; color: #112d4e; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-size: 24px; line-height: 32px; font-weight: 700;">
+                Redefinição de senha
+              </h1>
+
+              <p style="margin: 0 0 16px 0; color: #1a1a1a; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 26px;">
+                Olá, {nome_empresa}.
+              </p>
+
+              <p style="margin: 0 0 24px 0; color: #1a1a1a; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 26px;">
+                Recebemos um pedido para redefinir a senha da sua conta no Leme. Clique no botão abaixo para criar uma nova senha:
+              </p>
+
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 32px;">
+                <tr>
+                  <td align="center">
+                    <a href="{link_reset}" class="cta-mobile" style="display: inline-block; background-color: #f5793b; color: #ffffff; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 700; line-height: 54px; text-align: center; text-decoration: none; padding: 0 42px; border-radius: 6px; -webkit-text-size-adjust: none;">
+                      Redefinir minha senha
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 0 0 16px 0; color: #5a6b7d; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 22px;">
+                Ou copie e cole este link no seu navegador:
+              </p>
+              <p style="margin: 0 0 32px 0; color: #112d4e; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-size: 13px; line-height: 20px; word-break: break-all;">
+                {link_reset}
+              </p>
+
+              <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #f4f4f4; border-radius: 8px; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 18px 22px;">
+                    <p style="margin: 0; color: #5a6b7d; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-size: 13px; line-height: 20px;">
+                      <strong style="color: #112d4e;">Este link vale por 1 hora.</strong> Depois disso, você precisará pedir uma nova redefinição.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 0; color: #5a6b7d; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-size: 13px; line-height: 20px;">
+                Se você não pediu essa redefinição, pode ignorar este email — sua senha continua a mesma.
+              </p>
+
+            </td>
+          </tr>
+
+          <tr>
+            <td style="background-color: #f4f4f4; padding: 20px 40px; border-top: 1px solid #e5e7eb;" class="px-mobile">
+              <p style="margin: 0; color: #9ca3af; font-family: 'Montserrat', Helvetica, Arial, sans-serif; font-size: 12px; line-height: 18px; text-align: center;">
+                <a href="https://leme.app.br" style="color: #5a6b7d; text-decoration: none; font-weight: 600;">leme.app.br</a>
+                &nbsp;·&nbsp;
+                Em caso de dúvida, escreva para
+                <a href="mailto:contato@leme.app.br" style="color: #5a6b7d; text-decoration: underline;">contato@leme.app.br</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
+"""
+
+    return await enviar_email(
+        para_email=email,
+        para_nome=nome_empresa,
+        assunto=assunto,
+        html_content=html_content,
+    )
