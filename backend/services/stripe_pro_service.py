@@ -26,6 +26,11 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "https://leme.app.br")
 async def criar_checkout_assinatura(usuario_id: str, email: str, plano: str = "mensal") -> dict:
     """
     Cria uma sessão de checkout no Stripe para assinatura mensal ou anual do Pro.
+
+    Inclui campo customizado obrigatório de CPF/CNPJ para emissão de nota fiscal.
+    O dado digitado pelo cliente fica acessível no painel do Stripe na seção
+    "Custom fields" do pagamento, e é usado manualmente para emitir NFS-e
+    no gov.br/nfse.
     """
     STRIPE_PRO_PRICE_MENSAL = os.getenv("STRIPE_PRO_PRICE_ID", "price_1T9nicFYVK9qebClXWvu8i7r")
     price_id = STRIPE_PRO_PRICE_ANUAL if plano == "anual" else STRIPE_PRO_PRICE_MENSAL
@@ -38,6 +43,28 @@ async def criar_checkout_assinatura(usuario_id: str, email: str, plano: str = "m
         allow_promotion_codes=True,
         success_url=f"{FRONTEND_URL}/dashboard/pro?assinatura=sucesso",
         cancel_url=f"{FRONTEND_URL}/assinar?cancelado=true",
+
+        # ── CAMPO CUSTOMIZADO: CPF/CNPJ ────────────────────────────────────────
+        # Stripe renderiza este campo no checkout entre email e forma de pagamento.
+        # Obrigatório (optional=False) — sem isso, o cliente não consegue finalizar.
+        # Limite de 18 caracteres aceita CNPJ formatado (XX.XXX.XXX/XXXX-XX),
+        # CPF formatado (XXX.XXX.XXX-XX) ou ambos sem formatação.
+        # Recuperado depois via painel do Stripe → Pagamentos → [pagamento] → Custom fields.
+        custom_fields=[
+            {
+                "key": "cpf_cnpj",
+                "label": {
+                    "type": "custom",
+                    "custom": "CPF ou CNPJ (para nota fiscal)",
+                },
+                "type": "text",
+                "optional": False,
+                "text": {
+                    "minimum_length": 11,
+                    "maximum_length": 18,
+                },
+            }
+        ],
     )
 
     return {
