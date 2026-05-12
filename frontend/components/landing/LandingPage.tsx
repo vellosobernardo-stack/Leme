@@ -561,6 +561,7 @@ export function FreeValue() {
 // O QUE O PRO DESBLOQUEIA
 // ============================================
 export function ProFeatures() {
+  const [videoAberto, setVideoAberto] = useState(false);
   const features = [
     { icon: Shield, title: "Simulador de sobrevivência", desc: "Quantos dias seu caixa aguenta sem faturar", color: "text-[#E07B2A]", bg: "bg-[#E07B2A]/10" },
     { icon: BarChart3, title: "Simulador de cenários", desc: "\"E se eu cortasse 20% dos custos?\"", color: "text-[#00c894]", bg: "bg-[#00c894]/10" },
@@ -599,16 +600,32 @@ export function ProFeatures() {
           ))}
         </div>
 
-        {/* Video placeholder */}
-        <Reveal delay={300}>
-          <div className="max-w-2xl mx-auto bg-[#003054] rounded-2xl p-12 flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4 hover:bg-white/20 transition-colors cursor-pointer">
-              <Play className="w-7 h-7 text-white ml-1" />
-            </div>
-            <p className="text-white/60 text-sm">Veja o Leme Pro em ação</p>
-            <p className="text-white/30 text-xs mt-1">Vídeo em breve</p>
-          </div>
-        </Reveal>
+{/* Vídeo Leme Pro */}
+<Reveal delay={300}>
+  <div className="max-w-2xl mx-auto bg-[#003054] rounded-2xl overflow-hidden aspect-video relative">
+    {!videoAberto ? (
+      <button
+        onClick={() => setVideoAberto(true)}
+        className="absolute inset-0 w-full h-full flex flex-col items-center justify-center text-center group cursor-pointer"
+        aria-label="Reproduzir vídeo do Leme Pro"
+      >
+        <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4 group-hover:bg-white/20 transition-colors">
+          <Play className="w-7 h-7 text-white ml-1" />
+        </div>
+        <p className="text-white/80 text-sm font-medium">Veja o Leme Pro em ação</p>
+        <p className="text-white/40 text-xs mt-1">1 min 27s</p>
+      </button>
+    ) : (
+      <iframe
+        src="https://www.youtube-nocookie.com/embed/SE8d1dBd964?autoplay=1&rel=0&modestbranding=1"
+        title="Leme Pro em ação"
+        className="absolute inset-0 w-full h-full"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    )}
+  </div>
+</Reveal>
       </div>
     </section>
   );
