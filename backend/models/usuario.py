@@ -55,6 +55,7 @@ class Usuario(Base):
     id = Column(GUID(), primary_key=True, default=uuid.uuid4)
     nome = Column(String(200), nullable=True)
     email = Column(String(100), nullable=False, unique=True, index=True)
+    telefone = Column(String(20), nullable=True)
     senha_hash = Column(String(255), nullable=False)
 
     # ========== PLANO ==========

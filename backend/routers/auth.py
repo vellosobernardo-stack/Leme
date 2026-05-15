@@ -40,6 +40,7 @@ router = APIRouter(
 class RegisterRequest(BaseModel):
     nome: Optional[str] = None
     email: EmailStr
+    telefone: str
     senha: str
 
 
@@ -142,6 +143,7 @@ def register(dados: RegisterRequest, background_tasks: BackgroundTasks, db: Sess
     usuario = Usuario(
         nome=dados.nome,
         email=dados.email.lower().strip(),
+        telefone=dados.telefone.strip(),
         senha_hash=hash_senha(dados.senha),
         plano="free",
         pro_ativo=False,
