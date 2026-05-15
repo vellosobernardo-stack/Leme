@@ -3,20 +3,26 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Eye, EyeOff, ArrowLeft, Mail, User, Lock } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, Mail, User, Lock, Phone } from "lucide-react";
 
 export default function CadastroPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
 
   const senhasOk = senha.length >= 6 && senha === confirmar;
-  const isValid = nome.trim().length >= 2 && email.length > 0 && senhasOk;
+  const telefoneOk = telefone.trim().length >= 8;
+  const isValid =
+    nome.trim().length >= 2 &&
+    email.length > 0 &&
+    telefoneOk &&
+    senhasOk;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -24,6 +30,11 @@ export default function CadastroPage() {
 
     if (!senhasOk) {
       setErro("As senhas não conferem ou são muito curtas.");
+      return;
+    }
+
+    if (!telefoneOk) {
+      setErro("Informe um telefone válido.");
       return;
     }
 
@@ -36,7 +47,12 @@ export default function CadastroPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ nome: nome || undefined, email, senha }),
+          body: JSON.stringify({
+            nome: nome || undefined,
+            email,
+            telefone: telefone.trim(),
+            senha,
+          }),
         }
       );
 
@@ -114,7 +130,6 @@ export default function CadastroPage() {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold tracking-wide uppercase text-[#003054]/60">
                 Nome da Empresa <span className="text-red-400">*</span>
-
               </label>
               <div className="relative">
                 <User
@@ -146,6 +161,27 @@ export default function CadastroPage() {
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full pl-9 pr-4 py-3 text-sm bg-[#F8F7F5] border border-[#E8E5E0] rounded-lg text-[#003054] placeholder:text-[#003054]/30 focus:outline-none focus:border-[#003054] focus:ring-1 focus:ring-[#003054]/20 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Telefone (WhatsApp) */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold tracking-wide uppercase text-[#003054]/60">
+                Telefone (WhatsApp) <span className="text-red-400">*</span>
+              </label>
+              <div className="relative">
+                <Phone
+                  size={15}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#003054]/30"
+                />
+                <input
+                  type="tel"
+                  placeholder="(21) 99999-9999"
+                  value={telefone}
+                  onChange={(e) => setTelefone(e.target.value)}
                   required
                   className="w-full pl-9 pr-4 py-3 text-sm bg-[#F8F7F5] border border-[#E8E5E0] rounded-lg text-[#003054] placeholder:text-[#003054]/30 focus:outline-none focus:border-[#003054] focus:ring-1 focus:ring-[#003054]/20 transition-all"
                 />
